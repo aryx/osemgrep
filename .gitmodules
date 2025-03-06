@@ -150,3 +150,7 @@ url = https://github.com/semgrep/semgrep-circom.git
 [submodule "OSS/languages/elixir/tree-sitter/semgrep-elixir"]
 	path = languages/elixir/tree-sitter/semgrep-elixir
 	url = https://github.com/returntocorp/semgrep-elixir
+
+[submodule "OSS/languages/toml/tree-sitter/semgrep-toml"]
+path = languages/toml/tree-sitter/semgrep-toml
+url = https://github.com/semgrep/semgrep-toml.git
