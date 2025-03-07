@@ -15,6 +15,7 @@
 open Common
 open Fpath_.Operators
 module SS = Set.Make (String)
+module Fpaths = Set.Make (Fpath)
 
 (*****************************************************************************)
 (* Prelude *)
@@ -51,14 +52,14 @@ type diff_scan_func =
    are equal. *)
 let remove_matches_in_baseline caps (commit : string) (baseline : Core_result.t)
     (head : Core_result.t)
-    (renamed : (string (* filename *) * string (* filename *)) list) =
+    (renamed : (Fpath.t * Fpath.t) list) =
   let extract_sig renamed (m : Core_match.t) =
     let rule_id = m.rule_id in
     let path =
-      !!(m.path.internal_path_to_content) |> fun p ->
+      m.path.internal_path_to_content |> fun p ->
       Option.bind renamed
         (List_.find_some_opt (fun (before, after) ->
-             if after = p then Some before else None))
+             if Fpath.equal after p then Some before else None))
       |> Option.value ~default:p
     in
     let start_range, end_range = m.range_loc in
@@ -80,7 +81,7 @@ let remove_matches_in_baseline caps (commit : string) (baseline : Core_result.t)
     (rule_id, path, syntactic_ctx)
   in
   let sigs = Hashtbl.create 10 in
-  Git_wrapper.run_with_worktree caps ~commit (fun () ->
+  Git_wrapper.run_with_worktree_exn caps ~commit (fun () ->
       List.iter
         (fun ({ pm; _ } : Core_result.processed_match) ->
           pm |> extract_sig None |> fun x -> Hashtbl.add sigs x true)
@@ -131,10 +132,10 @@ let scan_baseline_and_remove_duplicates (caps : < Cap.chdir ; Cap.tmp ; .. >)
   let/ r = result_or_exn in
   if r.processed_matches <> [] then
     let add_renamed paths =
-      List.fold_left (fun x (y, _) -> SS.add y x) paths status.renamed
+      List.fold_left (fun x (y, _) -> Fpaths.add y x) paths status.renamed
     in
     let remove_added paths =
-      List.fold_left (Fun.flip SS.remove) paths status.added
+      List.fold_left (Fun.flip Fpaths.remove) paths status.added
     in
     let rules_in_match =
       r.processed_matches
@@ -151,30 +152,34 @@ let scan_baseline_and_remove_duplicates (caps : < Cap.chdir ; Cap.tmp ; .. >)
     in
     let baseline_result =
       Profiler.record profiler ~name:"baseline_core_time" (fun () ->
-          Git_wrapper.run_with_worktree caps ~commit (fun () ->
+          (* TODO explain this code, break it down into functions and test
+             them.
+             Or delete this code. *)
+          Git_wrapper.run_with_worktree_exn caps ~commit (fun () ->
               let prepare_targets paths =
-                paths |> SS.of_list |> add_renamed |> remove_added |> SS.to_seq
-                |> Seq.filter_map (fun x ->
+                (* TODO: what's happening here? *)
+                paths |> Fpaths.of_list |> add_renamed |> remove_added
+                |> Fpaths.to_seq
+                |> Seq.filter_map (fun path ->
                        if
-                         Sys.file_exists x
+                         Sys.file_exists !!path
                          &&
-                         match (Unix.lstat x).st_kind with
+                         match (Unix.lstat !!path).st_kind with
                          | S_LNK -> false
                          | _ -> true
-                       then Some (Fpath.v x)
+                       then Some path
                        else None)
                 |> List.of_seq
               in
               let paths_in_match =
                 r.processed_matches
                 |> List_.map (fun ({ pm; _ } : Core_result.processed_match) ->
-                       !!(pm.path.internal_path_to_content))
+                       pm.path.internal_path_to_content)
                 |> prepare_targets
               in
               let paths_in_scanned =
                 r.scanned
-                |> List_.map (fun p ->
-                       p |> Target.internal_path |> Fpath.to_string)
+                |> List_.map (fun p -> p |> Target.internal_path)
                 |> prepare_targets
               in
               let baseline_targets, baseline_diff_targets =
@@ -204,7 +209,7 @@ let scan_baseline_and_remove_duplicates (caps : < Cap.chdir ; Cap.tmp ; .. >)
                 baseline_targets baseline_rules))
     in
     match baseline_result with
-    | Error _exn -> baseline_result
+    | Error _exn -> (* TODO: don't ignore exceptions *) baseline_result
     | Ok baseline_r ->
         Ok (remove_matches_in_baseline caps commit baseline_r r status.renamed)
   else Ok r
@@ -220,12 +225,12 @@ let scan_baseline (caps : < Cap.chdir ; Cap.tmp ; .. >) (conf : Scan_CLI.conf)
   Logs.info (fun m ->
       m "running differential scan on base commit %s" baseline_commit);
   Metrics_.g.payload.environment.isDiffScan <- true;
-  let commit = Git_wrapper.merge_base baseline_commit in
-  let status = Git_wrapper.status ~cwd:(Fpath.v ".") ~commit () in
+  let commit = Git_wrapper.merge_base_exn ~commit:baseline_commit in
+  let status = Git_wrapper.status_exn ~cwd:(Fpath.v ".") ~commit () in
   let diff_depth = Differential_scan_config.default_depth in
   let targets, diff_targets =
     let added_or_modified =
-      status.added @ status.modified |> List_.map Fpath.v
+      status.added @ status.modified
     in
     match conf.engine_type with
     | PRO Engine_type.{ analysis = Interfile; _ } -> (targets, added_or_modified)
