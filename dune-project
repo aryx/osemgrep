@@ -28,7 +28,148 @@
 (maintainers "Semgrep authors")
 (authors "Semgrep authors")
 
-;; Opam packages (sorted alphabetically)
+;; OSemgrep package
+;; coupling: if you modify this package, type 'make osemgrep.opam'
+(package (name osemgrep)
+  (allow_empty) ; needed to avoid a 'dune build' error
+  (synopsis "Like grep but for code: fast and syntax-aware semantic code pattern for many languages")
+  (description "\
+OSemgrep is like grep but for searching patterns at the AST level while
+leveraging semantic information (e.g., types, control flow) for powerful
+matching.
+
+For more information see https://semgrep.dev
+"
+  )
+  (maintainers "Yoann Padioleau <yoann.padioleau@gmail.com>")
+  (authors "Yoann Padioleau <yoann.padioleau@gmail.com>")
+  (license "LGPL-2.1-only")
+
+; note: these are build dependencies. Development-only deps are in 'dev/*.opam'.
+
+; note: vendored libs are listed here so we pull in their opam dependencies
+; (e.g., ocaml-tree-sitter-core -> tsort). They are pinned in
+; semgrep.opam.template to the local version, so we don't have to worry about
+; publishing to opam. If you want to add another, add it below and pin it there
+;
+; coupling: because of the way we need to statically link on macOS, if you add a
+; library here, you'll probably need to update src/main/flags.sh if this library
+; has some C stubs.
+;
+; coupling: if you add a dependency here and the nix workflow fails, you may
+; need to manually trigger the "nix-weekly-update-flake" workflow
+  (depends
+    ; core deps
+    (ocaml (>= 4.13.0))
+    (dune (>= 2.7.0 ))
+    base
+    ; parser generators
+    (menhir (= 20230608))
+    ; vendored in libs/ocaml-tree-sitter-core
+    tree-sitter
+    ; standard libraries
+    ; We don't use Base directly. If it's being used indirectly
+    ; (is it, though?), we need a version that doesn't register
+    ; rogue exception printers.
+    ; See https://github.com/janestreet/base/issues/146
+    (base (>= v0.15.1))
+    fpath
+    bos
+    fileutils
+    ; unit testing (note that testo is vendored in libs/)
+    testo
+    alcotest
+    alcotest-js
+    alcotest-lwt
+    calendar
+    ; text and terminal formating
+    fmt
+    ocolor
+    ANSITerminal
+    terminal_size
+    ; Unicode - used via python-str-repr
+    uucp
+    uutf
+    ; logging
+    logs
+    ; JSON/YAML/XML
+    atdgen
+    (yojson ( >= 2.0.0 ))
+    yaml
+    xmlm
+    (sarif ( >= 0.3.0 ))
+    ; CLI
+    cmdliner
+    ; PPX
+    ppxlib
+    (ppx_deriving ( >= 6.0.3 ))
+    ppx_deriving_yojson
+    ppx_hash
+    ppx_inline_test
+    (ppx_sexp_conv ( = v0.16.0))
+    ppx_expect
+    (visitors (= 20210608))
+    ; regexps
+    re
+    pcre
+    ; we're currently "vendoring" pcre2 in libs/pcre2
+    pcre2
+    ; misc
+    ocamlgraph
+    parmap
+    semver
+    (timedesc (>= 2.0.0)) ; used via git-wrapper
+    (lsp (= 1.20.1))
+    git
+    ; tracing
+    trace
+    memtrace
+    ppx_trace
+    (opentelemetry (= 0.10))
+    ; needed by opentelemetry-client-ocurl but the latest, 0.9.2
+    ; does not work under windows (see https://github.com/ygrek/ocurl/issues/77)
+    ; hence the pin to 0.9.1
+    (ocurl (= 0.9.1))
+    opentelemetry-client-ocurl
+    ambient-context-lwt
+    conf-libcurl
+    ; web stuff
+    uri
+    (uuidm (>= 0.9.9))
+    (cohttp (= 6.0.0)) ; 6.0.0 for better error handling
+    cohttp-lwt-unix
+    cohttp-lwt-jsoo
+    tls-lwt ; needed for TLS support in the cohttp HTTP client (only TLS 1.3 seems to work)
+    emile
+    (digestif (>= 1.0.0))
+    (tls-mirage (= 0.17.3)) ; force older version of tls-mirage to make windows work
+    ; concurrency
+    lwt
+    lwt_ppx
+    (conf-libev (<> :os win32)) ; for lwt, to get better FD perf
+    ; jsoo
+    (js_of_ocaml (= 5.8.2))
+    (js_of_ocaml-compiler (= 5.8.2))
+    (js_of_ocaml-ppx (= 5.8.2))
+    (js_of_ocaml-lwt (= 5.8.2))
+    integers_stubs_js
+    ;TODO: this is for secrets and should be in ../dune-project but doing so
+    ; slows down a lot our CI because it pulls dependencies that seem
+    ; to cause the removal and recompilation of many packages (e.g., tls) and
+    ; make our GHA opam cache useless. We might need to install here instead
+    ; packages that would avoid this effect.
+    git-unix
+  )
+)
+
+;; need to provide also a semgrep package otherwise have to rename all
+;; semgrep.xxx packages
+(package (name semgrep)
+  (synopsis "XXX")
+  (description "XXX")
+)
+
+;; Other opam packages (sorted alphabetically)
 
 (package
   (name aliengrep)
@@ -424,132 +565,6 @@ metrics
     (ocaml (>= "4.13.0"))
     (dune (>= "3.2.0" ))
     (commons (>= "1.5.5"))
-  )
-)
-
-;; need to provide also a semgrep package otherwise have to rename all
-;; semgrep.xxx packages
-(package (name semgrep)
-  (synopsis "XXX")
-  (description "XXX")
-)
-
-;; coupling: if you modify this package, type 'make osemgrep.opam'
-(package (name osemgrep)
-  (allow_empty) ; needed to avoid a 'dune build' error
-  (synopsis "Like grep but for code: fast and syntax-aware semantic code pattern for many languages")
-  (description "\
-OSemgrep is like grep but for searching patterns at the AST level while
-leveraging semantic information (e.g., types, control flow) for powerful
-matching.
-
-For more information see https://semgrep.dev
-"
-  )
-  (maintainers "Yoann Padioleau <yoann.padioleau@gmail.com>")
-  (authors "Yoann Padioleau <yoann.padioleau@gmail.com>")
-  (license "LGPL-2.1-only")
-
-;note: these are build dependencies. Development-only deps are in 'dev/*.opam'.
-;note: we don't include here as dependencies all the libraries
-; that are "vendored" inside semgrep (e.g., commons, aliengrep, pcre2)
-;coupling: because of the way we need to statically link on macOS, if
-; you add a library here, you'll probably need to update src/main/flags.sh
-; if this library has some C stubs.
-;
-; coupling: if you add a dependency here and the nix workflow fails, you may
-; need to manually trigger the "nix-weekly-update-flake" workflow
-;
-;TODO: restore  "bisect_ppx" {>= "2.5.0"} once can use ppxlib 0.22.0
-  (depends
-    ; core deps
-    (ocaml (>= 4.13.0))
-    (dune (>= 2.7.0 ))
-    ; parser generators
-    (menhir (= 20230608))
-    ; standard libraries
-    fpath
-    bos
-    fileutils
-    ; unit testing
-    (testo (= 0.1.0))
-    (testo-lwt (= 0.1.0))
-    ; TODO? still need those alcotest-xx now that we use testo?
-    alcotest
-    alcotest-lwt
-    calendar
-    ; text and terminal formating
-    fmt
-    ocolor
-    ANSITerminal
-    terminal_size
-    ; Unicode - used via python-str-repr
-    uucp
-    uutf
-    (notty (<> :os win32))
-    ; logging
-    logs
-    ; JSON/YAML/XML
-    atdgen
-    (yojson ( >= 2.0.0 ))
-    yaml
-    xmlm
-    (sarif ( >= 0.3.0 ))
-    ; CLI
-    (cmdliner (= 1.3.0))
-    ; PPX
-    ppxlib
-    (ppx_deriving ( >= 6.0.3 ))
-    ppx_deriving_yojson
-    ppx_hash
-    ppx_inline_test
-    (ppx_sexp_conv ( = v0.16.0))
-    ppx_expect
-    (visitors (= 20210608))
-    ; regexps
-    re
-    pcre
-    (pcre2 (>= "7.5.3" ))
-    ; misc
-    ocamlgraph
-    parmap
-    semver
-    (timedesc (>= 2.0.0)) ; used via git-wrapper
-    (lsp (= 1.20.1))
-    git
-    ; tracing
-    trace
-    memtrace
-    ppx_trace
-    (opentelemetry (= 0.10))
-    ; needed by opentelemetry-client-ocurl but the latest, 0.9.2
-    ; does not work under windows (see https://github.com/ygrek/ocurl/issues/77)
-    ; hence the pin to 0.9.1
-    (ocurl (= 0.9.1))
-    opentelemetry-client-ocurl
-    ambient-context-lwt
-    conf-libcurl
-    ; web stuff
-    uri
-    (uuidm (>= 0.9.9))
-    (cohttp (= 6.0.0)) ; 6.0.0 for better error handling
-    cohttp-lwt-unix
-    ;OLD: cohttp-lwt-jsoo (was causing conflicts)
-    tls-lwt ; needed for TLS support in the cohttp HTTP client (only TLS 1.3 seems to work)
-    emile
-    (digestif (>= 1.0.0))
-    (tls-mirage (= 0.17.3)) ; force older version of tls-mirage to make windows work
-    ; concurrency
-    lwt
-    lwt_ppx
-    (conf-libev (<> :os win32)) ; for lwt, to get better FD perf
-    ; jsoo
-    (js_of_ocaml (= 5.8.2))
-    (js_of_ocaml-compiler (= 5.8.2))
-    (js_of_ocaml-ppx (= 5.8.2))
-    (js_of_ocaml-lwt (= 5.8.2))
-    ctypes_stubs_js
-    integers_stubs_js
   )
 )
 
