@@ -53,6 +53,8 @@ and show_kind =
   | DumpAST of Fpath.t * Lang.t
   | DumpConfig of Rules_config.config_string
   | DumpRuleV2 of Fpath.t
+  | DumpTargets of
+      Scanning_root.t * Find_targets.conf * Rules_config.config_string option
   (* 'semgrep show ???'
    * accessible also as 'semgrep scan --dump-engine-path
    * LATER: get rid of it? *)
@@ -126,6 +128,14 @@ let cmdline_term : conf Term.t =
           Debug { output_dir = Some (Fpath.v dir); root = Fpath.v root }
       | [ "debug"; root ] -> Debug { output_dir = None; root = Fpath.v root }
       | [ "debug" ] -> Debug { output_dir = None; root = Fpath.v "." }
+      | [ "dump-targets"; root ] ->
+          DumpTargets
+            (Scanning_root.of_string root, Find_targets.default_conf, None)
+      | [ "dump-targets"; root; config ] ->
+          DumpTargets
+            ( Scanning_root.of_string root,
+              Find_targets.default_conf,
+              Some config )
       | [] ->
           Error.abort
             (spf
