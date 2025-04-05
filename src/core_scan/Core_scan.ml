@@ -130,33 +130,6 @@ type caps = < Cap.fork ; Cap.time_limit ; Cap.memory_limit >
 type target_handler = Target.t -> Core_result.matches_single_file * bool
 
 (*****************************************************************************)
-(* Helpers *)
-(*****************************************************************************)
-
-(* TODO: move that in Pro_scan.ml *)
-let set_matches_to_proprietary_origin_if_needed (xtarget : Xtarget.t)
-    (matches : Core_result.matches_single_file) :
-    Core_result.matches_single_file =
-  (* If our target is a proprietary language, or we've been using the
-   * proprietary engine, then label all the resulting matches with the Pro
-   * engine kind. This can't really be done any later, because we need the
-   * language that we're running on.
-   *
-   * If those hooks are set, it's probably a pretty good indication that
-   * we're using Pro features.
-   *)
-  if
-    Option.is_some (Hook.get Dataflow_tainting.hook_function_taint_signature)
-    (* TODO? this is probably redundant as hook_mk_hook_function_taint_signature
-     * will lead to hook_function_taint_signature being set too
-     *)
-    || Option.is_some
-         (Hook.get Match_tainting_mode.hook_mk_hook_function_taint_signature)
-    || Analyzer.is_proprietary xtarget.analyzer
-  then Report_pro_findings.annotate_pro_findings xtarget matches
-  else matches
-
-(*****************************************************************************)
 (* Pysemgrep progress bar *)
 (*****************************************************************************)
 (* LATER: remove once osegmrep is fully done *)
@@ -768,7 +741,7 @@ let rules_for_target ~analyzer ~products ~origin ~respect_rule_paths rules =
 (*****************************************************************************)
 
 (* build the callback for iter_targets_and_get_matches_and_exn_to_errors
- * coupling: with SCA_scan.mk_target_handler
+ * coupling: with Pro_scan.mk_target_handler()
  *)
 let mk_target_handler (caps : < Cap.time_limit >) (config : Core_scan_config.t)
     (valid_rules : Rule.t list)
@@ -819,7 +792,6 @@ let mk_target_handler (caps : < Cap.time_limit >) (config : Core_scan_config.t)
       let matches : Core_result.matches_single_file =
         (* !!Calling Match_rules!! Calling the matching engine!! *)
         Match_rules.check ~matches_hook:Fun.id ~timeout xconf rules xtarget
-        |> set_matches_to_proprietary_origin_if_needed xtarget
       in
       (* So we can display matches incrementally in osemgrep!
           * Note that this is run in a child process of Parmap, so
@@ -829,9 +801,7 @@ let mk_target_handler (caps : < Cap.time_limit >) (config : Core_scan_config.t)
       print_cli_progress config;
       (matches, was_scanned)
 
-let mk_target_handler_hook = Hook.create mk_target_handler
-
-(* coupling: with Deep_scan.scan_aux() *)
+(* coupling: with Pro_scan.core_scan_exn() *)
 let scan_exn (caps : < caps ; .. >) (config : Core_scan_config.t)
     (rules : Rule_error.rules_and_invalid * float) : Core_result.t =
   Logs.debug (fun m -> m "Core_scan.scan_exn %s" (Core_scan_config.show config));
@@ -862,14 +832,10 @@ let scan_exn (caps : < caps ; .. >) (config : Core_scan_config.t)
     |> iter_targets_and_get_matches_and_exn_to_errors
          (caps :> < Cap.fork ; Cap.memory_limit >)
          config
-         ((Hook.get mk_target_handler_hook)
-            (caps :> < Cap.time_limit >)
+         (mk_target_handler
+            (caps :> < Cap.time_limit ; Cap.tmp >)
             config valid_rules prefilter_cache_opt)
   in
-
-  (* TODO: Delete any lockfile-only findings whose rule produced a code+lockfile
-     finding in that lockfile  in scanned_targets?
-  *)
 
   (* the OSS engine was invoked so no interfile langs *)
   let interfile_languages_used = [] in
@@ -905,8 +871,7 @@ let scan_exn (caps : < caps ; .. >) (config : Core_scan_config.t)
  * This is also now called from osemgrep.
  * It takes a set of rules and a set of targets and iteratively process those
  * targets.
- * coupling: If you modify this function, you probably need also to modify
- * Deep_scan.scan() in semgrep-pro which is mostly a copy-paste of this file.
+ * coupling: with Pro_scan.scan() which is a copy paste mostly
  *)
 let scan (caps : < caps ; .. >) (config : Core_scan_config.t) :
     Core_result.result_or_exn =
