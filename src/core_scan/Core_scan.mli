@@ -3,8 +3,7 @@
 type func = Core_scan_config.t -> Core_result.result_or_exn
 
 (* See the comment for scan() below explaining the need for those capabilities *)
-type caps =
-  < Cap.fork ; Cap.time_limit ; Cap.memory_limit ; Cap.readdir ; Cap.tmp >
+type caps = < Cap.fork ; Cap.time_limit ; Cap.memory_limit ; Cap.readdir >
 
 (* Entry point. This is used in Core_CLI.ml for semgrep-core, in tests,
  * and finally in osemgrep.
@@ -31,7 +30,6 @@ type caps =
  * We require Cap.fork for Parmap.
  * We require Cap.time_limit for timeout in Check_rules().
  * We require Cap.readdir for ??
- * We require Cap.tmp for ??
  *
  * The scan function has the type [func] defined above.
  *
@@ -119,6 +117,10 @@ val filter_files_with_too_many_matches_and_transform_as_timeout :
   * Semgrep_output_v1_j.skipped_target list
 
 val parse_equivalences : Fpath.t option -> Equivalence.equivalences
+
+(* small wrapper around Parse_target.parse_and_resolve_name *)
+val parse_and_resolve_name :
+  Lang.t -> Fpath.t -> AST_generic.program * Tok.location list
 
 val log_scan_inputs :
   Core_scan_config.t ->

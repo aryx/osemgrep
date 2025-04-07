@@ -106,7 +106,6 @@ let max_match_per_file = ref Core_scan_config.default.max_match_per_file
 
 (* -j *)
 let ncores = ref Core_scan_config.default.ncores
-
 (* ------------------------------------------------------------------------- *)
 (* optional optimizations *)
 (* ------------------------------------------------------------------------- *)
