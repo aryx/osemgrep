@@ -1263,7 +1263,7 @@ let run_conf (caps : < Cap_.readdir ; .. >) (conf : Interactive_CLI.conf) :
     |> List_.map (fun file ->
            let xtarget =
              Xtarget.resolve parser
-               (Target.mk_regular xlang Product.all (File file))
+               (Target.mk_target_origin xlang Product.all (File file))
            in
            Lock_protected.protect xtarget)
   in
