@@ -689,18 +689,6 @@ let o_pro_intrafile : bool Term.t =
   in
   Arg.value (Arg.flag info)
 
-let o_diff_depth : int Term.t =
-  let info =
-    Arg.info [ "diff-depth" ]
-      ~doc:
-        {|The depth of the Pro (interfile) differential scan, the number of
-       steps (both in the caller and callee sides) from the targets in the
-       call graph tracked by the deep preprocessor. Only applied in differential
-       scan mode. Default to 2.
-       |}
-  in
-  Arg.value (Arg.opt Arg.int 2 info)
-
 let o_pro_path_sensitive : bool Term.t =
   let info =
     Arg.info [ "pro-path-sensitive" ]
@@ -1336,7 +1324,7 @@ let cmdline_term caps ~allow_empty_config : conf Term.t =
      of the corresponding '$ o_xx $' further below!
   *)
   let combine allow_local_builds allow_untrusted_validators ast_caching autofix
-      baseline_commit common config dataflow_traces _diff_depthTODO dryrun
+      baseline_commit common config dataflow_traces dryrun
       dump_ast dump_command_for_core dump_engine_path emacs emacs_outputs error
       exclude_ exclude_minified_files exclude_rule_ids files_with_matches
       force_color gitlab_sast gitlab_sast_outputs gitlab_secrets
@@ -1561,7 +1549,7 @@ let cmdline_term caps ~allow_empty_config : conf Term.t =
      * combine above! *)
     const combine $ o_allow_local_builds $ o_allow_untrusted_validators
     $ o_ast_caching $ o_autofix $ o_baseline_commit $ CLI_common.o_common
-    $ o_config $ o_dataflow_traces $ o_diff_depth $ o_dryrun $ o_dump_ast
+    $ o_config $ o_dataflow_traces $ o_dryrun $ o_dump_ast
     $ o_dump_command_for_core $ o_dump_engine_path $ o_emacs $ o_emacs_outputs
     $ o_error $ o_exclude $ o_exclude_minified_files $ o_exclude_rule_ids
     $ o_files_with_matches $ o_force_color $ o_gitlab_sast
