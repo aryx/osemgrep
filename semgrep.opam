@@ -55,7 +55,7 @@ depends: [
   "parmap"
   "semver"
   "timedesc" {>= "2.0.0"}
-  "lsp" {= "1.20.0"}
+  "lsp" {= "1.20.1"}
   "git"
   "trace"
   "memtrace"
@@ -69,7 +69,6 @@ depends: [
   "uuidm" {>= "0.9.9"}
   "cohttp" {= "6.0.0"}
   "cohttp-lwt-unix"
-  "cohttp-lwt-jsoo"
   "tls-lwt"
   "emile"
   "digestif" {>= "1.0.0"}

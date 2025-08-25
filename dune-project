@@ -508,7 +508,7 @@ For more information see https://semgrep.dev
     parmap
     semver
     (timedesc (>= 2.0.0)) ; used via git-wrapper
-    (lsp (= 1.20.0))
+    (lsp (= 1.20.1))
     git
     ; tracing
     trace
@@ -527,7 +527,7 @@ For more information see https://semgrep.dev
     (uuidm (>= 0.9.9))
     (cohttp (= 6.0.0)) ; 6.0.0 for better error handling
     cohttp-lwt-unix
-    cohttp-lwt-jsoo
+    ;OLD: cohttp-lwt-jsoo (was causing conflicts)
     tls-lwt ; needed for TLS support in the cohttp HTTP client (only TLS 1.3 seems to work)
     emile
     (digestif (>= 1.0.0))
