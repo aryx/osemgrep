@@ -126,6 +126,9 @@ core:
 build-docker:
 	docker build -t semgrep --target semgrep-oss .
 
+build-docker-libs:
+	docker build -f Dockerfile.libs -t "semgrep-libs" .
+
 .PHONY: build-otarzan
 build-otarzan:
 	dune build $(BUILD)/install/default/bin/otarzan
