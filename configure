@@ -36,9 +36,9 @@ set -eu # to debug this script add '-x'
 # - check opam was initialized
 # - use opam.locked
 
-#in theory we should also
+#TODO: in theory we should also
 # - check the ocaml switch is a good version
-# - check external deps are installed (e.g., pcre)
+# - check external deps are installed (e.g., pcre, curl)
 
 #=~ opam install --no-depexts --deps-only ./semgrep.opam -y
 make setup

@@ -554,6 +554,10 @@ install-semgrep-libs: semgrep.opam
 	dune build
 	dune install
 
+# for codemap/codegraph/efuns/...
+dune-build-all:
+	dune build
+
 .PHONY: dump
 dump:
 	$(BUILD_DEFAULT)/tests/test.bc -dump_ast tests/lint/stupid.py
