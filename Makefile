@@ -128,6 +128,8 @@ build-docker:
 
 build-docker-libs:
 	docker build -f Dockerfile.libs -t "semgrep-libs" .
+build-docker-libs-ocaml5:
+	docker build -f Dockerfile.libs -t "semgrep-libs" --build-arg OCAML_VERSION=5.2.1 .
 
 .PHONY: build-otarzan
 build-otarzan:
