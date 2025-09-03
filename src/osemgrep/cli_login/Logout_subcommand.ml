@@ -29,7 +29,7 @@ let run_conf (caps : caps) (conf : Logout_CLI.conf) : Exit_code.t =
       (* stricter: not in pysemgrep *)
       Logs.warn (fun m ->
           m "You are not logged in! This command had no effect.");
-      CapConsole.print caps#stdout logout_message;
+      CapConsole.print caps logout_message;
       Exit_code.ok ~__LOC__
   | Some _ ->
       (* python: was in auth.py delete_token() *)
@@ -37,7 +37,7 @@ let run_conf (caps : caps) (conf : Logout_CLI.conf) : Exit_code.t =
       Logs.info (fun m -> m "Deleting api token from settings file");
       if Semgrep_settings.save settings then (
         (* old: {|%s Logged out! You can log back in with @{<cyan>`semgrep login`@}|} *)
-        CapConsole.print caps#stdout logout_message;
+        CapConsole.print caps logout_message;
         Exit_code.ok ~__LOC__)
       else Exit_code.fatal ~__LOC__
 

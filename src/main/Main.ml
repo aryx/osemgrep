@@ -83,8 +83,8 @@
 (*****************************************************************************)
 (* Helpers *)
 (*****************************************************************************)
-let eprint_experimental_windows (cap : Cap.Console.stderr) : unit =
-  let epr = CapConsole.eprint cap in
+let eprint_experimental_windows (caps : <Cap.stderr; .. >) : unit =
+  let epr = CapConsole.eprint caps in
   epr "!!!This is an experimental version of semgrep for Windows.!!!";
   epr "!!!Not all features may work. In case of problems, report here:!!!";
   epr "!!!https://github.com/semgrep/semgrep/issues/1330!!!";
@@ -101,7 +101,7 @@ let eprint_experimental_windows (cap : Cap.Console.stderr) : unit =
  *)
 let () =
   Cap.main (fun (caps : Cap.all_caps) ->
-      let argv = CapSys.argv caps#argv in
+      let argv = CapSys.argv caps in
       let argv0 =
         (* remove the possible ".exe" extension for Windows and ".bc" *)
         Fpath.v argv.(0) |> Fpath.base |> Fpath.rem_ext |> Fpath.to_string
@@ -117,7 +117,7 @@ let () =
           let exit_code =
             match argv0 with
             | "semgrep" ->
-                eprint_experimental_windows caps#stderr;
+                eprint_experimental_windows caps;
                 (* adding --experimemtal so we don't default back to pysemgrep *)
                 CLI.main
                   (caps :> CLI.caps)
@@ -129,7 +129,7 @@ let () =
                 m "Error: %s\nExiting with error status %i: %s\n%!"
                   exit_code.description exit_code.code
                   (String.concat " " (Array.to_list argv)));
-          CapStdlib.exit caps#exit exit_code.code
+          CapStdlib.exit caps exit_code.code
       (* legacy semgrep-core *)
       | _else_ -> begin
           (* Added as part of the upgrade to OCaml 5. Under our typical workloads, this

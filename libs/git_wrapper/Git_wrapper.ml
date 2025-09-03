@@ -445,11 +445,11 @@ let run_with_worktree (caps : < Cap.chdir ; Cap.tmp ; .. >) ~commit ?branch f =
   | Ok (`Exited 0) ->
       let work () =
         Fpath.append temp_dir relative_path
-        |> Fpath.to_string |> CapSys.chdir caps#chdir;
+        |> Fpath.to_string |> CapSys.chdir caps;
         f ()
       in
       let cleanup () =
-        cwd |> Fpath.to_string |> CapSys.chdir caps#chdir;
+        cwd |> Fpath.to_string |> CapSys.chdir caps;
         let cmd = (git, [ "worktree"; "remove"; !!temp_dir ]) in
         match UCmd.status_of_run ~quiet:true cmd with
         | Ok (`Exited 0) ->

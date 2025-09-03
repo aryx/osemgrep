@@ -349,7 +349,7 @@ let check_files (caps : < Cap.stdout ; Core_scan.caps ; Cap.readdir ; .. >)
         Core_result.mk_result_with_just_errors errors
       in
       let json = Core_json_output.core_output_of_matches_and_errors res in
-      CapConsole.print caps#stdout (SJ.string_of_core_output json)
+      CapConsole.print caps (SJ.string_of_core_output json)
 
 (* for semgrep-core -stat_rules *)
 let stat_files (caps : < Cap.stdout ; Cap.readdir ; .. >) xs =
@@ -384,5 +384,5 @@ let stat_files (caps : < Cap.stdout ; Cap.readdir ; .. >) xs =
              Logs.warn (fun m ->
                  m "stat_files: error in %a: %s" Fpath.pp file
                    (Rule_error.string_of_error e)));
-  CapConsole.print caps#stdout
+  CapConsole.print caps
     (spf "good = %d, no regexp found = %d" !good !bad)

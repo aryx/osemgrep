@@ -64,7 +64,7 @@ let dump_v_to_format ~json (v : OCaml.v) =
 let run_conf (caps : < caps ; .. >) (conf : Show_CLI.conf) : Exit_code.t =
   CLI_common.setup_logging ~force_color:false ~level:conf.common.logging_level;
   Logs.debug (fun m -> m "conf = %s" (Show_CLI.show_conf conf));
-  let print = CapConsole.print caps#stdout in
+  let print = CapConsole.print caps in
   match conf.show_kind with
   | Version ->
       print Version.version;

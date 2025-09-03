@@ -259,7 +259,7 @@ let mk_file_match_hook (conf : Scan_CLI.conf) (rules : Rule.rules)
 (* coupling: similar to Output.dispatch_output_format for Text *)
 let incremental_text_printer (caps : < Cap.stdout >) (conf : Scan_CLI.conf)
     (cli_matches : Out.cli_match list) : unit =
-  CapConsole.print_no_nl caps#stdout
+  CapConsole.print_no_nl caps
     (Text_output.matches_output
        ~max_chars_per_line:conf.output_conf.max_chars_per_line
        ~max_lines_per_finding:conf.output_conf.max_lines_per_finding cli_matches)
@@ -269,7 +269,7 @@ let incremental_json_printer (caps : < Cap.stdout >) (conf : Scan_CLI.conf)
   ignore conf;
   cli_matches
   |> List.iter (fun cli_match ->
-         CapConsole.print caps#stdout
+         CapConsole.print caps
            (Semgrep_output_v1_j.string_of_cli_match cli_match))
 
 let choose_output_format_and_match_hook (caps : < Cap.stdout >)
@@ -787,7 +787,7 @@ let run_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
    * (e.g., 'semgrep show version') instead of abusing 'semgrep scan' flags.
    *)
   | _ when conf.version ->
-      CapConsole.print caps#stdout Version.version;
+      CapConsole.print caps Version.version;
       (* TOPORT: if enable_version_check: version_check() *)
       Exit_code.ok ~__LOC__
   | _ when conf.test <> None ->

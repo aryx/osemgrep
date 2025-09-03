@@ -1,5 +1,5 @@
 val apply_in_child_process :
-  < Cap.fork > -> ?flags:Marshal.extern_flags list -> ('a -> 'b) -> 'a -> 'b
+  < Cap.fork; .. > -> ?flags:Marshal.extern_flags list -> ('a -> 'b) -> 'a -> 'b
 
 (*
  * The unit argument is actually so that a call to
@@ -7,7 +7,7 @@ val apply_in_child_process :
  * result.
  *)
 val apply_in_child_process_promise :
-  < Cap.fork > ->
+  < Cap.fork; .. > ->
   ?flags:Marshal.extern_flags list ->
   ('a -> 'b) ->
   'a ->

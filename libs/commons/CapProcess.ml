@@ -3,9 +3,9 @@
  * old: was called invoke() and was in pfff/commons/parallel.ml
  * related work: my pfff/commons/distribution.ml
  *)
-let apply_in_child_process_promise (caps : < Cap.fork >) ?(flags = []) f x =
+let apply_in_child_process_promise (caps : < Cap.fork; .. >) ?(flags = []) f x =
   let input, output = UUnix.pipe () in
-  match CapUnix.fork caps#fork () with
+  match CapUnix.fork caps () with
   (* error, could not create process, well compute now then *)
   | -1 ->
       let v = f x in
@@ -48,5 +48,5 @@ let apply_in_child_process_promise (caps : < Cap.fork >) ?(flags = []) f x =
              *)
             raise e)
 
-let apply_in_child_process (caps : < Cap.fork >) ?flags f x =
+let apply_in_child_process (caps : < Cap.fork; .. >) ?flags f x =
   apply_in_child_process_promise caps ?flags f x ()

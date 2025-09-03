@@ -63,12 +63,12 @@ let dump_il_all (caps : < Cap.stdout >) file =
   let lang = Lang.lang_of_filename_exn file in
   Naming_AST.resolve lang ast;
   let xs = AST_to_IL.stmt lang (AST_generic.stmt1 ast) in
-  xs |> List.iter (fun stmt -> CapConsole.print caps#stdout (IL.show_stmt stmt))
+  xs |> List.iter (fun stmt -> CapConsole.print caps (IL.show_stmt stmt))
 [@@action]
 
 let dump_il (caps : < Cap.stdout >) file =
   let module G = AST_generic in
-  let print s = CapConsole.print caps#stdout s in
+  let print s = CapConsole.print caps s in
   let ast = Parse_target.parse_program file in
   let lang = Lang.lang_of_filename_exn file in
   Naming_AST.resolve lang ast;
@@ -111,14 +111,14 @@ let dump_exts_of_lang (caps : < Cap.stdout >) () =
                lang_str ^ "->" ^ String.concat ", " (Lang.exts_of_lang lang)
            | None -> "")
   in
-  CapConsole.print caps#stdout
+  CapConsole.print caps
     (spf "Language to supported file extension mappings:\n %s"
        (String.concat "\n" lang_to_exts))
 [@@action]
 
 let dump_equivalences (caps : < Cap.stdout >) file =
   let xs = Parse_equivalences.parse file in
-  CapConsole.print caps#stdout (Dumper.dump xs)
+  CapConsole.print caps (Dumper.dump xs)
 [@@action]
 
 let dump_rule (file : Fpath.t) : unit =

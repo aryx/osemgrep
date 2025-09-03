@@ -335,7 +335,7 @@ let tests_result_of_tests_result (results : tests_result) (errors : error list)
 
 let report_tests_result (caps : < Cap.stdout >) ~matching_diagnosis ~json
     (res : Out.tests_result) : unit =
-  let print str = CapConsole.print caps#stdout str in
+  let print str = CapConsole.print caps str in
   if json then
     let s = Out.string_of_tests_result res in
     print s

@@ -162,7 +162,7 @@ let format (kind : Output_format.t) (ctx : Out.format_context)
 let dispatch_output_format (caps : < Cap.stdout >) (conf : conf)
     (ctx : Out.format_context) (cli_output : Out.cli_output)
     (hrules : Rule.hrules) : unit =
-  let print = CapConsole.print caps#stdout in
+  let print = CapConsole.print caps in
   match conf.output_format with
   (* matches have already been displayed in a file_match_results_hook *)
   | Incremental -> ()
@@ -173,7 +173,7 @@ let dispatch_output_format (caps : < Cap.stdout >) (conf : conf)
   | Gitlab_secrets -> format Gitlab_secrets ctx cli_output |> List.iter print
   | Json -> format Json ctx cli_output |> List.iter print
   | Text ->
-      CapConsole.print_no_nl caps#stdout
+      CapConsole.print_no_nl caps
         (Text_output.text_output ~max_chars_per_line:conf.max_chars_per_line
            ~max_lines_per_finding:conf.max_lines_per_finding cli_output)
   | Sarif ->

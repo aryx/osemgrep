@@ -218,10 +218,10 @@ let dump_ast ?(naming = false) (caps : < Cap.stdout ; Cap.exit >)
       (* 80 columns is too little *)
       Format.set_margin 120;
       let s = dump_v_to_format v in
-      CapConsole.print caps#stdout s;
+      CapConsole.print caps s;
       if Parsing_result2.has_error res then (
         log_parsing_errors file res;
-        Core_exit_code.(exit_semgrep caps#exit False)))
+        Core_exit_code.(exit_semgrep caps False)))
 [@@action]
 
 (*****************************************************************************)
@@ -268,10 +268,10 @@ let output_core_results (caps : < Cap.stdout ; Cap.stderr ; Cap.exit >)
       let s = Out.string_of_core_output res in
       Logs.debug (fun m ->
           m "size of returned JSON string: %d" (String.length s));
-      CapConsole.print caps#stdout s;
+      CapConsole.print caps s;
       match result_or_exn with
       | Error exn ->
-          Core_exit_code.exit_semgrep caps#exit (Unknown_exception exn)
+          Core_exit_code.exit_semgrep caps (Unknown_exception exn)
       | Ok _ -> ())
   (* The matches have already been printed before in Core_scan.scan(). We just
    * print the errors here (and matching explanations).
@@ -285,7 +285,7 @@ let output_core_results (caps : < Cap.stdout ; Cap.stderr ; Cap.exit >)
             |> List_.filter_map (fun processed_match ->
                    match Core_json_output.match_to_match processed_match with
                    | Error (e : Core_error.t) ->
-                       CapConsole.eprint caps#stderr
+                       CapConsole.eprint caps
                          (Core_error.string_of_error e);
                        None
                    | Ok (match_ : Out.core_match) -> Some match_)
@@ -624,21 +624,21 @@ let options caps (actions : unit -> Arg_.cmdline_actions) =
         Arg.Unit
           (fun () ->
             let version = spf "semgrep-core version: %s" Version.version in
-            CapConsole.print caps#stdout version;
-            Core_exit_code.(exit_semgrep caps#exit Success)),
+            CapConsole.print caps version;
+            Core_exit_code.(exit_semgrep caps Success)),
         "  guess what" );
       ( "-ocaml_version",
         Arg.Unit
           (fun () ->
             let version = spf "OCaml version: %s" Sys.ocaml_version in
-            CapConsole.print caps#stdout version;
-            Core_exit_code.(exit_semgrep caps#exit Success)),
+            CapConsole.print caps version;
+            Core_exit_code.(exit_semgrep caps Success)),
         "  The version of OCaml that was used to build this binary" );
       ( "-rpc",
         Arg.Unit
           (fun () ->
             RPC.main (caps :> < Cap.exec ; Cap.tmp ; Cap.network >);
-            Core_exit_code.(exit_semgrep caps#exit Success)),
+            Core_exit_code.(exit_semgrep caps Success)),
         " don't use this unless you already know" );
     ]
 
@@ -719,7 +719,7 @@ let main_exn (caps : Cap.all_caps) (argv : string array) : unit =
    * > ignoring SIGXFSZ, continued attempts to increase the size of a file
    * > beyond the limit will fail with errno set to EFBIG.
    *)
-  if Sys.unix then CapSys.set_signal caps#signal Sys.sigxfsz Sys.Signal_ignore;
+  if Sys.unix then CapSys.set_signal caps Sys.sigxfsz Sys.Signal_ignore;
 
   let usage_msg =
     spf "Usage: %s [options] -rules <file> -targets <file>\nOptions:"

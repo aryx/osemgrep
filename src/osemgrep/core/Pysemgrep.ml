@@ -25,4 +25,4 @@ let pysemgrep (caps : < Cap.exec >) argv =
         |> String.concat " "));
   (* pysemgrep should be in the PATH, thx to the code in
      ../../../cli/bin/semgrep *)
-  CapUnix.execvp caps#exec "pysemgrep" argv
+  CapUnix.execvp caps "pysemgrep" argv

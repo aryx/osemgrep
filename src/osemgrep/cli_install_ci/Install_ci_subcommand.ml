@@ -363,7 +363,7 @@ let prep_repo (caps : < caps ; .. >) (repo : Fpath.t) : Fpath.t =
   else
     let tmp_dir =
       CapTmp.get_temp_dir_name caps#tmp
-      / spf "semgrep_install_ci_%6X" (CapRandom.int caps#random 0xFFFFFF)
+      / spf "semgrep_install_ci_%6X" (CapRandom.int caps 0xFFFFFF)
     in
     mkdir_if_needed !!tmp_dir;
     clone_repo_to (caps :> < Cap.exec >) ~repo ~dst:tmp_dir;

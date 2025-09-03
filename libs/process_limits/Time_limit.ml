@@ -76,13 +76,13 @@ let set_timeout (caps : < Cap.time_limit >) ~name max_duration f =
   let raise_timeout () = raise (Timeout info) in
   let clear_timer () =
     current_timer := None;
-    CapUnix.setitimer caps#time_limit Unix.ITIMER_REAL
+    CapUnix.setitimer caps Unix.ITIMER_REAL
       { Unix.it_value = 0.; it_interval = 0. }
     |> ignore
   in
   let set_timer () =
     current_timer := Some info;
-    CapUnix.setitimer caps#time_limit Unix.ITIMER_REAL
+    CapUnix.setitimer caps Unix.ITIMER_REAL
       { Unix.it_value = max_duration; it_interval = 0. }
     |> ignore
   in
