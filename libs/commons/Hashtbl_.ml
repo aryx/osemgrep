@@ -37,6 +37,9 @@ let hash_of_list xs =
   xs |> List.iter (fun (k, v) -> Hashtbl.replace h k v);
   h
 
+let to_list = hash_to_list
+let of_list = hash_of_list
+
 (*****************************************************************************)
 (* Hash sets *)
 (*****************************************************************************)

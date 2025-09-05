@@ -5,8 +5,13 @@
 type hash = int
 
 val combine_hash : hash -> hash -> hash
+
 val hash_of_list : ('a * 'b) list -> ('a, 'b) Hashtbl.t
 val hash_to_list : ('a, 'b) Hashtbl.t -> ('a * 'b) list
+
+val to_list: ('a, 'b) Hashtbl.t -> ('a * 'b) list
+val of_list : ('a * 'b) list -> ('a, 'b) Hashtbl.t
+
 val hkeys : ('a, 'b) Hashtbl.t -> 'a list
 val map : ('k -> 'v -> 'w) -> ('k, 'v) Hashtbl.t -> ('k, 'w) Hashtbl.t
 

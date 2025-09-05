@@ -87,6 +87,8 @@ exception ErrorOnFile of string (* error message *) * Fpath.t
  *
  * subtil: same problem than with Timeout. Do not intercept such exception
  * with some blind try (...) with _ -> ...
+ *
+ * DEPRECATED, use Exit.t or Exit.ExitCode instead!
  *)
 exception UnixExit of int
 
