@@ -14,7 +14,7 @@
  *)
 open Common
 open Fpath_.Operators
-module FT = File_type
+module FT = FType
 module R = Rule
 module E = Core_error
 module RP = Core_result

@@ -2,7 +2,7 @@ open Common
 open Fpath_.Operators
 module E = Error
 module Env = Semgrep_envvars
-module FT = File_type
+module FT = FType
 module C = Rules_config
 module R = Rule
 module XP = Xpattern
@@ -276,7 +276,7 @@ let parse_rule ~rewrite_rule_ids ~origin caps (file : Fpath.t) :
     if rewrite_rule_ids then Some (mk_rewrite_rule_ids origin) else None
   in
   let rules_and_invalid =
-    match FT.file_type_of_file file with
+    match FT.of_file file with
     | FT.Config FT.Jsonnet ->
         Logs.warn (fun m ->
             m

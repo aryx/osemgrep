@@ -16,6 +16,7 @@ val hkeys : ('a, 'b) Hashtbl.t -> 'a list
 val map : ('k -> 'v -> 'w) -> ('k, 'v) Hashtbl.t -> ('k, 'w) Hashtbl.t
 
 type 'a hashset = ('a, bool) Hashtbl.t
+type 'a set = ('a, bool) Hashtbl.t
 
 val hashset_of_list : 'a list -> 'a hashset
 val hashset_to_list : 'a hashset -> 'a list

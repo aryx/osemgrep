@@ -1,5 +1,5 @@
 open Fpath_.Operators
-module FT = File_type
+module FT = FType
 
 (*****************************************************************************)
 (* Valid rule filename checks *)
@@ -18,7 +18,7 @@ let is_test_yaml_file (filepath : Fpath.t) : bool =
 
 (* coupling: with Parse_rule.parse_file *)
 let is_valid_rule_filename (filename : Fpath.t) : bool =
-  match File_type.file_type_of_file filename with
+  match FType.of_file filename with
   (* ".yml" or ".yaml" *)
   | FT.Config FT.Yaml -> not (is_test_yaml_file filename)
   (* old: we were allowing Jsonnet before, but better to skip

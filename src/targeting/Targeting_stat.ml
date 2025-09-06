@@ -45,7 +45,7 @@ type stat = {
   minified : bool; (* i.e. very low whitespace but is code *)
   size : int;
   textual : bool;
-  type_ : File_type.file_type; [@key "type"]
+  type_ : FType.t; [@key "type"]
 }
 [@@deriving yojson]
 
@@ -65,8 +65,8 @@ type annotated_target_list = annotated_target list [@@deriving yojson]
 let stat_file (file : Fpath.t) =
   let stats = Unix.stat !!file in
   let line_count = List.length (UFile.cat file) in
-  let type_ = File_type.file_type_of_file file in
-  let textual = File_type.is_textual_file file in
+  let type_ = FType.of_file file in
+  let textual = FType.is_textual_file file in
   let minified =
     if textual then
       Common.save_excursion Flag_semgrep.skip_minified_files true (fun () ->

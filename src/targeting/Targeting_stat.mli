@@ -4,7 +4,7 @@ type stat = {
   minified : bool;
   size : int;
   textual : bool;
-  type_ : File_type.file_type;
+  type_ : FType.t;
 }
 [@@deriving yojson]
 (** [stat] is like Linux's `stat`, but more specific to Semgrep *)

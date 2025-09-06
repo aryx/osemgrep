@@ -14,7 +14,7 @@
  *)
 open Common
 open Fpath_.Operators
-module FT = File_type
+module FT = FType
 open Rule
 
 (*****************************************************************************)
@@ -379,7 +379,7 @@ let translate_files fparser xs =
   List.iter
     (fun (file, formulas) ->
       let rules =
-        match FT.file_type_of_file file with
+        match FT.of_file file with
         | FT.Config FT.Json ->
             UFile.read_file file |> JSON.json_of_string |> json_to_yaml
         | FT.Config FT.Yaml ->

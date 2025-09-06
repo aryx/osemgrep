@@ -105,14 +105,12 @@ copy-core-for-cli:
 
 # Minimal build of the semgrep-core executable. Intended for the docker build.
 # If you need other binaries, look at the build-xxx rules below.
-# We do not use .../bin/{semgrep-core,osemgrep,semgrep} below to
+# We use bash -c .../bin/{semgrep-core,osemgrep,semgrep} below to
 # factorize because make under Alpine uses busybox/ash for /bin/sh which
 # does not support this bash feature.
 .PHONY: core
 core:
-	dune build $(BUILD)/install/default/bin/semgrep-core$(EXE)
-	dune build $(BUILD)/install/default/bin/osemgrep$(EXE)
-	dune build $(BUILD)/install/default/bin/semgrep$(EXE)
+	bash -c "dune build $(BUILD)/install/default/bin/{semgrep-core,osemgrep,semgrep}$(EXE)"
 # Remove all symbols with GNU strip. It saves 10-25% on the executable
 # size and it doesn't seem to reduce the functionality or
 # debuggability of OCaml executables.

@@ -6,7 +6,7 @@ module PM = Core_match
 module E = Core_error
 module Out = Semgrep_output_v1_t
 module TCM = Test_compare_matches
-
+module FT = FType
 let t = Testo.create
 
 (*****************************************************************************)
@@ -596,8 +596,8 @@ let filter_irrelevant_rules_tests (caps : < Cap.readdir ; .. >) =
      let target_files =
        Common2.glob (spf "%s/*" !!dir)
        |> Fpath_.of_strings
-       |> File_type.files_of_dirs_or_files caps (function
-            | File_type.Config File_type.Yaml -> false
+       |> FType.files_of_dirs_or_files caps (function
+            | FT.Config FT.Yaml -> false
             | _ -> true (* TODO include .test.yaml*))
      in
      target_files

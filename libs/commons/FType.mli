@@ -1,4 +1,4 @@
-type file_type =
+type t =
   | PL of pl_type
   | Obj of string
   | Binary of string
@@ -85,16 +85,18 @@ and idl_type = Thrift | ATD | Protobuf [@@deriving yojson]
 and media_type = Sound of string | Picture of string | Video of string
 [@@deriving yojson]
 
-(* main entry point *)
-val file_type_of_file : Fpath.t -> file_type
+(* main entry point (note that this function might read the file
+ * or Unix.stat it to get its size so the file must exist!)
+ *)
+val of_file : Fpath.t -> t
 
 (* is_xxx helpers *)
 val is_textual_file : Fpath.t -> bool
-val is_json_filename : Fpath.t -> bool
+val is_json_file : Fpath.t -> bool
 val is_syncweb_obj_file : Fpath.t -> bool
-
-val files_of_dirs_or_files :
-  < Cap.readdir ; .. > -> (file_type -> bool) -> Fpath.t list -> Fpath.t list
 
 (* specialisations *)
 val webpl_type_of_file : Fpath.t -> webpl_type option
+
+val files_of_dirs_or_files :
+  < Cap.readdir ; .. > -> (t -> bool) -> Fpath.t list -> Fpath.t list

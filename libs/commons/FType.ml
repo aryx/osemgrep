@@ -25,7 +25,7 @@ open Fpath_.Operators
 (*****************************************************************************)
 
 (* see also dircolors.el and LFS *)
-type file_type =
+type t =
   | PL of pl_type
   | Obj of string (* .o, .a, .aux, .bak, etc *)
   | Binary of string
@@ -128,7 +128,7 @@ and media_type = Sound of string | Picture of string | Video of string
 (* this function is used by codemap and archi_parse and called for each
  * filenames, so it has to be fast!
  *)
-let file_type_of_file file =
+let of_file file =
   let _d, b, e = Filename_.dbe_of_filename_noext_ok !!file in
   (* extensions are not case sensitive, at least on windows! *)
   let e = String.lowercase_ascii e in
@@ -425,7 +425,7 @@ let file_type_of_file file =
 
 (* this is used in codemap, to know whether to display a file *)
 let is_textual_file file =
-  match file_type_of_file file with
+  match of_file file with
   (* still? if this contains weird code then pfff_visual crash *)
   | PL (Web Sql) -> false
   | PL _
@@ -441,15 +441,15 @@ let is_textual_file file =
       false
 
 let webpl_type_of_file file =
-  match file_type_of_file file with
+  match of_file file with
   | PL (Web x) -> Some x
   | _ -> None
 
 let is_syncweb_obj_file file = !!file =~ ".*md5sum_"
-let is_json_filename filename = !!filename =~ ".*\\.json$"
+let is_json_file file = !!file =~ ".*\\.json$"
 
 let files_of_dirs_or_files caps p xs =
   xs
   |> UFile.files_of_dirs_or_files_no_vcs_nofilter caps
-  |> List.filter (fun filename -> p (file_type_of_file filename))
+  |> List.filter (fun filename -> p (of_file filename))
   |> List_.sort

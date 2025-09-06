@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the file
  * LICENSE for more details.
  *)
-module FT = File_type
+module FT = FType
 
 (*****************************************************************************)
 (* Prelude *)
@@ -127,7 +127,7 @@ let supported_langs : string = String.concat ", " keys
 (* TODO: move file identification to lang.json *)
 (* TODO: Solidity *)
 let langs_of_filename filename =
-  let typ = File_type.file_type_of_file filename in
+  let typ = FT.of_file filename in
   match typ with
   | FT.PL (FT.Web FT.Js) -> [ Js ] (* Add TypeScript too? *)
   | FT.PL (FT.Web FT.TypeScript) -> [ Ts ]

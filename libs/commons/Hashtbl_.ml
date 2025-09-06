@@ -45,6 +45,7 @@ let of_list = hash_of_list
 (*****************************************************************************)
 
 type 'a hashset = ('a, bool) Hashtbl.t
+type 'a set = ('a, bool) Hashtbl.t
 
 let hashset_to_list h = hash_to_list h |> List_.map fst
 

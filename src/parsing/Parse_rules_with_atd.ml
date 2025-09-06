@@ -34,7 +34,7 @@ open Fpath_.Operators
 (*****************************************************************************)
 
 let parse_rules_v2 file =
-  match File_type.file_type_of_file file with
+  match FType.of_file file with
   | Config Json ->
       let json_str = UFile.read_file file in
       let rules = Rule_schema_v2_j.rules_of_string json_str in

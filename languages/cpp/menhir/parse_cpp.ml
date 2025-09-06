@@ -16,7 +16,7 @@ open Common
 open Fpath_.Operators
 module Flag = Flag_parsing
 module PS = Parsing_stat
-module FT = File_type
+module FT = FType
 module Ast = Ast_cpp
 module Flag_cpp = Flag_parsing_cpp
 module T = Parser_cpp
@@ -423,7 +423,7 @@ let parse_with_lang ?(lang = Flag_parsing_cpp.Cplusplus) file :
   { Parsing_result.ast; tokens; stat }
 
 let parse2 file : (Ast.program, T.token) Parsing_result.t =
-  match File_type.file_type_of_file file with
+  match FT.of_file file with
   | FT.PL (FT.C _) -> (
       try parse_with_lang ~lang:Flag_cpp.C file with
       | _exn -> parse_with_lang ~lang:Flag_cpp.Cplusplus file)
