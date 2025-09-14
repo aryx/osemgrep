@@ -1,3 +1,5 @@
+(* DEPRECATED: use Console directly *)
+
 (* Print a string, print a newline, and flush the stdout channel. *)
 val print : < Cap.stdout; .. > -> string -> unit
 

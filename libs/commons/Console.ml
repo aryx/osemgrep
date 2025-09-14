@@ -293,3 +293,13 @@ let strong_success str = strong_style_string Success str
 let error_tag () = strong_error " ERROR "
 let warning_tag () = strong_warning " WARNING "
 let success_tag () = strong_success " SUCCESS "
+
+(*****************************************************************************)
+(* Actual printing *)
+(*****************************************************************************)
+
+(* %! is to flush *)
+
+let print _caps str = UPrintf.printf "%s\n%!" str
+let print_no_nl _caps str = UPrintf.printf "%s%!" str
+let eprint _caps str = UPrintf.eprintf "%s\n%!" str
