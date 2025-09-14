@@ -14,7 +14,7 @@
  *)
 open Common
 open Fpath_.Operators
-module FT = FType
+module FT = Ftype
 open Rule
 
 (*****************************************************************************)

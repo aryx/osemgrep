@@ -16,7 +16,7 @@ open Common
 open Fpath_.Operators
 module Flag = Flag_parsing
 module PS = Parsing_stat
-module FT = FType
+module FT = Ftype
 module Ast = Ast_cpp
 module Flag_cpp = Flag_parsing_cpp
 module T = Parser_cpp

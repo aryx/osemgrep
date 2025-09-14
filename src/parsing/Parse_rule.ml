@@ -15,7 +15,7 @@
 open Common
 open Fpath_.Operators
 module J = JSON
-module FT = FType
+module FT = Ftype
 module R = Rule
 module XP = Xpattern
 module MR = Mini_rule
@@ -1143,7 +1143,7 @@ let parse_file ?error_recovery ?rewrite_rule_ids file :
     (Rule.rules * Rule_error.invalid_rule list, Rule_error.t) result =
   let/ ast =
     (* coupling: Rule_file.is_valid_rule_filename *)
-    match FType.of_file file with
+    match Ftype.of_file file with
     | FT.Config FT.Json ->
         (* in a parsing-rule context, we don't want the parsed strings by
          * Parse_json.parse_program to remain escaped. For example with this

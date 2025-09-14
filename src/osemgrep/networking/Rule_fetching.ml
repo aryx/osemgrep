@@ -2,7 +2,7 @@ open Common
 open Fpath_.Operators
 module E = Error
 module Env = Semgrep_envvars
-module FT = FType
+module FT = Ftype
 module C = Rules_config
 module R = Rule
 module XP = Xpattern

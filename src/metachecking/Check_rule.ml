@@ -14,7 +14,7 @@
  *)
 open Common
 open Fpath_.Operators
-module FT = FType
+module FT = Ftype
 open Rule
 module R = Rule
 module E = Core_error
@@ -291,7 +291,7 @@ let run_checks (caps : < Core_scan.caps ; Cap.readdir ; .. >)
     (metachecks : Fpath.t) (xs : Fpath.t list) : Core_error.t list =
   let yaml_xs =
     xs
-    |> FType.files_of_dirs_or_files caps (function
+    |> Ftype.files_of_dirs_or_files caps (function
          | FT.Config (FT.Yaml (*FT.Json |*) | FT.Jsonnet) -> true
          | _ -> false)
   in
@@ -355,7 +355,7 @@ let check_files (caps : < Cap.stdout ; Core_scan.caps ; Cap.readdir ; .. >)
 let stat_files (caps : < Cap.stdout ; Cap.readdir ; .. >) xs =
   let fullxs =
     xs
-    |> FType.files_of_dirs_or_files caps (function
+    |> Ftype.files_of_dirs_or_files caps (function
          | FT.Config (FT.Yaml (*FT.Json |*) | FT.Jsonnet) -> true
          | _ -> false)
   in

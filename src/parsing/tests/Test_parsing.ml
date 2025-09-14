@@ -17,7 +17,7 @@ open Fpath_.Operators
 module PS = Parsing_stat
 module G = AST_generic
 module J = JSON
-module FT = FType
+module FT = Ftype
 module Resp = Semgrep_output_v1_t
 
 (*****************************************************************************)

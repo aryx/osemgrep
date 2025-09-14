@@ -14,7 +14,7 @@
  *)
 open Common
 open Fpath_.Operators
-module FT = FType
+module FT = Ftype
 module R = Rule
 module E = Core_error
 module TCM = Test_compare_matches
@@ -35,7 +35,7 @@ let test_rules ?(unit_testing = false)
     (caps : < Core_scan.caps ; Cap.readdir ; .. >) xs =
   let fullxs =
     xs
-    |> FType.files_of_dirs_or_files caps (function
+    |> Ftype.files_of_dirs_or_files caps (function
          | FT.Config FT.Yaml -> true
          | _ -> false)
     |> List_.exclude (fun filepath ->
