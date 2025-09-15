@@ -9,6 +9,9 @@ val execv : < Cap.exec; .. > -> string -> string array -> 'a
 val system : < Cap.exec; .. > -> string -> Unix.process_status
 val fork : < Cap.fork; .. > -> unit -> int
 val alarm : <  Cap.time_limit; .. > -> int -> int
+val wait : < Cap.wait; .. > -> unit -> int * Unix.process_status
+val waitpid : 
+  < Cap.wait; .. > -> Unix.wait_flag list -> int -> int * Unix.process_status
 
 val setitimer :
   < Cap.time_limit; .. > ->
