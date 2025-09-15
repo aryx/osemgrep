@@ -4,5 +4,6 @@ let system _caps = Unix.system
 let fork _caps = Unix.fork
 let wait _caps = Unix.wait
 let waitpid _caps = Unix.waitpid
+let kill _caps = Unix.kill
 let alarm _caps = Unix.alarm
 let setitimer _caps = Unix.setitimer
