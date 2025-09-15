@@ -38,6 +38,7 @@ module Process : sig
 
   (* See also the separate Exec.t *)
   type fork
+  type wait
   type thread
   type domain
 end
@@ -45,6 +46,8 @@ end
 (* read/write on root|cwd|tmp|~|~.xxx| (and files/dirs mentioned in argv) *)
 module FS : sig
   type readdir
+  type open_in
+  type open_out
 
   (* a.k.a open_in and open_out in OCaml world *)
   type open_r
@@ -109,6 +112,8 @@ end
 
 (* fs *)
 type readdir = < readdir : FS.readdir >
+type open_in = < open_in : FS.open_in >
+type open_out = < open_out : FS.open_out >
 type root = < root_r : FS.root_r ; root_w : FS.root_w >
 type root_all = < root_all_r : FS.root_all_r ; root_all_w : FS.root_all_w >
 type cwd = < cwd_r : FS.cwd_r ; cwd_w : FS.cwd_w >
@@ -121,6 +126,7 @@ type files_argv =
 
 type fs =
   < readdir
+  ; open_in; open_out
   ; open_r : FS.open_r
   ; open_w : FS.open_w
   ; root
@@ -148,9 +154,10 @@ type pid = < pid : Process.pid >
 type kill = < kill : Process.kill >
 type chdir = < chdir : Process.chdir >
 type fork = < fork : Process.fork >
+type wait = < wait : Process.wait >
 type domain = < domain : Process.domain >
 type thread = < thread : Process.thread >
-type process_multi = < pid ; kill ; fork ; domain ; thread >
+type process_multi = < pid ; kill ; fork ; wait; domain ; thread >
 type process_single = < signal ; time_limit ; memory_limit ; exit ; chdir >
 type process = < argv ; env ; console ; process_single ; process_multi >
 

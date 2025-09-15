@@ -75,6 +75,9 @@ end
 
 module FS = struct
   type readdir = cap
+  type open_in = cap
+  type open_out = cap
+
   type open_r = cap
   type open_w = cap
 
@@ -140,6 +143,7 @@ module Process = struct
 
   (* multi processes *)
   type fork = cap
+  type wait = cap
   type thread = cap
   type domain = cap
 
@@ -198,6 +202,8 @@ end
 
 (* fs *)
 type readdir = < readdir : FS.readdir >
+type open_in = < open_in : FS.open_in >
+type open_out = < open_out : FS.open_out >
 type root = < root_r : FS.root_r ; root_w : FS.root_w >
 type root_all = < root_all_r : FS.root_all_r ; root_all_w : FS.root_all_w >
 type cwd = < cwd_r : FS.cwd_r ; cwd_w : FS.cwd_w >
@@ -210,6 +216,7 @@ type files_argv =
 
 type fs =
   < readdir
+  ; open_in; open_out
   ; open_r : FS.open_r
   ; open_w : FS.open_w
   ; root
@@ -237,9 +244,10 @@ type pid = < pid : Process.pid >
 type kill = < kill : Process.kill >
 type chdir = < chdir : Process.chdir >
 type fork = < fork : Process.fork >
+type wait = < wait : Process.wait >
 type domain = < domain : Process.domain >
 type thread = < thread : Process.thread >
-type process_multi = < pid ; kill ; fork ; domain ; thread >
+type process_multi = < pid ; kill ; fork ; wait; domain ; thread >
 type process_single = < signal ; time_limit ; memory_limit ; exit ; chdir >
 type process = < argv ; env ; console ; process_single ; process_multi >
 
@@ -270,6 +278,8 @@ let powerbox : all_caps =
   object
     (* fs *)
     method readdir = ()
+    method open_in = ()
+    method open_out = ()
     method open_r = ()
     method open_w = ()
     method root_r = ()
@@ -301,6 +311,7 @@ let powerbox : all_caps =
     method time_limit = ()
     method memory_limit = ()
     method fork = ()
+    method wait = ()
     method exit = ()
     method domain = ()
     method thread = ()

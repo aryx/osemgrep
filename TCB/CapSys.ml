@@ -1,3 +1,4 @@
-let argv _cap = Sys.argv
-let set_signal _cap = Sys.set_signal
-let chdir _cap = Sys.chdir
+let argv _caps = Sys.argv
+let set_signal _caps = Sys.set_signal
+let chdir _caps = Sys.chdir
+let command _caps = Sys.command
