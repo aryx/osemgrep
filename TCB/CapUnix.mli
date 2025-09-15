@@ -3,6 +3,8 @@
 (* See also libs/commons/CapExec.ml *)
 val execvp : < Cap.exec; .. > -> string -> string array -> 'a
 
+val execv : < Cap.exec; .. > -> string -> string array -> 'a
+
 (* You should use CapExec.ml instead *)
 val system : < Cap.exec; .. > -> string -> Unix.process_status
 val fork : < Cap.fork; .. > -> unit -> int
