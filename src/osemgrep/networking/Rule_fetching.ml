@@ -278,11 +278,13 @@ let parse_rule ~rewrite_rule_ids ~origin caps (file : Fpath.t) :
   let rules_and_invalid =
     match FT.of_file file with
     | FT.Config FT.Jsonnet ->
+(* PAD: annoying
         Logs.warn (fun m ->
             m
               "Support for Jsonnet rules is experimental and currently meant \
                for internal use only. The syntax may change or be removed at \
                any point.");
+*)
         let ast = Parse_jsonnet.parse_program file in
         let core =
           Desugar_jsonnet.desugar_program

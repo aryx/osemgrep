@@ -659,13 +659,14 @@ let run_scan_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
     |> Profiler.record profiler ~name:"config_time"
   in
 
+(* PAD: ANNOYING
   if new_cli_ux then
     Logs.app (fun m ->
         m "%s"
           (Text_reports.product_selection
              ~includes_token:(settings.api_token <> None)
              conf.rules_source conf.engine_type));
-
+*)
   notify_user_about_metrics_once settings;
 
   (* step1: getting the rules *)

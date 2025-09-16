@@ -231,7 +231,7 @@ let layout_table (h1, heading) entries =
 (* old: was Fmt_.pp_heading before but better not using Fmt when not needed *)
 let heading (str : string) : string =
   let line = line (String.length str + 2) in
-  spf "\n\n┌%s┐\n" line ^ spf "│ %s │\n" str ^ spf "└%s┘\n" line
+  spf "┌%s┐\n" line ^ spf "│ %s │\n" str ^ spf "└%s┘\n" line
 
 (* old: was Fmt_.pp_table before *)
 let table (h1, heading) entries : string =
