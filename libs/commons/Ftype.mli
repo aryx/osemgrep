@@ -1,3 +1,4 @@
+
 type t =
   | PL of pl_type
   | Obj of string
@@ -16,8 +17,8 @@ and pl_type =
   | MLOther of string
   | Haskell of string
   | Lisp of lisp_type
-  | Skip
   | Scala
+  | Skip
   | Prolog of string
   | Script of string
   | C of string
@@ -27,25 +28,26 @@ and pl_type =
   | Csharp
   | ObjectiveC of string
   | Swift
-  | Julia
   | Perl
   | Python
   | Ruby
   | Lua
   | R
-  | Erlang
+  | Julia
   | Go
+  | Erlang
+  | Elixir
   | Rust
-  | Move
-  | Beta
+  | Zig
   | Pascal
+  | Beta
   | Haxe
+  | Move
   | Bytecode of string
   | Asm
   | Web of webpl_type
   | IDL of idl_type
   | MiscPL of string
-  | Elixir
 [@@deriving yojson]
 
 and config_type =

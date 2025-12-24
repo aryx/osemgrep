@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010-2013 Facebook
  * Copyright (C) 2023 Semgrep Inc.
+ * Copyright (C) 2025 Yoann Padioleau
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -19,6 +20,16 @@ open Fpath_.Operators
 (*****************************************************************************)
 (* Prelude *)
 (*****************************************************************************)
+(* Extract the "type" from a filename, (e.g., .ml => PL OCaml).
+ *
+ * This module is used a lot in codemap in Archi_code.ml
+ *
+ * history:
+ *  - was called File_type.ml in pfff and then semgrep but renamed
+ *    to Ftype.ml to better match Fpath.ml
+ *
+ * TODO? in semgrep we had lots of deriving yojson
+ *)
 
 (*****************************************************************************)
 (* Types *)
@@ -32,7 +43,7 @@ type t =
   | Text of string (* tex, txt, readme, noweb, org, etc *)
   | Doc of string (* ps, pdf *)
   | Config of config_type (* json, yaml, ini *)
-  | Media of media_type
+  | Media of media_type (* png, mp3, etc *)
   | Archive of string (* tgz, rpm, etc *)
   | Other of string
 [@@deriving yojson]
@@ -45,8 +56,8 @@ and pl_type =
   | MLOther of string
   | Haskell of string
   | Lisp of lisp_type
-  | Skip
   | Scala
+  | Skip
   (* logic *)
   | Prolog of string
   (* classic script *)
@@ -60,26 +71,29 @@ and pl_type =
   | ObjectiveC of string
   | Swift
   (* advanced script *)
-  | Julia
   | Perl
   | Python
   | Ruby
   | Lua
   | R
-  (* other *)
-  | Erlang
+  | Julia
+  (* concurrent *)
   | Go
+  | Erlang
+  | Elixir
+  (* modern system language *)
   | Rust
-  | Move
-  | Beta
+  | Zig
+  (* other *)
   | Pascal
+  | Beta
   | Haxe
+  | Move
   | Bytecode of string
   | Asm
   | Web of webpl_type
   | IDL of idl_type
   | MiscPL of string
-  | Elixir
 [@@deriving yojson]
 
 and config_type =
@@ -393,6 +407,7 @@ let of_file file =
   | "exe" -> Binary e
   | "mk" -> Config Makefile
   | "rs" -> PL Rust
+  | "zig" -> PL Zig
   | "move" -> PL Move
   | "mod"
   | "go" ->
