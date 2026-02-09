@@ -1,6 +1,6 @@
 # -*- org -*-
 
-* 0.1 (Q1 2026) (cleanup just keep osemgrep)
+* 0.1 (Q1 2026) (cleanup repo, just keep osemgrep)
 
 ** internals
 - cleanup the forked repo, just keep what is necessary for osemgrep
@@ -8,9 +8,8 @@
 
 * FORK of semgrep 1.109 (before they removed support for OCaml 4)
 
-past changes were in CHANGELOG.md
-
-# Changelog
+* # Changelog
+Past changes were in CHANGELOG.md
 
 ## [1.109.0](https://github.com/semgrep/semgrep/releases/tag/v1.109.0) - 2025-02-19
 
