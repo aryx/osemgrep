@@ -163,7 +163,10 @@ let tests (caps : Cap.all_caps) =
       (* Networking tests disabled as they will get rate limited sometimes *)
       (* And the SSL issues they've been testing have been stable *)
       (*Unit_Networking.tests;*)
+(* commented because slow and requires to be run from git repo which
+   is annoying when run from a Docker context.
       Test_LS_e2e.tests (caps :> Lsp_subcommand.caps);
+*)
       (* End osemgrep tests *)
       Spacegrep_tests.Test.tests ();
       Aliengrep.Unit_tests.tests;
@@ -201,7 +204,7 @@ let tests_with_delayed_error caps =
 let main (caps : Cap.all_caps) : unit =
   (* find the root of the semgrep repo as many of our tests rely on
      'let test_path = "tests/"' to find their test files *)
-  let project_root = Test_LS_e2e.project_root () in
+  let project_root =  (Fpath.v ".") (* Test_LS_e2e.project_root () *) in
   (* Don't read ~/.gitconfig since it varies from one developer to another,
      resulting in variable output *)
   Unix.putenv "GIT_CONFIG_NOGLOBAL" "true";

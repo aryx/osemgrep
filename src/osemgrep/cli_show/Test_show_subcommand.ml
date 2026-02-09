@@ -211,7 +211,7 @@ let test_dump_ast_when_error (caps : < caps ; .. >) : Testo.t =
       in
       Exit_code.Check.invalid_code exit_code)
 
-let test_dump_pattern (caps : < caps ; .. >) : Testo.t =
+let _test_dump_pattern (caps : < caps ; .. >) : Testo.t =
   t ~checked_output:(Testo.stdout ())
     ~normalize:
       [
@@ -264,7 +264,9 @@ let tests (caps : < caps ; .. >) =
       test_supported_languages caps;
       test_identity caps;
       test_deployment caps;
+(* commented for now, fails in Docker context because different terminal size
       test_dump_pattern caps;
+*)
       test_dump_ast caps;
       test_dump_ast_when_error caps;
       test_dump_config caps;
