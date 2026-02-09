@@ -97,12 +97,6 @@ copy-core-for-cli:
 .PHONY: core
 core:
 	bash -c "dune build _build/install/default/bin/{semgrep-core,osemgrep,semgrep}$(EXE)"
-# Remove all symbols with GNU strip. It saves 10-25% on the executable
-# size and it doesn't seem to reduce the functionality or
-# debuggability of OCaml executables.
-# See discussion at https://github.com/semgrep/semgrep/pull/9471
-	chmod +w bin/semgrep-core$(EXE)
-	strip bin/semgrep-core$(EXE)
 
 #coupling: The 'semgrep-oss' is the name of the step in the Dockerfile, the
 # 'semgrep' the name of the docker image produced (will be semgrep:latest)
@@ -187,7 +181,6 @@ core-test:
 	$(MAKE) build-core-test
 # The following command ensures that we can call 'test.exe --help'
 # from the directory of the checkout
-# TODO: this generates weird cmdliner errors in Windows
 	./test --help 2>&1 >/dev/null
 	./scripts/run-core-test
 
@@ -614,31 +607,16 @@ check_with_docker:
 	docker run --rm -v "${PWD}:/src" $(DOCKER_IMAGE) semgrep $(SEMGREP_ARGS)
 
 ###############################################################################
-# Martin's targets
-###############################################################################
-# Build executables and place them where semgrep expects them.
-# These are normally copied by '/cli/setup.py' but it doesn't happen if we
-# run only 'dune build'.
-#
-# Usage:
-#  $ make dev
-#  $ PIPENV_PIPFILE=~/semgrep/cli/Pipfile pipenv run semgrep ...
-.PHONY: dev
-dev:
-	$(MAKE) core
-	$(MAKE) copy-core-for-cli
-
-###############################################################################
 # Pad's targets
 ###############################################################################
 
 pr:
 	git push origin `git rev-parse --abbrev-ref HEAD`
-	hub pull-request -b develop -r returntocorp/pa
+	hub pull-request -b master
 push:
 	git push origin `git rev-parse --abbrev-ref HEAD`
 merge:
-	A=`git rev-parse --abbrev-ref HEAD` && git checkout develop && git pull && git branch -D $$A
+	A=`git rev-parse --abbrev-ref HEAD` && git checkout master && git pull && git branch -D $$A
 
 # see https://github.com/aryx/codegraph for information on codegraph_build
 index:
