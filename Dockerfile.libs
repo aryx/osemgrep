@@ -35,4 +35,4 @@ RUN eval $(opam env) && make && make dune-build-all
 RUN eval $(opam env) && dune install
 
 RUN eval $(opam env) && osemgrep --help
-#TODO: more test
+RUN eval $(opam env) && make test
