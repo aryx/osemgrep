@@ -1,4 +1,4 @@
-# Build semgrep via docker.
+# Build osemgrep via docker.
 # See also Dockerfile at the root of the project.
 
 name: docker
@@ -20,18 +20,10 @@ jobs:
       - uses: docker/setup-buildx-action@v3
       - run: make build-docker
 
-  #TODO: use matrix instead of copy paste? or move to .jsonnet?
-  build-libs:
+  build-ocaml5:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - run: make build-docker-libs
-  build-libs-ocaml5:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      - run: make build-docker-libs-ocaml5
+      - run: make build-docker-ocaml5

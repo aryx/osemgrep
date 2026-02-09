@@ -98,16 +98,10 @@ copy-core-for-cli:
 core:
 	bash -c "dune build _build/install/default/bin/{semgrep-core,osemgrep,semgrep}$(EXE)"
 
-#coupling: The 'semgrep-oss' is the name of the step in the Dockerfile, the
-# 'semgrep' the name of the docker image produced (will be semgrep:latest)
-.PHONY: build-docker
 build-docker:
-	docker build -t semgrep --target semgrep-oss .
-
-build-docker-libs:
-	docker build -f Dockerfile.libs -t "semgrep-libs" .
-build-docker-libs-ocaml5:
-	docker build -f Dockerfile.libs -t "semgrep-libs" --build-arg OCAML_VERSION=5.2.1 .
+	docker build -t osemgrep .
+build-docker-ocaml5:
+	docker build t "osemgrep" --build-arg OCAML_VERSION=5.2.1 .
 
 .PHONY: build-otarzan
 build-otarzan:
