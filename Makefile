@@ -101,7 +101,7 @@ core:
 build-docker:
 	docker build -t osemgrep .
 build-docker-ocaml5:
-	docker build t "osemgrep" --build-arg OCAML_VERSION=5.2.1 .
+	docker build -t osemgrep --build-arg OCAML_VERSION=5.2.1 .
 
 .PHONY: build-otarzan
 build-otarzan:
