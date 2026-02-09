@@ -50,7 +50,6 @@ languages/typescript/tree-sitter/CST_tree_sitter_typescript.ml
 /cli/tests/default/e2e/rules/long_message.yaml
 /cli/tests/performance/
 /tests/perf/
-/tests/precommit_dogfooding/
 /tests/patterns/java/perf_fields.java
 /tests/patterns/ts/perf_fields.ts
 /perf/r2c-rules/
