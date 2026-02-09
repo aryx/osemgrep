@@ -427,46 +427,6 @@ homebrew-setup:
 #TODO: pacman -S ...
 
 # -------------------------------------------------
-# Nix
-# -------------------------------------------------
-# See flake.nix top level comments for more information
-
-# always accept the semgrep cache substituer
-NIX=nix --accept-flake-config
-
-# Enter development environment with all dependencies installed
-#
-# The finger stuff here is weird but it's so we can get the user shell and run
-# it in the nix shell. I.e. /usr/bin/zsh or /usr/bin/fish
-# It's really weird because by default makefile overrides $SHELL so this is the
-# only way to get it
-shell:
-	$(eval USER_SHELL := $(shell finger ${USER} | grep 'Shell:*' | cut -f3 -d ":"))
-	$(NIX) develop -c $(USER_SHELL)
-
-# exclude all non-nix environment variables, good for debugging
-shell-pure:
-	$(NIX) develop -i
-
-# Build targets
-# For all the .?submodules=1 we need because nix is weird:
-# https://github.com/NixOS/nix/issues/4423#issuecomment-791352686
-nix-semgrep:
-	$(NIX) build ".?submodules=1#semgrep"
-
-nix-pysemgrep:
-	$(NIX) build ".?submodules=1#pysemgrep"
-
-
-# Build + run tests (doesn't run python tests yet)
-nix-check:
-	$(NIX) flake check ".?submodules=1#"
-
-# verbose and sandboxing are disabled to enable networking for tests
-nix-check-verbose:
-	$(NIX) flake check -L ".?submodules=1#"
-
-# -------------------------------------------------
 # Windows (native, via mingw and cygwin)
 # -------------------------------------------------
 
