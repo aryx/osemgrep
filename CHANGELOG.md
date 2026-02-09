@@ -1,10 +1,6 @@
-<!-- Do not edit. This changelog is updated at release time by towncrier
-     from individual files in the changelog.d/ directory.
--->
-
 # Changelog
 
-<!-- insertion point -->
+## FORK of semgrep 1.109 (before they removed support for OCaml 4)
 
 ## [1.109.0](https://github.com/semgrep/semgrep/releases/tag/v1.109.0) - 2025-02-19
 
