@@ -48,20 +48,6 @@
 #       SED = sed -i ''
 #     endif
 
-# This is to deal with paths that change depending on whether we're in the
-# semgrep-proprietary monorepo or detached as a standalone semgrep project.
-# The script 'scripts/make-symlinks' also deals with such issues.
-PROJECT_ROOT = $(shell git rev-parse --show-toplevel || pwd)
-ifeq ($(shell pwd),$(PROJECT_ROOT))
-  # The root is here.
-  BUILD = _build
-  BUILD_DEFAULT = _build/default
-else
-  # Assume we're in the semgrep-proprietary repo where OSS/ = semgrep.
-  BUILD = ../_build
-  BUILD_DEFAULT = ../_build/default/OSS
-endif
-
 ifeq ($(shell uname -o),Cygwin)
   EXE = .exe
 endif
@@ -110,7 +96,7 @@ copy-core-for-cli:
 # does not support this bash feature.
 .PHONY: core
 core:
-	bash -c "dune build $(BUILD)/install/default/bin/{semgrep-core,osemgrep,semgrep}$(EXE)"
+	bash -c "dune build _build/install/default/bin/{semgrep-core,osemgrep,semgrep}$(EXE)"
 # Remove all symbols with GNU strip. It saves 10-25% on the executable
 # size and it doesn't seem to reduce the functionality or
 # debuggability of OCaml executables.
@@ -131,20 +117,20 @@ build-docker-libs-ocaml5:
 
 .PHONY: build-otarzan
 build-otarzan:
-	dune build $(BUILD)/install/default/bin/otarzan
+	dune build _build/install/default/bin/otarzan
 
 .PHONY: build-ojsonnet
 build-ojsonnet:
-	dune build $(BUILD)/install/default/bin/ojsonnet
+	dune build _build/install/default/bin/ojsonnet
 
 .PHONY: build-pfff
 build-pfff:
-	dune build $(BUILD)/install/default/bin/pfff
+	dune build _build/install/default/bin/pfff
 
 # This is an example of how to build one of those parse-xxx ocaml-tree-sitter binaries
 .PHONY: build-parse-cairo
 build-parse-cairo:
-	dune build $(BUILD)/install/default/bin/parse-cairo
+	dune build _build/install/default/bin/parse-cairo
 
 # Remove from the project tree everything that's not under source control
 # and was not created by 'make setup'.
@@ -198,7 +184,6 @@ test-all:
 #coupling: this is run by .github/workflow/tests.yml
 .PHONY: core-test
 core-test:
-	./scripts/make-symlinks
 	$(MAKE) build-core-test
 # The following command ensures that we can call 'test.exe --help'
 # from the directory of the checkout
@@ -213,7 +198,7 @@ core-test:
 # './test <filter>' where <filter> selects the tests to run.
 .PHONY: build-core-test
 build-core-test:
-	dune build $(BUILD_DEFAULT)/src/tests/test.exe
+	dune build _build/default/src/tests/test.exe
 
 #coupling: this is run by .github/workflow/tests.yml
 .PHONY: core-test-e2e
@@ -510,7 +495,6 @@ install-deps-WINDOWS-for-semgrep-core:
 # important dependencies change.
 .PHONY: setup
 setup: semgrep.opam
-	./scripts/make-symlinks
 	./scripts/check-bash-version
 	$(MAKE) install-deps-for-semgrep-core
 
@@ -563,14 +547,14 @@ dune-build-all:
 
 .PHONY: dump
 dump:
-	$(BUILD_DEFAULT)/tests/test.bc -dump_ast tests/lint/stupid.py
+	_build/default/tests/test.bc -dump_ast tests/lint/stupid.py
 
 # for ocamldebug
 core-bc:
-	dune build $(BUILD)/install/default/bin/semgrep-core.bc
-	dune build $(BUILD)/install/default/bin/osemgrep.bc
+	dune build _build/install/default/bin/semgrep-core.bc
+	dune build _build/install/default/bin/osemgrep.bc
 test-bc:
-	dune build $(BUILD_DEFAULT)/src/tests/test.bc
+	dune build _build/default/src/tests/test.bc
 # The bytecode version of semgrep-core needs dlls for tree-sitter
 # stubs installed into ~/.opam/<switch>/lib/stublibs to be able to run.
 install-deps-for-semgrep-core-bc: install-deps-for-semgrep-core
