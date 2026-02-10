@@ -424,7 +424,7 @@ utop:
 # This is for tools/hello_script.ml so it can leverage the semgrep libs
 # (e.g., commons) by installing them in ~/.opam/.../
 .PHONY: install-semgrep-libs
-install-semgrep-libs: osemgrep.opam
+install-semgrep-libs: # osemgrep.opam
 	dune build
 	dune install
 

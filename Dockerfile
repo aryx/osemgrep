@@ -23,8 +23,7 @@ RUN apt-get install -y pkg-config libpcre3-dev libpcre2-dev libgmp-dev libev-dev
 WORKDIR /src
 
 # Install dependencies
-COPY osemgrep.opam dune-project configure Makefile ./
-COPY ./scripts ./scripts
+COPY osemgrep.opam configure Makefile ./
 COPY ./libs/ocaml-tree-sitter-core/ ./libs/ocaml-tree-sitter-core/
 #note: configure will just internally run 'make setup'
 RUN ./configure
