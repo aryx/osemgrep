@@ -423,15 +423,14 @@ metrics
 
 ;; need to provide also a semgrep package otherwise have to rename all
 ;; semgrep.xxx packages
-
 (package (name semgrep)
-  (allow_empty)
   (synopsis "XXX")
   (description "XXX")
 )
 
 ;; coupling: if you modify this package, type 'make osemgrep.opam'
 (package (name osemgrep)
+  (allow_empty) ; needed to avoid a 'dune build' error
   (synopsis "Like grep but for code: fast and syntax-aware semantic code pattern for many languages")
   (description "\
 OSemgrep is like grep but for searching patterns at the AST level while
