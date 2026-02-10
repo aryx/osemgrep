@@ -10,7 +10,7 @@ _build/
 /*.opam
 # but we keep the one used for installing the project dependencies with
 # 'opam install --deps-only .':
-!/semgrep.opam
+!/osemgrep.opam
 
 # local opam switch
 _opam/

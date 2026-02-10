@@ -3,8 +3,9 @@
 * 0.1 (Q1 2026) (cleanup repo, just keep osemgrep)
 
 ** internals
-- cleanup the repo, just keep what is necessary to compile
-  and test osemgrep
+- cleanup the repo, just keep what is necessary to compile and test osemgrep
+  (removed Python cli/, mypy, .precommit, most of .github/, .circleci/,
+  images/, changelog.d/, CODE_OF_CONDUCT.md, flake and nix, etc.)
 
 ** testinfra
 - switch to simpler Docker GHA workflow (was Dockerfile.libs) that

@@ -41,25 +41,23 @@ let print_help (caps : < Cap.stdout; .. >) =
   (* TODO: add a Out.printf_color? *)
   CapConsole.ocolor_format_printf caps
     {|
-┌──── @{<green>○○○@} ────┐
-│ Semgrep CLI │
-└─────────────┘
-Semgrep CLI scans your code for bugs, security and dependency vulnerabilities.
+┌──── @{<red>＄@}@{<green>○○○@} ───┐
+│ OSemgrep CLI │
+└──────────────┘
+OSemgrep scans your code for bugs, security and dependency vulnerabilities.
 
-For more information about Semgrep, visit @{<cyan;ul>https://semgrep.dev@}
+For more information about OSemgrep, visit @{<cyan;ul>https://semgrep.dev@}
 
 @{<ul>Get Started@}:
-  Run @{<cyan>`semgrep login && semgrep ci`@} to enable Pro rules, Semgrep Supply Chain,
-  and secrets scanning. Without logging in, Semgrep CLI will only run the free
+  Run @{<cyan>`osemgrep ci`@} to run the
   open-source rules available at @{<cyan;ul>https://semgrep.dev/r@}.
 
 @{<ul>Commands@}:
-  @{<cyan>semgrep login@}                Enable Pro rules, Supply Chain, and secrets scanning
-  @{<cyan>semgrep ci@}                   Run Semgrep on a git diff (for use in CI)
-  @{<cyan>semgrep scan@}                 Run Semgrep rules on local folders or files
+  @{<cyan>osemgrep ci@}                   Run OSemgrep on a git diff (for use in CI)
+  @{<cyan>osemgrep scan@}                 Run OSemgrep rules on local folders or files
 
 @{<ul>Help@}:
-  @{<cyan>semgrep COMMAND --help@}       For more information on each command
+  @{<cyan>osemgrep COMMAND --help@}       For more information on each command
 
 For the CLI docs visit @{<cyan;ul>https://semgrep.dev/docs/cli-reference@}
 |}
@@ -67,11 +65,11 @@ For the CLI docs visit @{<cyan;ul>https://semgrep.dev/docs/cli-reference@}
 (* coupling: see above *)
 let print_semgrep_dashdash_help (caps : < Cap.stdout; .. >) =
   CapConsole.ocolor_format_printf caps
-    {|@{<ul>Usage@}: @{<cyan>semgrep [OPTIONS] COMMAND [ARGS]...@}
+    {|@{<ul>Usage@}: @{<cyan>osemgrep [OPTIONS] COMMAND [ARGS]...@}
 
-  To get started quickly, run @{<cyan>`semgrep scan --config auto`@}
+  To get started quickly, run @{<cyan>`osemgrep scan --config auto`@}
 
-  Run @{<cyan>`semgrep SUBCOMMAND --help`@} for more information on each subcommand
+  Run @{<cyan>`osemgrep SUBCOMMAND --help`@} for more information on each subcommand
 
   If no subcommand is passed, will run @{<cyan>`scan`@} subcommand by default
 
@@ -79,14 +77,13 @@ let print_semgrep_dashdash_help (caps : < Cap.stdout; .. >) =
   -h, --help  Show this message and exit.
 
 @{<ul>Commands@}:
-  @{<cyan>ci@}                   Run Semgrep on a git diff (for use in CI)
-  @{<cyan>install-semgrep-pro@}  Install the Semgrep Pro Engine
+  @{<cyan>ci@}                   Run OSemgrep on a git diff (for use in CI)
   @{<cyan>login@}                Obtain and save credentials for @{<cyan;ul>semgrep.dev@}
   @{<cyan>logout@}               Remove locally stored credentials to @{<cyan;ul>semgrep.dev@}
   @{<cyan>lsp@}                  Start the Semgrep LSP server (useful for IDEs)
   @{<cyan>publish@}              Upload rule to @{<cyan;ul>semgrep.dev@}
   @{<cyan>scan@}                 Run Semgrep rules on local folders or files
   @{<cyan>show@}                 Show various types of information
-  @{<cyan>test@}                 Test the rules (EXPERIMENTAL improvements over scan --test)
-  @{<cyan>validate@}             Validate the rules (EXPERIMENTAL improvements over scan --validate)
+  @{<cyan>test@}                 Test the rules
+  @{<cyan>validate@}             Validate the rules
 |}

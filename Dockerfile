@@ -1,5 +1,5 @@
 # Build osemgrep and semgrep libs (e.g., commons, gitignore, paths),
-# which are used by codemap/codegraph/efuns/syncweb/...,
+# which are used by my codemap/codegraph/efuns/syncweb/... projects,
 # with OCaml 4.14.2 (or --build-arg OCAML_VERSION=5.2.1) via OPAM on
 # Ubuntu Linux.
 
@@ -23,7 +23,7 @@ RUN apt-get install -y pkg-config libpcre3-dev libpcre2-dev libgmp-dev libev-dev
 WORKDIR /src
 
 # Install dependencies
-COPY semgrep.opam dune-project configure Makefile ./
+COPY osemgrep.opam dune-project configure Makefile ./
 COPY ./scripts ./scripts
 COPY ./libs/ocaml-tree-sitter-core/ ./libs/ocaml-tree-sitter-core/
 COPY ./dev ./dev

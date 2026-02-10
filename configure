@@ -40,7 +40,7 @@ set -eu # to debug this script add '-x'
 # - check the ocaml switch is a good version
 # - check external deps are installed (e.g., pcre, curl)
 
-#=~ opam install --no-depexts --deps-only ./semgrep.opam -y
+#=~ opam install --no-depexts --deps-only ./osemgrep.opam -y
 make setup
 
 echo 'Everything looks fine. You can now run: '

@@ -1,10 +1,10 @@
 (lang dune 3.7)
 
 ;; This file is used both to configure 'dune' as usual, and
-;; to autogenerate the semgrep.opam for 'opam'.
+;; to autogenerate the osemgrep.opam for 'opam'.
 
 ;; classic dune-project settings
-(name semgrep)
+(name osemgrep)
 (using menhir 2.1)
 ; disable mangling of workspace root, to preserve debugging information
 ; needed to support the earlybird debugger
@@ -16,15 +16,14 @@
 ;; See the documentation for declaring opam packages for more info:
 ;; https://dune.readthedocs.io/en/stable/opam.html#opam-generation
 ;;
-;; Type 'make semgrep.opam' to regenerate semgrep.opam
-;; TODO: add it as a pre-commit hook?
+;; Type 'make osemgrep.opam' to regenerate osemgrep.opam
 (generate_opam_files)
 
 ;; set here so the semgrep package below can use it and we can easily bump it
-(version 1.109.0)
+(version 2.0.0)
 
 ;; Default attributes of opam packages
-(source (github semgrep/semgrep))
+(source (github aryx/osemgrep))
 (homepage "https://semgrep.dev")
 (maintainers "Semgrep authors")
 (authors "Semgrep authors")
@@ -67,8 +66,8 @@ from other programming languages such as Typescript, Java, Scala, and
 the other programming languages supported by atdgen."
   )
 
-  (maintainers "Yoann Padioleau <pad@semgrep.com>")
-  (authors "Yoann Padioleau <pad@semgrep.com>")
+  (maintainers "Yoann Padioleau <yoann.padioleau@gmail.com>")
+  (authors "Yoann Padioleau <yoann.padioleau@gmail.com>")
   (license "LGPL-2.1-only")
   (depends
     (ocaml (>= 4.13.0))
@@ -90,8 +89,8 @@ This is a small library of utilities used by Semgrep and
 a few other projects developed at r2c.
 "
   )
-  (maintainers "Yoann Padioleau <pad@semgrep.com>")
-  (authors "Yoann Padioleau <pad@semgrep.com>")
+  (maintainers "Yoann Padioleau <yoann.padioleau@gmail.com>")
+  (authors "Yoann Padioleau <yoann.padioleau@gmail.com>")
   (license "LGPL-2.1-only")
 
   (depends
@@ -160,8 +159,8 @@ a few other projects developed at r2c to help writing
 parsers, especially ocamlyacc/menhir based parsers.
 "
   )
-  (maintainers "Yoann Padioleau <pad@semgrep.com>")
-  (authors "Yoann Padioleau <pad@semgrep.com>")
+  (maintainers "Yoann Padioleau <yoann.padioleau@gmail.com>")
+  (authors "Yoann Padioleau <yoann.padioleau@gmail.com>")
   (license "LGPL-2.1-only")
 
   (depends
@@ -368,8 +367,8 @@ a few other projects developed at r2c to control the
 time and memory used by Semgrep.
 "
   )
-  (maintainers "Yoann Padioleau <pad@semgrep.com>")
-  (authors "Yoann Padioleau <pad@semgrep.com>")
+  (maintainers "Yoann Padioleau <yoann.padioleau@gmail.com>")
+  (authors "Yoann Padioleau <yoann.padioleau@gmail.com>")
   (license "LGPL-2.1-only")
 
   (depends
@@ -389,8 +388,8 @@ a few other projects developed at r2c to monitor and profile
 functions.
 "
   )
-  (maintainers "Yoann Padioleau <pad@semgrep.com>")
-  (authors "Yoann Padioleau <pad@semgrep.com>")
+  (maintainers "Yoann Padioleau <yoann.padioleau@gmail.com>")
+  (authors "Yoann Padioleau <yoann.padioleau@gmail.com>")
   (license "LGPL-2.1-only")
 
   (depends
@@ -422,19 +421,28 @@ metrics
   )
 )
 
-;; coupling: if you modify this package, type 'make semgrep.opam'
+;; need to provide also a semgrep package otherwise have to rename all
+;; semgrep.xxx packages
+
 (package (name semgrep)
+  (allow_empty)
+  (synopsis "XXX")
+  (description "XXX")
+)
+
+;; coupling: if you modify this package, type 'make osemgrep.opam'
+(package (name osemgrep)
   (synopsis "Like grep but for code: fast and syntax-aware semantic code pattern for many languages")
   (description "\
-Semgrep is like grep but for searching patterns at the AST level while
+OSemgrep is like grep but for searching patterns at the AST level while
 leveraging semantic information (e.g., types, control flow) for powerful
 matching.
 
 For more information see https://semgrep.dev
 "
   )
-  (maintainers "Yoann Padioleau <pad@semgrep.com>")
-  (authors "Yoann Padioleau <pad@semgrep.com>")
+  (maintainers "Yoann Padioleau <yoann.padioleau@gmail.com>")
+  (authors "Yoann Padioleau <yoann.padioleau@gmail.com>")
   (license "LGPL-2.1-only")
 
 ;note: these are build dependencies. Development-only deps are in 'dev/*.opam'.

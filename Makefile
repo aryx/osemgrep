@@ -195,7 +195,7 @@ OPTIONAL_DEPS = $(REQUIRED_DEPS) ./dev/optional.opam
 
 # This target is portable; it only assumes you have 'gcc', 'opam' and
 # other build-essential tools and a working OCaml (e.g., ocamlc) switch setup.
-# Note that we call opam update below because semgrep.opam may mention
+# Note that we call opam update below because osemgrep.opam may mention
 # new packages that are covered yet by our ocaml-layer docker image.
 .PHONY: install-deps-for-semgrep-core
 install-deps-for-semgrep-core:
@@ -224,13 +224,13 @@ install-opam-deps:
 	opam update -y
 	OPAMSOLVERTIMEOUT=1200 opam install -y --assume-depexts --deps-only $(REQUIRED_DEPS)
 
-# This will fail if semgrep.opam isn't up-to-date (in git),
+# This will fail if osemgrep.opam isn't up-to-date (in git),
 # and dune isn't installed yet. You can always install dune with
 # 'opam install dune' to get started.
-semgrep.opam: dune-project
+osemgrep.opam: dune-project
 	dune build $@
 # Foolproofing
-	chmod a-w semgrep.opam
+	chmod a-w osemgrep.opam
 
 # We could also add python dependencies at some point
 # and an 'install-deps-for-semgrep-cli' target
@@ -413,7 +413,7 @@ install-deps-WINDOWS-for-semgrep-core:
 # As a developer you should not run frequently 'make setup', only when
 # important dependencies change.
 .PHONY: setup
-setup: semgrep.opam
+setup: osemgrep.opam
 	./scripts/check-bash-version
 	$(MAKE) install-deps-for-semgrep-core
 
@@ -449,7 +449,7 @@ utop:
 # This is for tools/hello_script.ml so it can leverage the semgrep libs
 # (e.g., commons) by installing them in ~/.opam/.../
 .PHONY: install-semgrep-libs
-install-semgrep-libs: semgrep.opam
+install-semgrep-libs: osemgrep.opam
 	dune build
 	dune install
 
