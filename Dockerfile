@@ -1,4 +1,5 @@
-# Build osemgrep and OCaml libs (for codemap/codegraph/efuns/syncweb/...)
+# Build osemgrep and semgrep libs (e.g., commons, gitignore, paths),
+# which are used by codemap/codegraph/efuns/syncweb/...,
 # with OCaml 4.14.2 (or --build-arg OCAML_VERSION=5.2.1) via OPAM on
 # Ubuntu Linux.
 
@@ -15,11 +16,11 @@ RUN opam init --disable-sandboxing -y # (disable sandboxing due to Docker)
 ARG OCAML_VERSION=4.14.2
 RUN opam switch create ${OCAML_VERSION} -v
 
-# Let's go
-WORKDIR /src
-
 #coupling: alt: make install-deps-UBUNTU-for-semgrep-core
 RUN apt-get install -y pkg-config libpcre3-dev libpcre2-dev libgmp-dev libev-dev libcurl4-gnutls-dev
+
+# Let's go
+WORKDIR /src
 
 # Install dependencies
 COPY semgrep.opam dune-project configure Makefile ./
@@ -31,9 +32,9 @@ RUN ./configure
 
 # Full build
 COPY . .
-
 RUN eval $(opam env) && make && make dune-build-all
 RUN eval $(opam env) && dune install
 
+# Testing
 RUN eval $(opam env) && osemgrep --help
 RUN eval $(opam env) && make test

@@ -6,7 +6,10 @@
 - cleanup the forked repo, just keep what is necessary for osemgrep
   and a simpler Docker GHA workflow
 
-* FORK of semgrep 1.109 (before they removed support for OCaml 4)
+* Alpha (Q2 2025) (fork of semgrep 1.109)
+#before they removed support for OCaml 4
+
+* ----------------------------------------------------------------------------
 
 * # Changelog
 Past changes were in CHANGELOG.md
