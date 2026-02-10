@@ -103,9 +103,7 @@ a few other projects developed at r2c.
     (yojson (>= "1.7.0"))
     (re (>= "1.10.4"))
     (pcre (>= "7.5.0" ))
-    ; we're currently "vendoring" pcre2 in libs/pcre2
-    ; so no need to get opam to install it
-    ;(pcre2 (>= "7.5.3" ))
+    (pcre2 (>= "7.5.3" ))
     (ppxlib (>= "0.25.0"))
     (ppx_deriving (>= "5.2.1"))
     (ppx_hash (>= "v0.14.0" ))
@@ -508,9 +506,7 @@ For more information see https://semgrep.dev
     ; regexps
     re
     pcre
-    ; we're currently "vendoring" pcre2 in libs/pcre2
-    ; so no need to get opam to install it
-    ;(pcre2 (>= "7.5.3" ))
+    (pcre2 (>= "7.5.3" ))
     ; misc
     ocamlgraph
     parmap
