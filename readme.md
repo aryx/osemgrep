@@ -5,5 +5,8 @@ for the rules fornat (you can still use Yaml though).
 Finally, the goal is to experiment with new features
 such as LSP/SCIP integration for advanced semantic search
 (e.g., using type information from LSP/SCIP), and 
-especially to focus on improving OCaml support in Semgrep.
+especially to focus on improving OCaml and C support in Semgrep
+(the two languages I am using for my main projects: Principia
+Softwarica and XiX).
 <!--  or leveraging Datalog for advanced program analysis. -->
+
