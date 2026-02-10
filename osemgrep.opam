@@ -18,9 +18,7 @@ bug-reports: "https://github.com/aryx/osemgrep/issues"
 depends: [
   "ocaml" {>= "4.13.0"}
   "dune" {>= "3.7" & >= "2.7.0"}
-  "base"
   "menhir" {= "20230608"}
-  "base" {>= "v0.15.1"}
   "fpath"
   "bos"
   "fileutils"
@@ -78,13 +76,8 @@ depends: [
   "lwt"
   "lwt_ppx"
   "conf-libev" {os != "win32"}
-  "js_of_ocaml" {= "5.8.2"}
-  "js_of_ocaml-compiler" {= "5.8.2"}
-  "js_of_ocaml-ppx" {= "5.8.2"}
   "js_of_ocaml-lwt" {= "5.8.2"}
   "integers_stubs_js"
-  "git-unix"
-  "ounit2"
   "odoc" {with-doc}
 ]
 build: [

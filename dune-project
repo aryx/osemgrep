@@ -457,15 +457,9 @@ For more information see https://semgrep.dev
     ; core deps
     (ocaml (>= 4.13.0))
     (dune (>= 2.7.0 ))
-    base
     ; parser generators
     (menhir (= 20230608))
     ; standard libraries
-    ; We don't use Base directly. If it's being used indirectly
-    ; (is it, though?), we need a version that doesn't register
-    ; rogue exception printers.
-    ; See https://github.com/janestreet/base/issues/146
-    (base (>= v0.15.1))
     fpath
     bos
     fileutils
@@ -541,19 +535,8 @@ For more information see https://semgrep.dev
     lwt_ppx
     (conf-libev (<> :os win32)) ; for lwt, to get better FD perf
     ; jsoo
-    (js_of_ocaml (= 5.8.2))
-    (js_of_ocaml-compiler (= 5.8.2))
-    (js_of_ocaml-ppx (= 5.8.2))
     (js_of_ocaml-lwt (= 5.8.2))
     integers_stubs_js
-    ;TODO: this is for secrets and should be in ../dune-project but doing so
-    ; slows down a lot our CI because it pulls dependencies that seem
-    ; to cause the removal and recompilation of many packages (e.g., tls) and
-    ; make our GHA opam cache useless. We might need to install here instead
-    ; packages that would avoid this effect.
-    git-unix
-    ; TODO: remove used just for pcre2/test
-    ounit2
   )
 )
 
