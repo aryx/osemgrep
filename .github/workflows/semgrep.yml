@@ -20,15 +20,15 @@ jobs:
         with:
           fetch-depth: 0
       # Workaround for rootless containers as git operations may fail due to
-      # dubious ownership of /__w/xix/xix
+      # dubious ownership of /__w/osemgrep/osemgrep
       # ugly: needed because osemgrep does not do the git hack done by
       # pysemgrep
       - run: |
           git --version
           pwd
           ls
-          git config --global --add safe.directory /__w/xix/xix
-          git -C /__w/xix/xix ls-files -z --cached
+          git config --global --add safe.directory /__w/osemgrep/osemgrep
+          git -C /__w/osemgrep/osemgrep ls-files -z --cached
       # coupling: with Makefile 'make check' target
       - run: semgrep scan --experimental --config semgrep.jsonnet --strict --error
 
