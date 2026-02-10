@@ -60,7 +60,7 @@ endif
 # This file is created by ocaml-tree-sitter-core's configure script.
 #
 # Because of these required environment variables, we can't call dune directly
-# to build semgrep-core, unless you manually execute first
+# to build osemgrep, unless you manually execute first
 #  `source src/ocaml-tree-sitter-core/tree-sitter-config.sh`
 #
 # I use '-include' and not 'include' because before 'make setup' this file does
@@ -68,22 +68,11 @@ endif
 -include libs/ocaml-tree-sitter-core/tree-sitter-config.mk
 
 # First (and default) target.
-.PHONY: default
-default: core
-
-# Routine build. It assumes all dependencies and configuration are already in
-# place and correct.
-.PHONY: all
-all: core
-
 # Minimal build of the osemgrep executable. Intended for the docker build.
 # If you need other binaries, look at the build-xxx rules below.
-# We use bash -c .../bin/{semgrep-core,osemgrep} below to
-# factorize because make under Alpine uses busybox/ash for /bin/sh which
-# does not support this bash feature.
-.PHONY: core
-core:
-	bash -c "dune build _build/install/default/bin/{semgrep-core,osemgrep}$(EXE)"
+.PHONY: default
+default: 
+	dune build _build/install/default/bin/osemgrep$(EXE)
 
 build-docker:
 	docker build -t osemgrep .
