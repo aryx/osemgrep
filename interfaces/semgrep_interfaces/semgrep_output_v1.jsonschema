@@ -1,0 +1,2368 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "cli_output",
+  "description": "Translated by atdcat from 'semgrep_output_v1.atd'.",
+  "type": "object",
+  "required": [ "results", "errors", "paths" ],
+  "properties": {
+    "version": { "$ref": "#/definitions/version" },
+    "results": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/cli_match" }
+    },
+    "errors": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/cli_error" }
+    },
+    "paths": { "$ref": "#/definitions/scanned_and_skipped" },
+    "time": { "$ref": "#/definitions/profile" },
+    "explanations": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/matching_explanation" }
+    },
+    "rules_by_engine": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/rule_id_and_engine_kind" }
+    },
+    "engine_requested": { "$ref": "#/definitions/engine_kind" },
+    "interfile_languages_used": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "skipped_rules": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/skipped_rule" }
+    }
+  },
+  "definitions": {
+    "raw_json": {},
+    "fpath": { "type": "string" },
+    "uri": { "type": "string" },
+    "sha1": { "type": "string" },
+    "uuid": { "type": "string" },
+    "datetime": { "type": "string" },
+    "glob": { "type": "string" },
+    "version": { "type": "string" },
+    "position": {
+      "type": "object",
+      "required": [ "line", "col" ],
+      "properties": {
+        "line": { "type": "integer" },
+        "col": { "type": "integer" },
+        "offset": { "type": "integer" }
+      }
+    },
+    "location": {
+      "type": "object",
+      "required": [ "path", "start", "end" ],
+      "properties": {
+        "path": { "$ref": "#/definitions/fpath" },
+        "start": { "$ref": "#/definitions/position" },
+        "end": { "$ref": "#/definitions/position" }
+      }
+    },
+    "rule_id": { "type": "string" },
+    "match_severity": {
+      "oneOf": [
+        { "const": "ERROR" },
+        { "const": "WARNING" },
+        { "const": "EXPERIMENT" },
+        { "const": "INVENTORY" },
+        { "const": "CRITICAL" },
+        { "const": "HIGH" },
+        { "const": "MEDIUM" },
+        { "const": "LOW" },
+        { "const": "INFO" }
+      ]
+    },
+    "error_severity": {
+      "oneOf": [
+        { "const": "error" }, { "const": "warn" }, { "const": "info" }
+      ]
+    },
+    "pro_feature": {
+      "type": "object",
+      "required": [
+        "interproc_taint", "interfile_taint", "proprietary_language"
+      ],
+      "properties": {
+        "interproc_taint": { "type": "boolean" },
+        "interfile_taint": { "type": "boolean" },
+        "proprietary_language": { "type": "boolean" }
+      }
+    },
+    "engine_of_finding": {
+      "oneOf": [
+        { "const": "OSS" },
+        { "const": "PRO" },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "PRO_REQUIRED" },
+            { "$ref": "#/definitions/pro_feature" }
+          ]
+        }
+      ]
+    },
+    "engine_kind": { "oneOf": [ { "const": "OSS" }, { "const": "PRO" } ] },
+    "rule_id_and_engine_kind": {
+      "type": "array",
+      "minItems": 2,
+      "items": false,
+      "prefixItems": [
+        { "$ref": "#/definitions/rule_id" },
+        { "$ref": "#/definitions/engine_kind" }
+      ]
+    },
+    "product": {
+      "oneOf": [
+        { "const": "sast" }, { "const": "sca" }, { "const": "secrets" }
+      ]
+    },
+    "match_based_id": { "type": "string" },
+    "cli_match": {
+      "type": "object",
+      "required": [ "check_id", "path", "start", "end", "extra" ],
+      "properties": {
+        "check_id": { "$ref": "#/definitions/rule_id" },
+        "path": { "$ref": "#/definitions/fpath" },
+        "start": { "$ref": "#/definitions/position" },
+        "end": { "$ref": "#/definitions/position" },
+        "extra": { "$ref": "#/definitions/cli_match_extra" }
+      }
+    },
+    "cli_match_extra": {
+      "type": "object",
+      "required": [
+        "message", "metadata", "severity", "fingerprint", "lines"
+      ],
+      "properties": {
+        "metavars": { "$ref": "#/definitions/metavars" },
+        "message": { "type": "string" },
+        "fix": { "type": "string" },
+        "fixed_lines": { "type": "array", "items": { "type": "string" } },
+        "metadata": { "$ref": "#/definitions/raw_json" },
+        "severity": { "$ref": "#/definitions/match_severity" },
+        "fingerprint": { "type": "string" },
+        "lines": { "type": "string" },
+        "is_ignored": { "type": "boolean" },
+        "sca_info": { "$ref": "#/definitions/sca_match" },
+        "validation_state": { "$ref": "#/definitions/validation_state" },
+        "historical_info": { "$ref": "#/definitions/historical_info" },
+        "dataflow_trace": { "$ref": "#/definitions/match_dataflow_trace" },
+        "engine_kind": { "$ref": "#/definitions/engine_of_finding" },
+        "extra_extra": { "$ref": "#/definitions/raw_json" }
+      }
+    },
+    "metavars": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/definitions/metavar_value" }
+    },
+    "metavar_value": {
+      "type": "object",
+      "required": [ "start", "end", "abstract_content" ],
+      "properties": {
+        "start": { "$ref": "#/definitions/position" },
+        "end": { "$ref": "#/definitions/position" },
+        "abstract_content": { "type": "string" },
+        "propagated_value": { "$ref": "#/definitions/svalue_value" }
+      }
+    },
+    "svalue_value": {
+      "type": "object",
+      "required": [ "svalue_abstract_content" ],
+      "properties": {
+        "svalue_start": { "$ref": "#/definitions/position" },
+        "svalue_end": { "$ref": "#/definitions/position" },
+        "svalue_abstract_content": { "type": "string" }
+      }
+    },
+    "matching_explanation": {
+      "type": "object",
+      "required": [ "op", "children", "matches", "loc" ],
+      "properties": {
+        "op": { "$ref": "#/definitions/matching_operation" },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/matching_explanation" }
+        },
+        "matches": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/core_match" }
+        },
+        "loc": { "$ref": "#/definitions/location" },
+        "extra": { "$ref": "#/definitions/matching_explanation_extra" }
+      }
+    },
+    "matching_explanation_extra": {
+      "type": "object",
+      "required": [ "before_negation_matches", "before_filter_matches" ],
+      "properties": {
+        "before_negation_matches": {
+          "oneOf": [
+            {
+              "type": "array",
+              "minItems": 2,
+              "items": false,
+              "prefixItems": [
+                { "const": "Some" },
+                {
+                  "type": "array",
+                  "items": { "$ref": "#/definitions/core_match" }
+                }
+              ]
+            },
+            { "const": "None" }
+          ]
+        },
+        "before_filter_matches": {
+          "oneOf": [
+            {
+              "type": "array",
+              "minItems": 2,
+              "items": false,
+              "prefixItems": [
+                { "const": "Some" },
+                {
+                  "type": "array",
+                  "items": { "$ref": "#/definitions/core_match" }
+                }
+              ]
+            },
+            { "const": "None" }
+          ]
+        }
+      }
+    },
+    "matching_operation": {
+      "oneOf": [
+        { "const": "And" },
+        { "const": "Or" },
+        { "const": "Inside" },
+        { "const": "Anywhere" },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [ { "const": "XPat" }, { "type": "string" } ]
+        },
+        { "const": "Negation" },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [ { "const": "Filter" }, { "type": "string" } ]
+        },
+        { "const": "Taint" },
+        { "const": "TaintSource" },
+        { "const": "TaintSink" },
+        { "const": "TaintSanitizer" },
+        { "const": "EllipsisAndStmts" },
+        { "const": "ClassHeaderAndElems" }
+      ]
+    },
+    "match_dataflow_trace": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "taint_source": { "$ref": "#/definitions/match_call_trace" },
+        "intermediate_vars": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/match_intermediate_var" }
+        },
+        "taint_sink": { "$ref": "#/definitions/match_call_trace" }
+      }
+    },
+    "loc_and_content": {
+      "type": "array",
+      "minItems": 2,
+      "items": false,
+      "prefixItems": [
+        { "$ref": "#/definitions/location" }, { "type": "string" }
+      ]
+    },
+    "match_call_trace": {
+      "oneOf": [
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "CliLoc" },
+            { "$ref": "#/definitions/loc_and_content" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "CliCall" },
+            {
+              "type": "array",
+              "minItems": 3,
+              "items": false,
+              "prefixItems": [
+                { "$ref": "#/definitions/loc_and_content" },
+                {
+                  "type": "array",
+                  "items": { "$ref": "#/definitions/match_intermediate_var" }
+                },
+                { "$ref": "#/definitions/match_call_trace" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "match_intermediate_var": {
+      "type": "object",
+      "required": [ "location", "content" ],
+      "properties": {
+        "location": { "$ref": "#/definitions/location" },
+        "content": { "type": "string" }
+      }
+    },
+    "ecosystem": {
+      "oneOf": [
+        { "const": "npm" },
+        { "const": "pypi" },
+        { "const": "gem" },
+        { "const": "gomod" },
+        { "const": "cargo" },
+        { "const": "maven" },
+        { "const": "composer" },
+        { "const": "nuget" },
+        { "const": "pub" },
+        { "const": "swiftpm" },
+        { "const": "cocoapods" },
+        { "const": "mix" },
+        { "const": "hex" }
+      ]
+    },
+    "transitivity": {
+      "oneOf": [
+        { "const": "direct" },
+        { "const": "transitive" },
+        { "const": "unknown" }
+      ]
+    },
+    "sca_match": {
+      "type": "object",
+      "required": [
+        "reachability_rule", "sca_finding_schema", "dependency_match",
+        "reachable"
+      ],
+      "properties": {
+        "reachability_rule": { "type": "boolean" },
+        "sca_finding_schema": { "type": "integer" },
+        "dependency_match": { "$ref": "#/definitions/dependency_match" },
+        "reachable": { "type": "boolean" },
+        "kind": { "$ref": "#/definitions/sca_match_kind" }
+      }
+    },
+    "sca_match_kind": {
+      "oneOf": [
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "LockfileOnlyMatch" },
+            { "$ref": "#/definitions/transitivity" }
+          ]
+        },
+        { "const": "DirectReachable" },
+        { "const": "DirectUnreachable" },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "TransitiveReachable" },
+            { "$ref": "#/definitions/transitive_reachable" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "TransitiveUnreachable" },
+            { "$ref": "#/definitions/transitive_unreachable" }
+          ]
+        },
+        { "const": "TransitiveUndetermined" }
+      ]
+    },
+    "transitive_reachable": {
+      "type": "object",
+      "required": [ "explanation", "callgraph_reachable" ],
+      "properties": {
+        "explanation": {
+          "oneOf": [
+            {
+              "type": "array",
+              "minItems": 2,
+              "items": false,
+              "prefixItems": [ { "const": "Some" }, { "type": "string" } ]
+            },
+            { "const": "None" }
+          ]
+        },
+        "callgraph_reachable": {
+          "oneOf": [
+            {
+              "type": "array",
+              "minItems": 2,
+              "items": false,
+              "prefixItems": [ { "const": "Some" }, { "type": "boolean" } ]
+            },
+            { "const": "None" }
+          ]
+        }
+      }
+    },
+    "transitive_unreachable": {
+      "type": "object",
+      "required": [ "explanation" ],
+      "properties": {
+        "explanation": {
+          "oneOf": [
+            {
+              "type": "array",
+              "minItems": 2,
+              "items": false,
+              "prefixItems": [ { "const": "Some" }, { "type": "string" } ]
+            },
+            { "const": "None" }
+          ]
+        }
+      }
+    },
+    "dependency_match": {
+      "type": "object",
+      "required": [ "dependency_pattern", "found_dependency", "lockfile" ],
+      "properties": {
+        "dependency_pattern": { "$ref": "#/definitions/sca_pattern" },
+        "found_dependency": { "$ref": "#/definitions/found_dependency" },
+        "lockfile": { "$ref": "#/definitions/fpath" }
+      }
+    },
+    "sca_pattern": {
+      "type": "object",
+      "required": [ "ecosystem", "package", "semver_range" ],
+      "properties": {
+        "ecosystem": { "$ref": "#/definitions/ecosystem" },
+        "package": { "type": "string" },
+        "semver_range": { "type": "string" }
+      }
+    },
+    "found_dependency": {
+      "type": "object",
+      "required": [
+        "package", "version", "ecosystem", "allowed_hashes", "transitivity"
+      ],
+      "properties": {
+        "package": { "type": "string" },
+        "version": { "type": "string" },
+        "ecosystem": { "$ref": "#/definitions/ecosystem" },
+        "allowed_hashes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "resolved_url": { "type": "string" },
+        "transitivity": { "$ref": "#/definitions/transitivity" },
+        "manifest_path": { "$ref": "#/definitions/fpath" },
+        "lockfile_path": { "$ref": "#/definitions/fpath" },
+        "line_number": { "type": "integer" },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/dependency_child" }
+        },
+        "git_ref": { "type": "string" }
+      }
+    },
+    "dependency_child": {
+      "type": "object",
+      "required": [ "package", "version" ],
+      "properties": {
+        "package": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    },
+    "validation_state": {
+      "oneOf": [
+        { "const": "CONFIRMED_VALID" },
+        { "const": "CONFIRMED_INVALID" },
+        { "const": "VALIDATION_ERROR" },
+        { "const": "NO_VALIDATOR" }
+      ]
+    },
+    "historical_info": {
+      "type": "object",
+      "required": [ "git_commit", "git_commit_timestamp" ],
+      "properties": {
+        "git_commit": { "$ref": "#/definitions/sha1" },
+        "git_blob": { "$ref": "#/definitions/sha1" },
+        "git_commit_timestamp": { "$ref": "#/definitions/datetime" }
+      }
+    },
+    "error_type": {
+      "oneOf": [
+        { "const": "Lexical error" },
+        { "const": "Syntax error" },
+        { "const": "Other syntax error" },
+        { "const": "AST builder error" },
+        { "const": "Rule parse error" },
+        { "const": "SemgrepWarning" },
+        { "const": "SemgrepError" },
+        { "const": "InvalidRuleSchemaError" },
+        { "const": "UnknownLanguageError" },
+        { "const": "Invalid YAML" },
+        { "const": "Internal matching error" },
+        { "const": "Semgrep match found" },
+        { "const": "Too many matches" },
+        { "const": "Fatal error" },
+        { "const": "Timeout" },
+        { "const": "Out of memory" },
+        { "const": "Stack overflow" },
+        { "const": "Timeout during interfile analysis" },
+        { "const": "OOM during interfile analysis" },
+        { "const": "Missing plugin" },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "PatternParseError" },
+            { "type": "array", "items": { "type": "string" } }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "PartialParsing" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/definitions/location" }
+            }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "IncompatibleRule" },
+            { "$ref": "#/definitions/incompatible_rule" }
+          ]
+        },
+        { "const": "Pattern parse error" },
+        { "const": "Incompatible rule" },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "DependencyResolutionError" },
+            { "$ref": "#/definitions/resolution_error_kind" }
+          ]
+        }
+      ]
+    },
+    "incompatible_rule": {
+      "type": "object",
+      "required": [ "rule_id", "this_version" ],
+      "properties": {
+        "rule_id": { "$ref": "#/definitions/rule_id" },
+        "this_version": { "$ref": "#/definitions/version" },
+        "min_version": { "$ref": "#/definitions/version" },
+        "max_version": { "$ref": "#/definitions/version" }
+      }
+    },
+    "cli_error": {
+      "type": "object",
+      "required": [ "code", "level", "type" ],
+      "properties": {
+        "code": { "type": "integer" },
+        "level": { "$ref": "#/definitions/error_severity" },
+        "type": { "$ref": "#/definitions/error_type" },
+        "rule_id": { "$ref": "#/definitions/rule_id" },
+        "message": { "type": "string" },
+        "path": { "$ref": "#/definitions/fpath" },
+        "long_msg": { "type": "string" },
+        "short_msg": { "type": "string" },
+        "spans": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/error_span" }
+        },
+        "help": { "type": "string" }
+      }
+    },
+    "error_span": {
+      "type": "object",
+      "required": [ "file", "start", "end" ],
+      "properties": {
+        "file": { "$ref": "#/definitions/fpath" },
+        "start": { "$ref": "#/definitions/position" },
+        "end": { "$ref": "#/definitions/position" },
+        "source_hash": { "type": "string" },
+        "config_start": { "$ref": "#/definitions/position" },
+        "config_end": { "$ref": "#/definitions/position" },
+        "config_path": {
+          "type": [ "array", "null" ],
+          "items": { "type": "string" }
+        },
+        "context_start": { "$ref": "#/definitions/position" },
+        "context_end": { "$ref": "#/definitions/position" }
+      }
+    },
+    "skip_reason": {
+      "oneOf": [
+        { "const": "always_skipped" },
+        { "const": "semgrepignore_patterns_match" },
+        { "const": "cli_include_flags_do_not_match" },
+        { "const": "cli_exclude_flags_match" },
+        { "const": "exceeded_size_limit" },
+        { "const": "analysis_failed_parser_or_internal_error" },
+        { "const": "excluded_by_config" },
+        { "const": "wrong_language" },
+        { "const": "too_big" },
+        { "const": "minified" },
+        { "const": "binary" },
+        { "const": "irrelevant_rule" },
+        { "const": "too_many_matches" },
+        { "const": "Gitignore_patterns_match" },
+        { "const": "Dotfile" },
+        { "const": "Nonexistent_file" },
+        { "const": "insufficient_permissions" }
+      ]
+    },
+    "skipped_target": {
+      "type": "object",
+      "required": [ "path", "reason" ],
+      "properties": {
+        "path": { "$ref": "#/definitions/fpath" },
+        "reason": { "$ref": "#/definitions/skip_reason" },
+        "details": { "type": "string" },
+        "rule_id": { "$ref": "#/definitions/rule_id" }
+      }
+    },
+    "scanned_and_skipped": {
+      "type": "object",
+      "required": [ "scanned" ],
+      "properties": {
+        "scanned": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/fpath" }
+        },
+        "skipped": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/skipped_target" }
+        }
+      }
+    },
+    "skipped_rule": {
+      "type": "object",
+      "required": [ "rule_id", "details", "position" ],
+      "properties": {
+        "rule_id": { "$ref": "#/definitions/rule_id" },
+        "details": { "type": "string" },
+        "position": { "$ref": "#/definitions/position" }
+      }
+    },
+    "target_discovery_result": {
+      "type": "object",
+      "required": [ "target_paths", "errors", "skipped" ],
+      "properties": {
+        "target_paths": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/fpath" }
+        },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/core_error" }
+        },
+        "skipped": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/skipped_target" }
+        }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "required": [
+        "rules", "rules_parse_time", "profiling_times", "targets",
+        "total_bytes"
+      ],
+      "properties": {
+        "rules": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/rule_id" }
+        },
+        "rules_parse_time": { "type": "number" },
+        "profiling_times": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        },
+        "targets": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/target_times" }
+        },
+        "total_bytes": { "type": "integer" },
+        "max_memory_bytes": { "type": "integer" }
+      }
+    },
+    "target_times": {
+      "type": "object",
+      "required": [
+        "path", "num_bytes", "match_times", "parse_times", "run_time"
+      ],
+      "properties": {
+        "path": { "$ref": "#/definitions/fpath" },
+        "num_bytes": { "type": "integer" },
+        "match_times": { "type": "array", "items": { "type": "number" } },
+        "parse_times": { "type": "array", "items": { "type": "number" } },
+        "run_time": { "type": "number" }
+      }
+    },
+    "cli_output_extra": {
+      "type": "object",
+      "required": [ "paths" ],
+      "properties": {
+        "paths": { "$ref": "#/definitions/scanned_and_skipped" },
+        "time": { "$ref": "#/definitions/profile" },
+        "explanations": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/matching_explanation" }
+        },
+        "rules_by_engine": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/rule_id_and_engine_kind" }
+        },
+        "engine_requested": { "$ref": "#/definitions/engine_kind" },
+        "interfile_languages_used": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "skipped_rules": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/skipped_rule" }
+        }
+      }
+    },
+    "config_error_reason": { "oneOf": [ { "const": "unparsable_rule" } ] },
+    "config_error": {
+      "type": "object",
+      "required": [ "file", "reason" ],
+      "properties": {
+        "file": { "$ref": "#/definitions/fpath" },
+        "reason": { "$ref": "#/definitions/config_error_reason" }
+      }
+    },
+    "tests_result": {
+      "type": "object",
+      "required": [
+        "results", "fixtest_results", "config_missing_tests",
+        "config_missing_fixtests", "config_with_errors"
+      ],
+      "properties": {
+        "results": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/checks" }
+        },
+        "fixtest_results": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/fixtest_result" }
+        },
+        "config_missing_tests": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/fpath" }
+        },
+        "config_missing_fixtests": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/fpath" }
+        },
+        "config_with_errors": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/config_error" }
+        }
+      }
+    },
+    "checks": {
+      "type": "object",
+      "required": [ "checks" ],
+      "properties": {
+        "checks": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/rule_result" }
+        }
+      }
+    },
+    "rule_result": {
+      "type": "object",
+      "required": [ "passed", "matches", "errors" ],
+      "properties": {
+        "passed": { "type": "boolean" },
+        "matches": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/expected_reported"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/todo" }
+        },
+        "diagnosis": { "$ref": "#/definitions/matching_diagnosis" }
+      }
+    },
+    "expected_reported": {
+      "type": "object",
+      "required": [ "expected_lines", "reported_lines" ],
+      "properties": {
+        "expected_lines": { "type": "array", "items": { "type": "integer" } },
+        "reported_lines": { "type": "array", "items": { "type": "integer" } }
+      }
+    },
+    "fixtest_result": {
+      "type": "object",
+      "required": [ "passed" ],
+      "properties": { "passed": { "type": "boolean" } }
+    },
+    "todo": { "type": "integer" },
+    "matching_diagnosis": {
+      "type": "object",
+      "required": [
+        "target", "unexpected_match_diagnoses",
+        "unexpected_no_match_diagnoses"
+      ],
+      "properties": {
+        "target": { "$ref": "#/definitions/fpath" },
+        "unexpected_match_diagnoses": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/unexpected_match_diagnosis" }
+        },
+        "unexpected_no_match_diagnoses": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/unexpected_no_match_diagnosis" }
+        }
+      }
+    },
+    "unexpected_match_diagnosis": {
+      "type": "object",
+      "required": [
+        "matched_text", "originating_kind", "originating_text",
+        "killing_parents"
+      ],
+      "properties": {
+        "matched_text": { "$ref": "#/definitions/snippet" },
+        "originating_kind": { "$ref": "#/definitions/originating_node_kind" },
+        "originating_text": { "$ref": "#/definitions/snippet" },
+        "killing_parents": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/killing_parent" }
+        }
+      }
+    },
+    "unexpected_no_match_diagnosis": {
+      "type": "object",
+      "required": [ "line", "kind" ],
+      "properties": {
+        "line": { "type": "integer" },
+        "kind": {
+          "$ref": "#/definitions/unexpected_no_match_diagnosis_kind"
+        }
+      }
+    },
+    "unexpected_no_match_diagnosis_kind": {
+      "oneOf": [
+        { "const": "Never_matched" },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "Killed_by_nodes" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/definitions/killing_parent" }
+            }
+          ]
+        }
+      ]
+    },
+    "originating_node_kind": {
+      "oneOf": [ { "const": "Focus" }, { "const": "Xpattern" } ]
+    },
+    "killing_parent_kind": {
+      "oneOf": [
+        { "const": "And" },
+        { "const": "Inside" },
+        { "const": "Negation" },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [ { "const": "Filter" }, { "type": "string" } ]
+        }
+      ]
+    },
+    "snippet": {
+      "type": "object",
+      "required": [ "line", "text" ],
+      "properties": {
+        "line": { "type": "integer" },
+        "text": { "type": "string" }
+      }
+    },
+    "killing_parent": {
+      "type": "object",
+      "required": [ "killing_parent_kind", "snippet" ],
+      "properties": {
+        "killing_parent_kind": {
+          "$ref": "#/definitions/killing_parent_kind"
+        },
+        "snippet": { "$ref": "#/definitions/snippet" }
+      }
+    },
+    "features": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "autofix": { "type": "boolean" },
+        "deepsemgrep": { "type": "boolean" },
+        "dependency_query": { "type": "boolean" },
+        "path_to_transitivity": { "type": "boolean" },
+        "scan_all_deps_in_diff_scan": { "type": "boolean" },
+        "symbol_analysis": { "type": "boolean" }
+      }
+    },
+    "triage_ignored": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "triage_ignored_syntactic_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "triage_ignored_match_based_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "action": {
+      "oneOf": [
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [ { "const": "Message" }, { "type": "string" } ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [ { "const": "Delay" }, { "type": "number" } ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [ { "const": "Exit" }, { "type": "integer" } ]
+        }
+      ]
+    },
+    "scan_response": {
+      "type": "object",
+      "required": [ "info", "config", "engine_params" ],
+      "properties": {
+        "info": { "$ref": "#/definitions/scan_info" },
+        "config": { "$ref": "#/definitions/scan_configuration" },
+        "engine_params": { "$ref": "#/definitions/engine_configuration" }
+      }
+    },
+    "scan_info": {
+      "type": "object",
+      "required": [ "enabled_products", "deployment_id", "deployment_name" ],
+      "properties": {
+        "id": { "type": "integer" },
+        "enabled_products": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/product" }
+        },
+        "deployment_id": { "type": "integer" },
+        "deployment_name": { "type": "string" }
+      }
+    },
+    "scan_configuration": {
+      "type": "object",
+      "required": [ "rules" ],
+      "properties": {
+        "rules": { "$ref": "#/definitions/raw_json" },
+        "triage_ignored_syntactic_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "triage_ignored_match_based_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "engine_configuration": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "autofix": { "type": "boolean" },
+        "deepsemgrep": { "type": "boolean" },
+        "dependency_query": { "type": "boolean" },
+        "path_to_transitivity": { "type": "boolean" },
+        "scan_all_deps_in_diff_scan": { "type": "boolean" },
+        "symbol_analysis": { "type": "boolean" },
+        "ignored_files": { "type": "array", "items": { "type": "string" } },
+        "product_ignored_files": {
+          "$ref": "#/definitions/product_ignored_files"
+        },
+        "generic_slow_rollout": { "type": "boolean" },
+        "historical_config": {
+          "$ref": "#/definitions/historical_configuration"
+        },
+        "always_suppress_errors": { "type": "boolean" }
+      }
+    },
+    "product_ignored_files": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "items": false,
+        "prefixItems": [
+          { "$ref": "#/definitions/product" },
+          { "type": "array", "items": { "$ref": "#/definitions/glob" } }
+        ]
+      }
+    },
+    "historical_configuration": {
+      "type": "object",
+      "required": [ "enabled" ],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "lookback_days": { "type": "integer" }
+      }
+    },
+    "scan_request": {
+      "type": "object",
+      "required": [ "project_metadata", "scan_metadata" ],
+      "properties": {
+        "project_metadata": { "$ref": "#/definitions/project_metadata" },
+        "scan_metadata": { "$ref": "#/definitions/scan_metadata" },
+        "project_config": { "$ref": "#/definitions/ci_config_from_repo" }
+      }
+    },
+    "project_metadata": {
+      "type": "object",
+      "required": [
+        "scan_environment", "repository", "repo_url", "branch", "commit",
+        "commit_title", "commit_author_email", "commit_author_name",
+        "commit_author_username", "commit_author_image_url", "ci_job_url",
+        "on", "pull_request_author_username",
+        "pull_request_author_image_url", "pull_request_id",
+        "pull_request_title", "is_full_scan"
+      ],
+      "properties": {
+        "scan_environment": { "type": "string" },
+        "repository": { "type": "string" },
+        "repo_url": { "$ref": "#/definitions/uri" },
+        "repo_id": { "type": "string" },
+        "org_id": { "type": "string" },
+        "repo_display_name": { "type": "string" },
+        "branch": { "type": [ "string", "null" ] },
+        "commit": { "$ref": "#/definitions/sha1" },
+        "commit_title": { "type": [ "string", "null" ] },
+        "commit_timestamp": { "$ref": "#/definitions/datetime" },
+        "commit_author_email": { "type": [ "string", "null" ] },
+        "commit_author_name": { "type": [ "string", "null" ] },
+        "commit_author_username": { "type": [ "string", "null" ] },
+        "commit_author_image_url": { "$ref": "#/definitions/uri" },
+        "ci_job_url": { "$ref": "#/definitions/uri" },
+        "on": { "type": "string" },
+        "pull_request_author_username": { "type": [ "string", "null" ] },
+        "pull_request_author_image_url": { "$ref": "#/definitions/uri" },
+        "pull_request_id": { "type": [ "string", "null" ] },
+        "pull_request_title": { "type": [ "string", "null" ] },
+        "base_sha": { "$ref": "#/definitions/sha1" },
+        "start_sha": { "$ref": "#/definitions/sha1" },
+        "is_full_scan": { "type": "boolean" },
+        "is_sca_scan": { "type": "boolean" },
+        "is_code_scan": { "type": "boolean" },
+        "is_secrets_scan": { "type": "boolean" }
+      }
+    },
+    "scan_metadata": {
+      "type": "object",
+      "required": [ "cli_version", "unique_id", "requested_products" ],
+      "properties": {
+        "cli_version": { "$ref": "#/definitions/version" },
+        "unique_id": { "$ref": "#/definitions/uuid" },
+        "requested_products": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/product" }
+        },
+        "dry_run": { "type": "boolean" },
+        "sms_scan_id": { "type": "string" }
+      }
+    },
+    "ci_config_from_repo": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "version": { "$ref": "#/definitions/version" },
+        "tags": { "type": "array", "items": { "$ref": "#/definitions/tag" } }
+      }
+    },
+    "tag": { "type": "string" },
+    "finding": {
+      "type": "object",
+      "required": [
+        "check_id", "path", "line", "column", "end_line", "end_column",
+        "message", "severity", "index", "commit_date", "syntactic_id",
+        "metadata", "is_blocking"
+      ],
+      "properties": {
+        "check_id": { "$ref": "#/definitions/rule_id" },
+        "path": { "$ref": "#/definitions/fpath" },
+        "line": { "type": "integer" },
+        "column": { "type": "integer" },
+        "end_line": { "type": "integer" },
+        "end_column": { "type": "integer" },
+        "message": { "type": "string" },
+        "severity": {},
+        "index": { "type": "integer" },
+        "commit_date": { "type": "string" },
+        "syntactic_id": { "type": "string" },
+        "match_based_id": { "type": "string" },
+        "hashes": { "$ref": "#/definitions/finding_hashes" },
+        "metadata": { "$ref": "#/definitions/raw_json" },
+        "is_blocking": { "type": "boolean" },
+        "fixed_lines": { "type": "array", "items": { "type": "string" } },
+        "sca_info": { "$ref": "#/definitions/sca_match" },
+        "dataflow_trace": { "$ref": "#/definitions/match_dataflow_trace" },
+        "validation_state": { "$ref": "#/definitions/validation_state" },
+        "historical_info": { "$ref": "#/definitions/historical_info" },
+        "engine_kind": { "$ref": "#/definitions/engine_of_finding" }
+      }
+    },
+    "finding_hashes": {
+      "type": "object",
+      "required": [
+        "start_line_hash", "end_line_hash", "code_hash", "pattern_hash"
+      ],
+      "properties": {
+        "start_line_hash": { "type": "string" },
+        "end_line_hash": { "type": "string" },
+        "code_hash": { "type": "string" },
+        "pattern_hash": { "type": "string" }
+      }
+    },
+    "ci_scan_results": {
+      "type": "object",
+      "required": [
+        "findings", "ignores", "token", "searched_paths", "renamed_paths",
+        "rule_ids"
+      ],
+      "properties": {
+        "findings": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/finding" }
+        },
+        "ignores": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/finding" }
+        },
+        "token": { "type": [ "string", "null" ] },
+        "searched_paths": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/fpath" }
+        },
+        "renamed_paths": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/fpath" }
+        },
+        "rule_ids": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/rule_id" }
+        },
+        "contributions": { "$ref": "#/definitions/contributions" },
+        "dependencies": { "$ref": "#/definitions/ci_scan_dependencies" }
+      }
+    },
+    "contributor": {
+      "type": "object",
+      "required": [ "commit_author_name", "commit_author_email" ],
+      "properties": {
+        "commit_author_name": { "type": "string" },
+        "commit_author_email": { "type": "string" }
+      }
+    },
+    "contribution": {
+      "type": "object",
+      "required": [ "commit_hash", "commit_timestamp", "contributor" ],
+      "properties": {
+        "commit_hash": { "type": "string" },
+        "commit_timestamp": { "$ref": "#/definitions/datetime" },
+        "contributor": { "$ref": "#/definitions/contributor" }
+      }
+    },
+    "contributions": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/contribution" }
+    },
+    "ci_scan_results_response": {
+      "type": "object",
+      "required": [ "errors" ],
+      "properties": {
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ci_scan_results_response_error" }
+        },
+        "task_id": { "type": "string" }
+      }
+    },
+    "ci_scan_results_response_error": {
+      "type": "object",
+      "required": [ "message" ],
+      "properties": { "message": { "type": "string" } }
+    },
+    "ci_scan_complete": {
+      "type": "object",
+      "required": [ "exit_code", "stats" ],
+      "properties": {
+        "exit_code": { "type": "integer" },
+        "stats": { "$ref": "#/definitions/ci_scan_complete_stats" },
+        "dependencies": { "$ref": "#/definitions/ci_scan_dependencies" },
+        "dependency_parser_errors": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/dependency_parser_error" }
+        },
+        "task_id": { "type": "string" },
+        "final_attempt": { "type": "boolean" }
+      }
+    },
+    "ci_scan_complete_stats": {
+      "type": "object",
+      "required": [
+        "findings", "errors", "total_time", "unsupported_exts",
+        "lockfile_scan_info", "parse_rate"
+      ],
+      "properties": {
+        "findings": { "type": "integer" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/cli_error" }
+        },
+        "total_time": { "type": "number" },
+        "unsupported_exts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer" }
+        },
+        "lockfile_scan_info": {
+          "type": "object",
+          "additionalProperties": { "type": "integer" }
+        },
+        "parse_rate": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/parsing_stats" }
+        },
+        "engine_requested": { "type": "string" },
+        "findings_by_product": {
+          "type": "object",
+          "additionalProperties": { "type": "integer" }
+        },
+        "supply_chain_stats": { "$ref": "#/definitions/supply_chain_stats" }
+      }
+    },
+    "parsing_stats": {
+      "type": "object",
+      "required": [
+        "targets_parsed", "num_targets", "bytes_parsed", "num_bytes"
+      ],
+      "properties": {
+        "targets_parsed": { "type": "integer" },
+        "num_targets": { "type": "integer" },
+        "bytes_parsed": { "type": "integer" },
+        "num_bytes": { "type": "integer" }
+      }
+    },
+    "ci_scan_complete_response": {
+      "type": "object",
+      "required": [ "success" ],
+      "properties": {
+        "success": { "type": "boolean" },
+        "app_block_override": { "type": "boolean" },
+        "app_block_reason": { "type": "string" },
+        "app_blocking_match_based_ids": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/match_based_id" }
+        }
+      }
+    },
+    "ci_scan_dependencies": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/found_dependency" }
+      }
+    },
+    "dependency_parser_error": {
+      "type": "object",
+      "required": [ "path", "parser", "reason" ],
+      "properties": {
+        "path": { "$ref": "#/definitions/fpath" },
+        "parser": { "$ref": "#/definitions/sca_parser_name" },
+        "reason": { "type": "string" },
+        "line": { "type": "integer" },
+        "col": { "type": "integer" },
+        "text": { "type": "string" }
+      }
+    },
+    "sca_parser_name": {
+      "oneOf": [
+        { "const": "gemfile_lock" },
+        { "const": "go_mod" },
+        { "const": "go_sum" },
+        { "const": "gradle_lockfile" },
+        { "const": "gradle_build" },
+        { "const": "jsondoc" },
+        { "const": "pipfile" },
+        { "const": "pnpm_lock" },
+        { "const": "poetry_lock" },
+        { "const": "pyproject_toml" },
+        { "const": "requirements" },
+        { "const": "yarn_1" },
+        { "const": "yarn_2" },
+        { "const": "pomtree" },
+        { "const": "cargo" },
+        { "const": "composer_lock" },
+        { "const": "pubspec_lock" },
+        { "const": "package_swift" },
+        { "const": "podfile_lock" },
+        { "const": "package_resolved" },
+        { "const": "mix_lock" }
+      ]
+    },
+    "supply_chain_stats": {
+      "type": "object",
+      "required": [ "subprojects_stats" ],
+      "properties": {
+        "subprojects_stats": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/subproject_stats" }
+        }
+      }
+    },
+    "subproject_stats": {
+      "type": "object",
+      "required": [ "subproject_id", "dependency_sources" ],
+      "properties": {
+        "subproject_id": { "type": "string" },
+        "dependency_sources": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/dependency_source_file" }
+        },
+        "resolved_stats": {
+          "$ref": "#/definitions/dependency_resolution_stats"
+        }
+      }
+    },
+    "dependency_source_file": {
+      "type": "object",
+      "required": [ "kind", "path" ],
+      "properties": {
+        "kind": { "$ref": "#/definitions/dependency_source_file_kind" },
+        "path": { "$ref": "#/definitions/fpath" }
+      }
+    },
+    "dependency_source_file_kind": {
+      "oneOf": [
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "Lockfile" },
+            { "$ref": "#/definitions/lockfile_kind" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "Manifest" },
+            { "$ref": "#/definitions/manifest_kind" }
+          ]
+        }
+      ]
+    },
+    "dependency_resolution_stats": {
+      "type": "object",
+      "required": [ "resolution_method", "dependency_count", "ecosystem" ],
+      "properties": {
+        "resolution_method": { "$ref": "#/definitions/resolution_method" },
+        "dependency_count": { "type": "integer" },
+        "ecosystem": { "$ref": "#/definitions/ecosystem" }
+      }
+    },
+    "resolution_method": {
+      "oneOf": [
+        { "const": "LockfileParsing" }, { "const": "DynamicResolution" }
+      ]
+    },
+    "ci_scan_failure": {
+      "type": "object",
+      "required": [ "exit_code", "stderr" ],
+      "properties": {
+        "exit_code": { "type": "integer" },
+        "stderr": { "type": "string" }
+      }
+    },
+    "deployment_config": {
+      "type": "object",
+      "required": [ "id", "name" ],
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "organization_id": { "type": "integer" },
+        "display_name": { "type": "string" },
+        "scm_name": { "type": "string" },
+        "slug": { "type": "string" },
+        "source_type": { "type": "string" },
+        "default_user_role": { "type": "string" },
+        "has_autofix": { "type": "boolean" },
+        "has_deepsemgrep": { "type": "boolean" },
+        "has_triage_via_comment": { "type": "boolean" },
+        "has_dependency_query": { "type": "boolean" }
+      }
+    },
+    "has_features": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "has_autofix": { "type": "boolean" },
+        "has_deepsemgrep": { "type": "boolean" },
+        "has_triage_via_comment": { "type": "boolean" },
+        "has_dependency_query": { "type": "boolean" }
+      }
+    },
+    "deployment_response": {
+      "type": "object",
+      "required": [ "deployment" ],
+      "properties": {
+        "deployment": { "$ref": "#/definitions/deployment_config" }
+      }
+    },
+    "scan_config": {
+      "type": "object",
+      "required": [
+        "deployment_id", "deployment_name", "policy_names", "rule_config"
+      ],
+      "properties": {
+        "deployment_id": { "type": "integer" },
+        "deployment_name": { "type": "string" },
+        "policy_names": { "type": "array", "items": { "type": "string" } },
+        "rule_config": { "type": "string" },
+        "autofix": { "type": "boolean" },
+        "deepsemgrep": { "type": "boolean" },
+        "dependency_query": { "type": "boolean" },
+        "path_to_transitivity": { "type": "boolean" },
+        "scan_all_deps_in_diff_scan": { "type": "boolean" },
+        "symbol_analysis": { "type": "boolean" },
+        "triage_ignored_syntactic_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "triage_ignored_match_based_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "ignored_files": { "type": "array", "items": { "type": "string" } },
+        "enabled_products": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/product" }
+        },
+        "actions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/action" }
+        },
+        "ci_config_from_cloud": {
+          "$ref": "#/definitions/ci_config_from_cloud"
+        }
+      }
+    },
+    "ci_config_from_cloud": {
+      "type": "object",
+      "required": [ "repo_config" ],
+      "properties": {
+        "repo_config": { "$ref": "#/definitions/ci_config" },
+        "org_config": { "$ref": "#/definitions/ci_config" },
+        "dirs_config": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "items": false,
+            "prefixItems": [
+              { "$ref": "#/definitions/fpath" },
+              { "$ref": "#/definitions/ci_config" }
+            ]
+          }
+        },
+        "actions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/action" }
+        }
+      }
+    },
+    "ci_config": {
+      "type": "object",
+      "required": [ "env", "enabled_products", "ignored_files" ],
+      "properties": {
+        "env": { "$ref": "#/definitions/ci_env" },
+        "enabled_products": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/product" }
+        },
+        "ignored_files": { "type": "array", "items": { "type": "string" } },
+        "autofix": { "type": "boolean" },
+        "deepsemgrep": { "type": "boolean" },
+        "dependency_query": { "type": "boolean" },
+        "path_to_transitivity": { "type": "boolean" },
+        "scan_all_deps_in_diff_scan": { "type": "boolean" },
+        "symbol_analysis": { "type": "boolean" }
+      }
+    },
+    "ci_env": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "core_output": {
+      "type": "object",
+      "required": [ "version", "results", "errors", "paths" ],
+      "properties": {
+        "version": { "$ref": "#/definitions/version" },
+        "results": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/core_match" }
+        },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/core_error" }
+        },
+        "paths": { "$ref": "#/definitions/scanned_and_skipped" },
+        "time": { "$ref": "#/definitions/profile" },
+        "explanations": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/matching_explanation" }
+        },
+        "rules_by_engine": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/rule_id_and_engine_kind" }
+        },
+        "engine_requested": { "$ref": "#/definitions/engine_kind" },
+        "interfile_languages_used": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "skipped_rules": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/skipped_rule" }
+        },
+        "symbol_analysis": { "$ref": "#/definitions/symbol_analysis" }
+      }
+    },
+    "core_output_extra": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "symbol_analysis": { "$ref": "#/definitions/symbol_analysis" }
+      }
+    },
+    "core_match": {
+      "type": "object",
+      "required": [ "check_id", "path", "start", "end", "extra" ],
+      "properties": {
+        "check_id": { "$ref": "#/definitions/rule_id" },
+        "path": { "$ref": "#/definitions/fpath" },
+        "start": { "$ref": "#/definitions/position" },
+        "end": { "$ref": "#/definitions/position" },
+        "extra": { "$ref": "#/definitions/core_match_extra" }
+      }
+    },
+    "core_match_extra": {
+      "type": "object",
+      "required": [ "metavars", "engine_kind", "is_ignored" ],
+      "properties": {
+        "metavars": { "$ref": "#/definitions/metavars" },
+        "engine_kind": { "$ref": "#/definitions/engine_of_finding" },
+        "is_ignored": { "type": "boolean" },
+        "message": { "type": "string" },
+        "metadata": { "$ref": "#/definitions/raw_json" },
+        "severity": { "$ref": "#/definitions/match_severity" },
+        "fix": { "type": "string" },
+        "dataflow_trace": { "$ref": "#/definitions/match_dataflow_trace" },
+        "sca_match": { "$ref": "#/definitions/sca_match" },
+        "validation_state": { "$ref": "#/definitions/validation_state" },
+        "historical_info": { "$ref": "#/definitions/historical_info" },
+        "extra_extra": { "$ref": "#/definitions/raw_json" }
+      }
+    },
+    "core_error": {
+      "type": "object",
+      "required": [ "error_type", "severity", "message" ],
+      "properties": {
+        "error_type": { "$ref": "#/definitions/error_type" },
+        "severity": { "$ref": "#/definitions/error_severity" },
+        "message": { "type": "string" },
+        "details": { "type": "string" },
+        "location": { "$ref": "#/definitions/location" },
+        "rule_id": { "$ref": "#/definitions/rule_id" }
+      }
+    },
+    "project_root": {
+      "oneOf": [
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [ { "const": "Filesystem" }, { "type": "string" } ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [ { "const": "Git_remote" }, { "type": "string" } ]
+        }
+      ]
+    },
+    "targeting_conf": {
+      "type": "object",
+      "required": [
+        "exclude", "max_target_bytes", "respect_gitignore",
+        "respect_semgrepignore_files", "always_select_explicit_targets",
+        "explicit_targets", "force_novcs_project", "exclude_minified_files",
+        "diff_depth"
+      ],
+      "properties": {
+        "exclude": { "type": "array", "items": { "type": "string" } },
+        "include_": { "type": "array", "items": { "type": "string" } },
+        "max_target_bytes": { "type": "integer" },
+        "respect_gitignore": { "type": "boolean" },
+        "respect_semgrepignore_files": { "type": "boolean" },
+        "always_select_explicit_targets": { "type": "boolean" },
+        "explicit_targets": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "force_project_root": { "$ref": "#/definitions/project_root" },
+        "force_novcs_project": { "type": "boolean" },
+        "exclude_minified_files": { "type": "boolean" },
+        "baseline_commit": { "type": "string" },
+        "diff_depth": { "type": "integer" }
+      }
+    },
+    "analyzer": { "type": "string" },
+    "target": {
+      "oneOf": [
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "CodeTarget" },
+            { "$ref": "#/definitions/code_target" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "LockfileTarget" },
+            { "$ref": "#/definitions/lockfile" }
+          ]
+        }
+      ]
+    },
+    "code_target": {
+      "type": "object",
+      "required": [ "path", "analyzer", "products" ],
+      "properties": {
+        "path": { "$ref": "#/definitions/fpath" },
+        "analyzer": { "$ref": "#/definitions/analyzer" },
+        "products": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/product" }
+        },
+        "lockfile_target": { "$ref": "#/definitions/lockfile" }
+      }
+    },
+    "scanning_roots": {
+      "type": "object",
+      "required": [ "root_paths", "targeting_conf" ],
+      "properties": {
+        "root_paths": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/fpath" }
+        },
+        "targeting_conf": { "$ref": "#/definitions/targeting_conf" }
+      }
+    },
+    "targets": {
+      "oneOf": [
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "Scanning_roots" },
+            { "$ref": "#/definitions/scanning_roots" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "Targets" },
+            { "type": "array", "items": { "$ref": "#/definitions/target" } }
+          ]
+        }
+      ]
+    },
+    "edit": {
+      "type": "object",
+      "required": [
+        "path", "start_offset", "end_offset", "replacement_text"
+      ],
+      "properties": {
+        "path": { "$ref": "#/definitions/fpath" },
+        "start_offset": { "type": "integer" },
+        "end_offset": { "type": "integer" },
+        "replacement_text": { "type": "string" }
+      }
+    },
+    "apply_fixes_params": {
+      "type": "object",
+      "required": [ "dryrun", "edits" ],
+      "properties": {
+        "dryrun": { "type": "boolean" },
+        "edits": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/edit" }
+        }
+      }
+    },
+    "apply_fixes_return": {
+      "type": "object",
+      "required": [ "modified_file_count", "fixed_lines" ],
+      "properties": {
+        "modified_file_count": { "type": "integer" },
+        "fixed_lines": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "items": false,
+            "prefixItems": [
+              { "type": "integer" },
+              { "type": "array", "items": { "type": "string" } }
+            ]
+          }
+        }
+      }
+    },
+    "sarif_format": {
+      "type": "object",
+      "required": [ "rules", "is_pro", "show_dataflow_traces" ],
+      "properties": {
+        "rules": { "$ref": "#/definitions/fpath" },
+        "is_pro": { "type": "boolean" },
+        "show_dataflow_traces": { "type": "boolean" }
+      }
+    },
+    "output_format": {
+      "oneOf": [
+        { "const": "Text" },
+        { "const": "Json" },
+        { "const": "Emacs" },
+        { "const": "Vim" },
+        { "const": "Sarif" },
+        { "const": "Gitlab_sast" },
+        { "const": "Gitlab_secrets" },
+        { "const": "Junit_xml" },
+        { "const": "Files_with_matches" },
+        { "const": "Incremental" }
+      ]
+    },
+    "format_context": {
+      "type": "object",
+      "required": [ "is_ci_invocation", "is_logged_in", "is_using_registry" ],
+      "properties": {
+        "is_ci_invocation": { "type": "boolean" },
+        "is_logged_in": { "type": "boolean" },
+        "is_using_registry": { "type": "boolean" }
+      }
+    },
+    "dump_rule_partitions_params": {
+      "type": "object",
+      "required": [ "rules", "n_partitions", "output_dir" ],
+      "properties": {
+        "rules": { "$ref": "#/definitions/raw_json" },
+        "n_partitions": { "type": "integer" },
+        "output_dir": { "$ref": "#/definitions/fpath" }
+      }
+    },
+    "lockfile_kind": {
+      "oneOf": [
+        { "const": "PipRequirementsTxt" },
+        { "const": "PoetryLock" },
+        { "const": "PipfileLock" },
+        { "const": "UvLock" },
+        { "const": "NpmPackageLockJson" },
+        { "const": "YarnLock" },
+        { "const": "PnpmLock" },
+        { "const": "GemfileLock" },
+        { "const": "GoMod" },
+        { "const": "CargoLock" },
+        { "const": "MavenDepTree" },
+        { "const": "GradleLockfile" },
+        { "const": "ComposerLock" },
+        { "const": "NugetPackagesLockJson" },
+        { "const": "PubspecLock" },
+        { "const": "SwiftPackageResolved" },
+        { "const": "PodfileLock" },
+        { "const": "MixLock" },
+        { "const": "ConanLock" }
+      ]
+    },
+    "manifest_kind": {
+      "oneOf": [
+        { "const": "RequirementsIn" },
+        { "const": "PackageJson" },
+        { "const": "Gemfile" },
+        { "const": "GoMod" },
+        { "const": "CargoToml" },
+        { "const": "PomXml" },
+        { "const": "BuildGradle" },
+        { "const": "SettingsGradle" },
+        { "const": "ComposerJson" },
+        { "const": "NugetManifestJson" },
+        { "const": "PubspecYaml" },
+        { "const": "PackageSwift" },
+        { "const": "Podfile" },
+        { "const": "MixExs" },
+        { "const": "Pipfile" },
+        { "const": "PyprojectToml" },
+        { "const": "ConanFileTxt" },
+        { "const": "ConanFilePy" },
+        { "const": "Csproj" }
+      ]
+    },
+    "manifest": {
+      "type": "object",
+      "required": [ "kind", "path" ],
+      "properties": {
+        "kind": { "$ref": "#/definitions/manifest_kind" },
+        "path": { "$ref": "#/definitions/fpath" }
+      }
+    },
+    "lockfile": {
+      "type": "object",
+      "required": [ "kind", "path" ],
+      "properties": {
+        "kind": { "$ref": "#/definitions/lockfile_kind" },
+        "path": { "$ref": "#/definitions/fpath" }
+      }
+    },
+    "dependency_source": {
+      "oneOf": [
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "ManifestOnlyDependencySource" },
+            { "$ref": "#/definitions/manifest" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "LockfileOnlyDependencySource" },
+            { "$ref": "#/definitions/lockfile" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "ManifestLockfileDependencySource" },
+            {
+              "type": "array",
+              "minItems": 2,
+              "items": false,
+              "prefixItems": [
+                { "$ref": "#/definitions/manifest" },
+                { "$ref": "#/definitions/lockfile" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "MultiLockfileDependencySource" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/definitions/dependency_source" }
+            }
+          ]
+        }
+      ]
+    },
+    "resolution_error_kind": {
+      "oneOf": [
+        { "const": "UnsupportedManifest" },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "MissingRequirement" }, { "type": "string" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "ResolutionCmdFailed" },
+            { "$ref": "#/definitions/resolution_cmd_failed" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "ParseDependenciesFailed" }, { "type": "string" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "ScaParseError" },
+            { "$ref": "#/definitions/sca_parser_name" }
+          ]
+        }
+      ]
+    },
+    "sca_resolution_error": {
+      "type": "object",
+      "required": [ "type_", "dependency_source_file" ],
+      "properties": {
+        "type_": { "$ref": "#/definitions/resolution_error_kind" },
+        "dependency_source_file": { "$ref": "#/definitions/fpath" }
+      }
+    },
+    "sca_error": {
+      "oneOf": [
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "SCAParse" },
+            { "$ref": "#/definitions/dependency_parser_error" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "SCAResol" },
+            { "$ref": "#/definitions/sca_resolution_error" }
+          ]
+        }
+      ]
+    },
+    "resolution_cmd_failed": {
+      "type": "object",
+      "required": [ "command", "message" ],
+      "properties": {
+        "command": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "resolution_result": {
+      "oneOf": [
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "ResolutionOk" },
+            {
+              "type": "array",
+              "minItems": 2,
+              "items": false,
+              "prefixItems": [
+                {
+                  "type": "array",
+                  "items": { "$ref": "#/definitions/found_dependency" }
+                },
+                {
+                  "type": "array",
+                  "items": { "$ref": "#/definitions/resolution_error_kind" }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "ResolutionError" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/definitions/resolution_error_kind" }
+            }
+          ]
+        }
+      ]
+    },
+    "transitive_finding": {
+      "type": "object",
+      "required": [ "m" ],
+      "properties": { "m": { "$ref": "#/definitions/core_match" } }
+    },
+    "symbol": {
+      "type": "object",
+      "required": [ "fqn" ],
+      "properties": {
+        "fqn": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "symbol_usage": {
+      "type": "object",
+      "required": [ "symbol", "locs" ],
+      "properties": {
+        "symbol": { "$ref": "#/definitions/symbol" },
+        "locs": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/location" }
+        }
+      }
+    },
+    "symbol_analysis": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/symbol_usage" }
+    },
+    "function_call": {
+      "oneOf": [
+        { "const": "CallContributions" },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "CallApplyFixes" },
+            { "$ref": "#/definitions/apply_fixes_params" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "CallFormatter" },
+            {
+              "type": "array",
+              "minItems": 3,
+              "items": false,
+              "prefixItems": [
+                { "$ref": "#/definitions/output_format" },
+                { "$ref": "#/definitions/format_context" },
+                { "$ref": "#/definitions/cli_output" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "CallSarifFormat" },
+            {
+              "type": "array",
+              "minItems": 3,
+              "items": false,
+              "prefixItems": [
+                { "$ref": "#/definitions/sarif_format" },
+                { "$ref": "#/definitions/format_context" },
+                { "$ref": "#/definitions/cli_output" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "CallValidate" }, { "$ref": "#/definitions/fpath" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "CallResolveDependencies" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/definitions/dependency_source" }
+            }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "CallUploadSymbolAnalysis" },
+            {
+              "type": "array",
+              "minItems": 3,
+              "items": false,
+              "prefixItems": [
+                { "type": "string" },
+                { "type": "integer" },
+                { "$ref": "#/definitions/symbol_analysis" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "CallDumpRulePartitions" },
+            { "$ref": "#/definitions/dump_rule_partitions_params" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "CallTransitiveReachabilityFilter" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/definitions/transitive_finding" }
+            }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "CallGetTargets" },
+            { "$ref": "#/definitions/scanning_roots" }
+          ]
+        }
+      ]
+    },
+    "function_return": {
+      "oneOf": [
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [ { "const": "RetError" }, { "type": "string" } ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "RetApplyFixes" },
+            { "$ref": "#/definitions/apply_fixes_return" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "RetContributions" },
+            { "$ref": "#/definitions/contributions" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "RetFormatter" }, { "type": "string" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "RetSarifFormat" }, { "type": "string" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "RetValidate" }, { "type": "boolean" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "RetResolveDependencies" },
+            {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "items": false,
+                "prefixItems": [
+                  { "$ref": "#/definitions/dependency_source" },
+                  { "$ref": "#/definitions/resolution_result" }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "RetUploadSymbolAnalysis" }, { "type": "string" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "RetDumpRulePartitions" }, { "type": "boolean" }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "RetTransitiveReachabilityFilter" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/definitions/transitive_finding" }
+            }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "RetGetTargets" },
+            { "$ref": "#/definitions/target_discovery_result" }
+          ]
+        }
+      ]
+    },
+    "partial_scan_result": {
+      "oneOf": [
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "PartialScanOk" },
+            {
+              "type": "array",
+              "minItems": 2,
+              "items": false,
+              "prefixItems": [
+                { "$ref": "#/definitions/ci_scan_results" },
+                { "$ref": "#/definitions/ci_scan_complete" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 2,
+          "items": false,
+          "prefixItems": [
+            { "const": "PartialScanError" },
+            { "$ref": "#/definitions/ci_scan_failure" }
+          ]
+        }
+      ]
+    },
+    "diff_file": {
+      "type": "object",
+      "required": [ "filename", "diffs", "url" ],
+      "properties": {
+        "filename": { "$ref": "#/definitions/fpath" },
+        "diffs": { "type": "array", "items": { "type": "string" } },
+        "url": { "type": "string" }
+      }
+    },
+    "diff_files": {
+      "type": "object",
+      "required": [ "cve_diffs" ],
+      "properties": {
+        "cve_diffs": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/diff_file" }
+        }
+      }
+    }
+  }
+}
