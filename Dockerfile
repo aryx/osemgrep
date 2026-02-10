@@ -26,7 +26,6 @@ WORKDIR /src
 COPY osemgrep.opam dune-project configure Makefile ./
 COPY ./scripts ./scripts
 COPY ./libs/ocaml-tree-sitter-core/ ./libs/ocaml-tree-sitter-core/
-COPY ./dev ./dev
 #note: configure will just internally run 'make setup'
 RUN ./configure
 

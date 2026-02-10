@@ -40,7 +40,7 @@ depends: [
   "yaml"
   "xmlm"
   "sarif" {>= "0.3.0"}
-  "cmdliner"
+  "cmdliner" {= "1.3.0"}
   "ppxlib"
   "ppx_deriving" {>= "6.0.3"}
   "ppx_deriving_yojson"

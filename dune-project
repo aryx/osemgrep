@@ -494,7 +494,7 @@ For more information see https://semgrep.dev
     xmlm
     (sarif ( >= 0.3.0 ))
     ; CLI
-    cmdliner
+    (cmdliner (= 1.3.0))
     ; PPX
     ppxlib
     (ppx_deriving ( >= 6.0.3 ))

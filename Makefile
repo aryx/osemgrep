@@ -177,21 +177,8 @@ core-test-e2e:
 # command so as to detect conflicts.
 # WEIRD: if you use ./libs/ocaml-tree-sitter-core/ instead of the full
 # path, then recent versions of opam crash with a 'git ls-files fatal error'
-# about some 'libs/ocaml-tree-sitter-core/../../.git/...' not being a git
-# repo.
-#
-# EXTRA_OPAM_DEPS allows us to add more opam files when building semgrep
-# as part of a larger project (e.g. semgrep-proprietary). Using a single
-# 'opam install' command to install all the dependencies allows us to detect
-# version constraints incompatibilities.
-#
-REQUIRED_DEPS = \
- ./ \
- ./libs/ocaml-tree-sitter-core/tree-sitter.opam \
-  ./dev/required.opam \
-  $(EXTRA_OPAM_DEPS)
-
-OPTIONAL_DEPS = $(REQUIRED_DEPS) ./dev/optional.opam
+# about some 'libs/ocaml-tree-sitter-core/../../.git/...' not being a git repo.
+REQUIRED_DEPS = ./ ./libs/ocaml-tree-sitter-core/tree-sitter.opam
 
 # This target is portable; it only assumes you have 'gcc', 'opam' and
 # other build-essential tools and a working OCaml (e.g., ocamlc) switch setup.
@@ -413,15 +400,14 @@ install-deps-WINDOWS-for-semgrep-core:
 # As a developer you should not run frequently 'make setup', only when
 # important dependencies change.
 .PHONY: setup
-setup: osemgrep.opam
-	./scripts/check-bash-version
+setup: #osemgrep.opam
 	$(MAKE) install-deps-for-semgrep-core
 
 # Install optional development dependencies in addition to build dependencies.
 .PHONY: dev-setup
 dev-setup:
 	$(MAKE) setup
-	opam install -y --deps-only $(OPTIONAL_DEPS)
+	opam install -y --deps-only merlin
 
 # Update and rebuild everything within the project.
 .PHONY: rebuild
