@@ -1,6 +1,0 @@
-rules:
-- id: hello
-  severity: WARNING
-  languages: [generic]
-  message: "found something"
-  pattern: hello

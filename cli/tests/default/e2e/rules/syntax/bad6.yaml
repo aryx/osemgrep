@@ -1,8 +1,0 @@
-rules:
-  - id: arg-reassign
-    # pattern-either must have children
-    patterns:
-      - pattern-either: "$X == $X"
-    message: "$X is being assigned to one or two"
-    languages: [python]
-    severity: WARNING

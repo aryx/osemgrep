@@ -1,9 +1,0 @@
-rules:
-- id: stuff
-  languages:
-  - python
-  match: |
-    stuff()
-    ...
-  message: rule_template_message
-  severity: ERROR

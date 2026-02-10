@@ -4,10 +4,9 @@
 
 # Many targets in this Makefile assume some commands have been run before to
 # setup the correct build environment supporting the different languages
-# used for Semgrep development:
-#  - for OCaml: 'ocamlc' and 'ocamlopt' (currently 4.14.0), 'dune', 'opam'
+# used for OSemgrep development:
+#  - for OCaml: 'ocamlc' and 'ocamlopt' (currently 4.14.2), 'dune', 'opam'
 #  - for C: 'gcc', 'ld', 'pkgconfig', but also some C libs like PCRE, gmp
-#  - for Python: 'python3', 'pip', 'pipenv'
 #
 # You will also need obviously 'make', but also 'git', and many other
 # common dev tools (e.g., 'docker', 'bash').
@@ -18,10 +17,10 @@
 #
 #     $ make install-deps
 #
-# to install the dependencies proper to semgrep (e.g., the necessary OPAM
-# packages used by semgrep-core).
+# to install the dependencies proper to OSemgrep (e.g., the necessary OPAM
+# packages used by osemgrep).
 #
-# Then to compile semgrep simply type:
+# Then to compile osemgrep simply type:
 #
 #     $ make all
 #
@@ -75,101 +74,68 @@ default: core
 # Routine build. It assumes all dependencies and configuration are already in
 # place and correct.
 .PHONY: all
-all:
-# OCaml compilation
-	$(MAKE) core
-	$(MAKE) copy-core-for-cli
-# Python setup
-	cd cli && pipenv install --dev
-	$(MAKE) -C cli build
+all: core
 
-# Make binaries available to pysemgrep
-.PHONY: copy-core-for-cli
-copy-core-for-cli:
-	rm -f cli/src/semgrep/bin/semgrep-core$(EXE)
-	cp bin/semgrep-core$(EXE) cli/src/semgrep/bin/
-
-# Minimal build of the semgrep-core executable. Intended for the docker build.
+# Minimal build of the osemgrep executable. Intended for the docker build.
 # If you need other binaries, look at the build-xxx rules below.
-# We use bash -c .../bin/{semgrep-core,osemgrep,semgrep} below to
+# We use bash -c .../bin/{semgrep-core,osemgrep} below to
 # factorize because make under Alpine uses busybox/ash for /bin/sh which
 # does not support this bash feature.
 .PHONY: core
 core:
-	bash -c "dune build _build/install/default/bin/{semgrep-core,osemgrep,semgrep}$(EXE)"
+	bash -c "dune build _build/install/default/bin/{semgrep-core,osemgrep}$(EXE)"
 
 build-docker:
 	docker build -t osemgrep .
 build-docker-ocaml5:
 	docker build -t osemgrep --build-arg OCAML_VERSION=5.2.1 .
 
-.PHONY: build-otarzan
 build-otarzan:
 	dune build _build/install/default/bin/otarzan
-
-.PHONY: build-ojsonnet
 build-ojsonnet:
 	dune build _build/install/default/bin/ojsonnet
-
-.PHONY: build-pfff
 build-pfff:
 	dune build _build/install/default/bin/pfff
 
 # This is an example of how to build one of those parse-xxx ocaml-tree-sitter binaries
-.PHONY: build-parse-cairo
 build-parse-cairo:
 	dune build _build/install/default/bin/parse-cairo
 
-# Remove from the project tree everything that's not under source control
-# and was not created by 'make setup'.
 .PHONY: clean
 clean:
 	dune clean
+
+# Remove from the project tree everything that's not under source control
+# and was not created by 'make setup'.
+nuke: clean
 # We still need to keep the nonempty opam files in git for
 # 'make setup', so we should only remove the empty opam files.
 # This removes the gitignored opam files.
 	git clean -fX *.opam
-	-$(MAKE) -C cli clean
 
 ###############################################################################
 # Install targets
 ###############################################################################
 
-# Install semgrep on a developer's machine with pip and opam installed.
+# Install osemgrep on a developer's machine with opam installed.
 # This should *not* install the open-source libraries that we maintain
-# as part of the semgrep project.
+# as part of the osemgrep project.
 .PHONY: install
 install:
-	$(MAKE) copy-core-for-cli
-# Install semgrep and semgrep-core in a place known to pip.
-	python3 -m pip install ./cli
+	echo TODO dune install osemgrep
 
 .PHONY: uninstall
 uninstall:
-	-python3 -m pip uninstall --yes semgrep
+	echo TODO dune uninstall osemgrep
 
 ###############################################################################
 # Test target
 ###############################################################################
 
-# Note that this target is actually not used in CI; it's only for local dev
+#coupling: this is run by .github/workflow/docker.yml
 .PHONY: test
 test: core-test
 
-# Experimental - only (re-)run the failed tests
-.PHONY: retest
-retest:
-	$(MAKE) build-core-test
-	./test run --lazy
-
-# Note that this target is actually not used in CI; it's only for local dev
-.PHONY: test-all
-test-all:
-	$(MAKE) core-test
-	$(MAKE) -C cli test
-	$(MAKE) -C cli osempass
-
-#coupling: this is run by .github/workflow/tests.yml
 .PHONY: core-test
 core-test:
 	$(MAKE) build-core-test
@@ -177,6 +143,12 @@ core-test:
 # from the directory of the checkout
 	./test --help 2>&1 >/dev/null
 	./scripts/run-core-test
+
+# Only (re-)run the failed tests
+.PHONY: retest
+retest:
+	$(MAKE) build-core-test
+	./test run --lazy
 
 # Please keep this standalone target.
 # We want to rebuild the tests without re-running all of them.
@@ -468,13 +440,6 @@ rebuild:
 gitclean:
 	git clean -dfX
 	git submodule foreach --recursive git clean -dfX
-
-# Prepare a release branch.
-# This is mainly called by .github/workflows/start-release.yml
-# It is safe to run it multiple times.
-.PHONY: release
-release:
-	./scripts/release/bump
 
 # Run utop with all the semgrep-core libraries loaded.
 .PHONY: utop
