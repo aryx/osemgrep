@@ -473,6 +473,7 @@ For more information see https://semgrep.dev
     fileutils
     ; unit testing
     (testo (= 0.1.0))
+    (testo-lwt (= 0.1.0))
     ; TODO? still need those alcotest-xx now that we use testo?
     alcotest
     alcotest-lwt

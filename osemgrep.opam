@@ -25,6 +25,7 @@ depends: [
   "bos"
   "fileutils"
   "testo" {= "0.1.0"}
+  "testo-lwt" {= "0.1.0"}
   "alcotest"
   "alcotest-lwt"
   "calendar"
