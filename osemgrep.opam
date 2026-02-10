@@ -24,8 +24,8 @@ depends: [
   "fpath"
   "bos"
   "fileutils"
+  "testo" {= "0.1.0"}
   "alcotest"
-  "alcotest-js"
   "alcotest-lwt"
   "calendar"
   "fmt"

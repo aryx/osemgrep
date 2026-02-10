@@ -471,10 +471,10 @@ For more information see https://semgrep.dev
     fpath
     bos
     fileutils
-    ; unit testing (note that testo is vendored in libs/ so not listed here)
+    ; unit testing
+    (testo (= 0.1.0))
     ; TODO? still need those alcotest-xx now that we use testo?
     alcotest
-    alcotest-js
     alcotest-lwt
     calendar
     ; text and terminal formating
