@@ -60,6 +60,7 @@ let to_code (x : t) : code =
   match x with
   | OK -> 0
   | Err str ->
+     (* nosemgrep: no-logs-in-library *)
      Logs.err (fun m -> m "%s" str);
      1
   | Code n -> n
@@ -70,7 +71,7 @@ let to_code (x : t) : code =
 
 let exit _caps t =
   let code = to_code t in
-  (* nosemgrep: do-not-use-exit *)
+  (* nosemgrep: do-not-use-exit,forbid-exit *)
   UStdlib.exit code
 
 (* a bit similar to Printexc.catch *)
