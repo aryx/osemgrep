@@ -12,7 +12,7 @@ Initialized empty Git repository in <TMP>/<MASKED>/.git/
  2 files changed, 11 insertions(+)
  create mode 100644 rules.yml
  create mode 100644 stupid.py
-┌──── [32m○○○[39m ────┐
+┌─── [31m＄[39m[32m○○○[39m ───┐
 │ Semgrep CLI │
 └─────────────┘
 METRICS: Using configs from the Registry (like --config=p/ci) reports pseudonymous rule metrics to semgrep.dev.
