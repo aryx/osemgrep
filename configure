@@ -141,29 +141,6 @@ fi
 echo ""
 
 ###############################################################################
-# Check required C libraries
-###############################################################################
-
-echo "Checking required C libraries..."
-
-# Coupling: keep in sync with UBUNTU_DEPS / ALPINE_APK_DEPS_CORE / BREW_DEPS
-# in the Makefile and the RUN apt-get line in the Dockerfile.
-check_c_lib "PCRE"    "libpcre"    "pcre.h"
-check_c_lib "PCRE2"   "libpcre2-8" "pcre2.h"
-check_c_lib "GMP"     "gmp"        "gmp.h"
-check_c_lib "libev"   "libev"      "ev.h"
-check_c_lib "libcurl" "libcurl"    "curl/curl.h"
-
-# Report tree-sitter status (detection was done earlier).
-if $_ts_found; then
-    ok "tree-sitter (pkg-config: $(pkg-config --modversion tree-sitter))"
-else
-    warn "tree-sitter >= $_ts_required not found — will be compiled from source"
-fi
-
-echo ""
-
-###############################################################################
 # Extra sanity checks
 ###############################################################################
 
@@ -205,12 +182,25 @@ fi
 
 # opam must have been initialized (opam init creates ~/.opam by default,
 # or the directory pointed to by $OPAMROOT).
+# opam >= 2.1 is also required: that is when depext support was integrated,
+# allowing 'opam install' to automatically install system packages.
 if command -v opam >/dev/null 2>&1; then
     _opam_root="${OPAMROOT:-$HOME/.opam}"
     if [ -d "$_opam_root" ]; then
         ok "opam initialized ($_opam_root)"
     else
         err "opam found but not initialized; run: opam init"
+        errors=$((errors + 1))
+    fi
+
+    _opam_ver=$(opam --version 2>/dev/null | grep -o '[0-9][0-9]*\.[0-9][0-9]*' | head -1 || true)
+    _opam_major=$(echo "$_opam_ver" | cut -d. -f1)
+    _opam_minor=$(echo "$_opam_ver" | cut -d. -f2)
+    if [ "$_opam_major" -gt 2 ] \
+       || { [ "$_opam_major" -eq 2 ] && [ "$_opam_minor" -ge 1 ]; }; then
+        ok "opam $_opam_ver (>= 2.1, depext supported)"
+    else
+        err "opam $_opam_ver is too old; need >= 2.1 for depext support"
         errors=$((errors + 1))
     fi
 fi
@@ -226,7 +216,42 @@ fi
 # Run setup
 ###############################################################################
 
+echo "Running make setup (tree-sitter + opam deps)..."
 make setup
+
+echo ""
+
+###############################################################################
+# Verify C libraries installed by opam depext
+###############################################################################
+
+# These libraries are installed by 'make setup' via opam depext and are
+# verified here as a post-install sanity check.
+# Why each library is needed:
+# - PCRE:    pattern matching used by spacegrep
+# - PCRE2:   newer PCRE version used by the engine
+# - GMP:     arbitrary-precision arithmetic, pulled in by cohttp (LGPL >= 6)
+# - libev:   event loop, required by lwt (async I/O)
+# - libcurl: HTTP client used by the networking/telemetry layer
+# - tree-sitter: parsing library (optional: built from source if not found)
+echo "Verifying C libraries installed by opam depext..."
+check_c_lib "PCRE"    "libpcre"    "pcre.h"
+check_c_lib "PCRE2"   "libpcre2-8" "pcre2.h"
+check_c_lib "GMP"     "gmp"        "gmp.h"
+check_c_lib "libev"   "libev"      "ev.h"
+check_c_lib "libcurl" "libcurl"    "curl/curl.h"
+
+# Report tree-sitter status (detection was done earlier).
+if $_ts_found; then
+    ok "tree-sitter (pkg-config: $(pkg-config --modversion tree-sitter))"
+else
+    warn "tree-sitter >= $_ts_required not found — will be compiled from source"
+fi
+
+if [ "$errors" -ne 0 ]; then
+    echo "$errors C librar(ies) missing after setup. opam depext may have failed."
+    exit 1
+fi
 
 echo ''
 echo 'Everything looks fine. You can now run: '
