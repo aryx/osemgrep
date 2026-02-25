@@ -125,6 +125,18 @@ check_c_lib "GMP"     "gmp"        "gmp.h"
 check_c_lib "libev"   "libev"      "ev.h"
 check_c_lib "libcurl" "libcurl"    "curl/curl.h"
 
+# tree-sitter: optional — if a system library >= 0.20 is found it will be used
+# directly; otherwise scripts/setup-tree-sitter.sh will build it from source.
+# Coupling: REQUIRED_VERSION in scripts/setup-tree-sitter.sh.
+_ts_required="0.20"
+if command -v pkg-config >/dev/null 2>&1 \
+   && pkg-config --exists tree-sitter 2>/dev/null \
+   && pkg-config --atleast-version="$_ts_required" tree-sitter 2>/dev/null; then
+    ok "tree-sitter (pkg-config: $(pkg-config --modversion tree-sitter))"
+else
+    warn "tree-sitter >= $_ts_required not found — will be compiled from source"
+fi
+
 echo ""
 
 ###############################################################################
