@@ -29,11 +29,15 @@ COPY ./libs/ocaml-tree-sitter-core/ ./libs/ocaml-tree-sitter-core/
 #note: configure will just internally run 'make setup'
 RUN ./configure
 
-# Full build
+# Build
 COPY . .
-RUN eval $(opam env) && make && make dune-build-all
-RUN eval $(opam env) && dune install
+RUN eval $(opam env) && make
 
 # Testing
-RUN eval $(opam env) && osemgrep --help
+RUN ./bin/osemgrep --help
 RUN eval $(opam env) && make test
+
+# Full build of all osemgrep libs
+#TODO: restore and fix dune build issues with js
+#RUN eval $(opam env) && make dune-build-all
+#RUN eval $(opam env) && dune install

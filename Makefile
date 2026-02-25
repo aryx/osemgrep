@@ -89,6 +89,30 @@ build-parse-cairo:
 clean:
 	dune clean
 
+# ???? What does this build?
+# This takes a long time
+.PHONY: build-semgrep-jsoo
+build-semgrep-jsoo:
+	dune build js --profile=release
+
+# ???? What does this build?
+# Build Semgrep JS w/debug symbols, no mangling and source maps
+.PHONY: build-semgrep-jsoo-debug
+build-semgrep-jsoo-debug:
+	dune build js --profile=dev
+
+# Compile the JavaScript version of semgrep that runs in the browser.
+# Please make it be just 'make -C js build' if you know what's going on.
+.PHONY: build-js
+build-js:
+	$(MAKE) build-semgrep-jsoo-debug
+	$(MAKE) build-js-artifacts
+
+# ???? What does this build? Why doesn't it include the dune build?
+.PHONY: build-js-artifacts
+build-js-artifacts:
+	make -C js build -j `nproc`
+
 # Remove from the project tree everything that's not under source control
 # and was not created by 'make setup'.
 nuke: clean
