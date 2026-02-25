@@ -9,41 +9,170 @@ set -eu # to debug this script add '-x'
 # See also my https://github.com/aryx/xix/blob/master/configure for more info.
 
 ###############################################################################
-# Platform specific setup
+# Helper functions
 ###############################################################################
 
-#TODO:
-#if [[ -e /etc/alpine-release ]]; then
-#    # TODO: at some point we should move the content of this target here
-#    make install-deps-ALPINE
-#else
-#    OS=`uname`
-#    echo "Only Alpine is supported. OS $OS is not yet supported:"
-#    exit 2
-#fi
+ok()   { echo "  [OK]   $1"; }
+warn() { echo "  [WARN] $1"; }
+err()  { echo "  [ERR]  $1" >&2; }
 
-#TODO: on macOS double check pkg-conf is installed
+errors=0
+
+# Check that a command exists. Fatal if missing.
+need_command() {
+    if command -v "$1" >/dev/null 2>&1; then
+        ok "$1 ($(command -v "$1"))"
+    else
+        err "$1 not found in PATH"
+        errors=$((errors + 1))
+    fi
+}
+
+# Check that a command exists. Only warns if missing.
+want_command() {
+    if command -v "$1" >/dev/null 2>&1; then
+        ok "$1 ($(command -v "$1"))"
+    else
+        warn "$1 not found — $2"
+    fi
+}
+
+# Check a C library via pkg-config, falling back to header lookup.
+# This lets the check work on systems where a library is installed without a
+# .pc file (e.g. libev on Ubuntu) and on macOS where pkg-config may not know
+# about Homebrew-installed libs unless PKG_CONFIG_PATH is set.
+check_c_lib() {
+    local name pkg header search_dirs dir
+    name="$1"    # human-readable label
+    pkg="$2"     # pkg-config module name
+    header="$3"  # representative header, relative to an include directory
+
+    # Fast path: pkg-config finds it.
+    if command -v pkg-config >/dev/null 2>&1 \
+       && pkg-config --exists "$pkg" 2>/dev/null; then
+        ok "$name (pkg-config: $pkg)"
+        return 0
+    fi
+
+    # Fallback: scan common include directories for the header.
+    search_dirs="/usr/include /usr/local/include"
+    if command -v brew >/dev/null 2>&1; then
+        search_dirs="$search_dirs $(brew --prefix 2>/dev/null)/include"
+    fi
+
+    for dir in $search_dirs; do
+        if [ -f "$dir/$header" ]; then
+            ok "$name (header: $dir/$header)"
+            return 0
+        fi
+    done
+
+    err "$name not found (pkg-config module '$pkg', header '$header')"
+    errors=$((errors + 1))
+}
 
 ###############################################################################
-# Platform independent
+# Check required tools
 ###############################################################################
 
-# This should work on all platforms
-#make install-deps
+echo "Checking required tools..."
 
-#TODO:
-# - check opam is in PATH
-# - check opam was initialized
-# - use opam.locked
+# Core build toolchain
+need_command make
+need_command git
+need_command gcc
 
-#TODO: in theory we should also
-# - check the ocaml switch is a good version
-# - check external deps are installed (e.g., pcre, curl)
+# OCaml toolchain
+need_command ocaml
+need_command opam
 
-#=~ opam install --no-depexts --deps-only ./osemgrep.opam -y
+# curl: used by opam to download packages
+need_command curl
+
+# pkg-config: used by scripts/setup-tree-sitter.sh to detect a system
+# tree-sitter library. Without it the script falls back to a local source
+# build, so this is a warning rather than a hard error.
+want_command pkg-config "tree-sitter will be built from source"
+
+# autoconf + automake: required when building tree-sitter from source
+# (not needed if a system tree-sitter is detected via pkg-config)
+want_command autoconf "required if tree-sitter must be built from source"
+want_command automake "required if tree-sitter must be built from source"
+
+echo ""
+
+###############################################################################
+# Check required C libraries
+###############################################################################
+
+# On macOS, Homebrew installs libraries outside the default pkg-config search
+# path. Extend PKG_CONFIG_PATH once here so all subsequent checks benefit.
+if command -v brew >/dev/null 2>&1; then
+    _brew_prefix="$(brew --prefix 2>/dev/null || true)"
+    if [ -n "$_brew_prefix" ]; then
+        PKG_CONFIG_PATH="${_brew_prefix}/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+        export PKG_CONFIG_PATH
+    fi
+fi
+
+echo "Checking required C libraries..."
+
+# Coupling: keep in sync with UBUNTU_DEPS / ALPINE_APK_DEPS_CORE / BREW_DEPS
+# in the Makefile and the RUN apt-get line in the Dockerfile.
+check_c_lib "PCRE"    "libpcre"    "pcre.h"
+check_c_lib "PCRE2"   "libpcre2-8" "pcre2.h"
+check_c_lib "GMP"     "gmp"        "gmp.h"
+check_c_lib "libev"   "libev"      "ev.h"
+check_c_lib "libcurl" "libcurl"    "curl/curl.h"
+
+echo ""
+
+###############################################################################
+# Extra sanity checks
+###############################################################################
+
+echo "Checking environment..."
+
+# OCaml version: >= 4.14 required; 5.x is also supported.
+if command -v ocaml >/dev/null 2>&1; then
+    _ocaml_ver=$(ocaml --version | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*' | head -1)
+    _major=$(echo "$_ocaml_ver" | cut -d. -f1)
+    _minor=$(echo "$_ocaml_ver" | cut -d. -f2)
+    if [ "$_major" -gt 4 ] || { [ "$_major" -eq 4 ] && [ "$_minor" -ge 14 ]; }; then
+        ok "OCaml $_ocaml_ver"
+    else
+        err "OCaml $_ocaml_ver is too old; need >= 4.14 (4.x) or any 5.x"
+        errors=$((errors + 1))
+    fi
+fi
+
+# opam must have been initialized (opam init creates ~/.opam by default,
+# or the directory pointed to by $OPAMROOT).
+if command -v opam >/dev/null 2>&1; then
+    _opam_root="${OPAMROOT:-$HOME/.opam}"
+    if [ -d "$_opam_root" ]; then
+        ok "opam initialized ($_opam_root)"
+    else
+        err "opam found but not initialized; run: opam init"
+        errors=$((errors + 1))
+    fi
+fi
+
+echo ""
+
+if [ "$errors" -ne 0 ]; then
+    echo "$errors error(s) found. Please fix the issues above and re-run ./configure."
+    exit 1
+fi
+
+###############################################################################
+# Run setup
+###############################################################################
+
 make setup
 
+echo ''
 echo 'Everything looks fine. You can now run: '
-echo
+echo ''
 echo '   $ make'
 echo '   $ make install-semgrep-libs'
