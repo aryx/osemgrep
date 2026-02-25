@@ -1,6 +1,6 @@
 # OSemgrep
 
-OSemgrep is a fork of [Semgrep](https://semgrep.dev) keeping just the OCaml
+OSemgrep is a fork of [Semgrep](https://github.com/semgrep/semgrep) keeping just the OCaml
 part of the project (no Python wrapper). The focus is on Jsonnet as the primary
 rules format (YAML still supported), and on experimenting with new features such
 as LSP/SCIP integration for advanced semantic search (e.g., using type
