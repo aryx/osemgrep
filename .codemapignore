@@ -43,7 +43,7 @@ languages/typescript/tree-sitter/CST_tree_sitter_typescript.ml
 # big files
 /tests/semgrep-rules/libsonnet/metadata/cwe.libsonnet
 *.min.js
-/CHANGELOG.md
+/changes.txt
 /LICENSE
 
 # big test files
@@ -52,6 +52,7 @@ languages/typescript/tree-sitter/CST_tree_sitter_typescript.ml
 /tests/perf/
 /tests/patterns/java/perf_fields.java
 /tests/patterns/ts/perf_fields.ts
+/tests/parsing/move_on_sui
 /perf/r2c-rules/
 /perf/rules/
 
