@@ -164,43 +164,29 @@ core-test-e2e:
 
 # We need to install all the dependencies in a single 'opam install'
 # command so as to detect conflicts.
+#
 # WEIRD: if you use ./libs/ocaml-tree-sitter-core/ instead of the full
 # path, then recent versions of opam crash with a 'git ls-files fatal error'
 # about some 'libs/ocaml-tree-sitter-core/../../.git/...' not being a git repo.
+#
 # packages/conf-tree-sitter.opam is intentionally excluded: it is an optional
-# package for systems with a compatible system-installed tree-sitter (>= 0.22).
-# Install it manually with 'opam install ./packages/conf-tree-sitter.opam' if desired.
+# package for systems with a compatible system-installed tree-sitter (>= 0.20).
+# Install it manually with 'opam install ./packages/conf-tree-sitter.opam' 
+# if desired.
 REQUIRED_DEPS = ./osemgrep.opam ./libs/ocaml-tree-sitter-core/tree-sitter.opam
 
 # This target is portable; it only assumes you have 'gcc', 'opam' and
 # other build-essential tools and a working OCaml (e.g., ocamlc) switch setup.
-# Note that we call opam update below because osemgrep.opam may mention
-# new packages that are covered yet by our ocaml-layer docker image.
 .PHONY: install-deps-for-semgrep-core
 install-deps-for-semgrep-core:
-	opam update -y
 # Configure tree-sitter: uses system library if available (via pkg-config),
 # otherwise downloads and builds tree-sitter from source.
 	./scripts/setup-tree-sitter.sh
 	make install-opam-deps
 
 # Install OCaml dependencies (globally) from *.opam files.
-# This now also installs the dev dependencies. This has the benefit
-# of installing all the packages in one shot and detecting possible
-# version conflicts.
-# OPAMSOLVERTIMEOUT default is 60 but seems not enough
-#
-# TODO: We use `--assume-depexts` because as of 2024-11-13 brew
-# has moved off `pkg-config`. When you install `pkg-config` you
-# get `pkgconf` instead, which OCaml doesn't recognize as satisfying
-# the dependency though it contains the same elements. This has been
-# reported to brew via https://github.com/ocaml/opam-repository/issues/26876.
-# We can remove it if that issue is resolved.
-# Per the note above install-deps-ALPINE-for-semgrep-core, we may want
-# to keep it and add `--no-cache`
 install-opam-deps:
-	opam update -y
-	OPAMSOLVERTIMEOUT=1200 opam install -y --assume-depexts --deps-only $(REQUIRED_DEPS)
+	opam install -y --deps-only $(REQUIRED_DEPS)
 
 # This will fail if osemgrep.opam isn't up-to-date (in git),
 # and dune isn't installed yet. You can always install dune with
