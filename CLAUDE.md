@@ -1,0 +1,127 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What is OSemgrep
+
+OSemgrep is a fork of Semgrep keeping only the OCaml part (no Python wrapper). It focuses on Jsonnet as the primary rules format (YAML still supported) and experiments with LSP/SCIP integration for semantic search. The main binary is `osemgrep`.
+
+## Build
+
+Prerequisites: OCaml 4.14.2, dune, opam, gcc, PCRE/PCRE2/GMP/libev/curl libs.
+
+```bash
+# First-time setup (run infrequently)
+git submodule update --init --recursive
+make setup                              # installs opam deps + tree-sitter
+
+# Routine build (requires sourcing tree-sitter env, handled by Makefile)
+make                                    # builds osemgrep binary
+make build-core-test                    # builds test executable without running
+
+# Build specific tools
+make build-otarzan
+make build-ojsonnet
+make build-pfff
+```
+
+Note: do **not** call `dune build` directly without first sourcing `libs/ocaml-tree-sitter-core/tree-sitter-config.sh` (or using `make` which does this automatically).
+
+## Tests
+
+```bash
+make test                               # builds and runs all tests
+make retest                             # re-runs only previously failing tests
+
+# Run a single test by name filter
+./test -s <filter>                      # e.g. ./test -s "foo" runs tests matching "foo"
+
+# Run inline/expect tests for specific subsystems
+dune runtest -f --no-buffer libs/commons
+dune runtest -f --no-buffer src/engine
+dune runtest -f --no-buffer src/fixing
+dune runtest -f --no-buffer src/osemgrep   # expect tests; run `dune promote` on failures
+
+# Run e2e tests
+make core-test-e2e
+```
+
+The test executable `./test` is built from `src/tests/Test.ml`, which aggregates unit test suites from across the codebase (e.g., `Unit_engine.tests`, `Unit_matcher.tests`, `Unit_naming_generic.tests`, etc.).
+
+## Dogfooding (Semgrep on itself)
+
+```bash
+make check                              # runs osemgrep with semgrep.jsonnet rules
+make check_with_docker                  # same via Docker image
+```
+
+Rules are in `semgrep.jsonnet` (Jsonnet importing `p/ocaml` registry rules) and `semgrep.yml` (legacy YAML rules).
+
+## Code Architecture
+
+### Top-level layout
+
+- `src/` — all OCaml source for semgrep-core and osemgrep
+- `libs/` — vendored/submoduled libraries (commons, ojsonnet, ocaml-tree-sitter-core, etc.)
+- `languages/` — per-language tree-sitter parsers (bash, cpp, go, java, python, etc.)
+- `tests/` — test data files (patterns, rules, parse inputs, expected outputs)
+- `tools/` — standalone tools (ojsonnet, otarzan, languages_dumper)
+- `TCB/` — Trusted Computing Base: capability types (`Cap.ml`) enforced across the codebase
+- `interfaces/` — ATD schema files for semgrep output formats
+
+### Pipeline: source → matches
+
+1. **Parsing** (`src/parsing/`, `src/parsing_languages/`) — language files → AST
+   - `Parse_target2` dispatches to language-specific parsers (menhir or tree-sitter)
+   - `Parsing_init.init()` plugs all language parsers into the engine
+
+2. **AST Generic** (`src/ast_generic/`) — language ASTs → unified `AST_generic.ml`
+   The generic AST covers 31+ languages and is the basis for all analysis.
+
+3. **Rule** (`src/rule/`) — rule loading, `Rule.ml`, `Xpattern.ml`, ATD schemas (`semgrep_output_v1.atd`, `rule_schema_v2.atd`)
+
+4. **Matching** (`src/matching/`) — pattern vs. code matching on the generic AST
+   - `Match_patterns.ml` — main entry point
+   - `Matching_generic.ml` — pattern/code unification
+   - `Pattern_vs_code.ml` — detailed matching logic
+
+5. **Engine** (`src/engine/`) — formula evaluation (boolean, taint, etc.)
+   - `Match_rules.ml` — evaluates full rules against targets
+   - `Match_search_mode.ml`, `Match_tainting_mode.ml` — search vs. taint modes
+   - `Eval_generic.ml` — metavariable condition evaluation
+
+6. **Core scan** (`src/core_scan/`) — orchestrates scanning with parallelism
+   - `Core_scan.ml` — main scan loop
+   - `Parmap_targets.ml` — parallel target processing
+
+7. **Targeting** (`src/targeting/`) — file discovery, language detection, semgrepignore
+   - `Find_targets.ml`, `Guess_lang.ml`, `Filter_target.ml`
+
+8. **Reporting** (`src/reporting/`) — output formatting (JSON, SARIF, text)
+
+9. **OSemgrep CLI** (`src/osemgrep/`) — the user-facing CLI
+   - `cli/CLI.ml` — entry point, dispatches to subcommands
+   - `cli_scan/Scan_CLI.ml` — `semgrep scan` arguments and `Scan_subcommand.ml`
+   - Other subcommands: `cli_ci`, `cli_login`, `cli_lsp`, `cli_test`, `cli_validate`, `cli_show`
+   - `configuring/` — rule source resolution, config loading
+   - `networking/` — API calls to semgrep.dev
+
+### Key cross-cutting concepts
+
+**Capabilities (TCB/)**: Functions that need I/O take an explicit capability object (e.g., `Cap.stdout`, `Cap.network`, `Cap.exec`). Use `:>` cast to restrict capabilities when calling into subcomponents. New code must follow this pattern — avoid calling stdlib I/O directly.
+
+**IL** (`src/il/`): Intermediate Language used for dataflow analysis. The AST-to-IL lowering simplifies control flow (no for/while/switch, just `Loop`; assignments are instructions not expressions).
+
+**Tainting** (`src/tainting/`): Taint analysis via `Dataflow_tainting.ml` building on the IL/CFG infrastructure in `src/analyzing/`.
+
+**Jsonnet rules**: `libs/ojsonnet/` is the embedded Jsonnet interpreter. Rules in `.jsonnet` files are evaluated to produce the final rule set.
+
+**ATD schemas**: Several `.atd` files define the wire format for rule options and semgrep output (`interfaces/`, `src/rule/semgrep_output_v1.atd`). Running `atdgen` regenerates the OCaml bindings.
+
+### Module naming conventions
+
+- `Unit_xxx.ml` — unit tests for module `xxx`
+- `Test_xxx.ml` — integration/end-to-end tests
+- `Log_xxx.ml` — logging setup for subsystem `xxx` (using the `logs` library)
+- `CLI.ml` / `*_CLI.ml` — Cmdliner argument parsing
+- `*_subcommand.ml` — subcommand implementation
