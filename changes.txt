@@ -7,6 +7,15 @@
   (removed Python cli/, mypy, .precommit, most of .github/, .circleci/,
   images/, changelog.d/, CODE_OF_CONDUCT.md, flake and nix, dev/, etc.)
 
+** build infra
+- support system-installed tree-sitter library instead of always building it
+  from source. A new script scripts/setup-tree-sitter.sh detects a system
+  tree-sitter via pkg-config (>= 0.20) and uses it directly, falling back to
+  downloading and building tree-sitter 0.22.6 locally if not found.
+  A new optional opam package packages/conf-tree-sitter.opam can be installed
+  with 'opam install ./packages/conf-tree-sitter.opam' to let opam handle the
+  system dependency (e.g. libtree-sitter-dev on Ubuntu 24.04).
+
 ** testinfra
 - switch to simpler Docker GHA workflow (was Dockerfile.libs) that
   just build osemgrep and run test
@@ -14,7 +23,7 @@
 * ----------------------------------------------------------------------------
 
 * Alpha (Q2 2025) (fork of semgrep 1.109)
-#just before Semgrep Inc. removed support for OCaml 4
+#just before Semgrep Inc. removed support for OCaml 4.x and focused on OCaml 5.
 
 * ----------------------------------------------------------------------------
 

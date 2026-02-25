@@ -24,6 +24,7 @@ WORKDIR /src
 
 # Install dependencies
 COPY osemgrep.opam configure Makefile ./
+COPY scripts/setup-tree-sitter.sh ./scripts/
 COPY ./libs/ocaml-tree-sitter-core/ ./libs/ocaml-tree-sitter-core/
 #note: configure will just internally run 'make setup'
 RUN ./configure

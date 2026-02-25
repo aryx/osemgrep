@@ -57,15 +57,15 @@ endif
 
 # Set environment variables used by dune files to locate the
 # C headers and libraries of the tree-sitter runtime library.
-# This file is created by ocaml-tree-sitter-core's configure script.
+# This file is created by scripts/setup-tree-sitter.sh (run via 'make setup').
 #
 # Because of these required environment variables, we can't call dune directly
 # to build osemgrep, unless you manually execute first
-#  `source src/ocaml-tree-sitter-core/tree-sitter-config.sh`
+#  `source ./tree-sitter-config.sh`
 #
 # I use '-include' and not 'include' because before 'make setup' this file does
 # not exist but we still want 'make setup' to succeed
--include libs/ocaml-tree-sitter-core/tree-sitter-config.mk
+-include tree-sitter-config.mk
 
 # First (and default) target.
 # Minimal build of the osemgrep executable. Intended for the docker build.
@@ -167,7 +167,10 @@ core-test-e2e:
 # WEIRD: if you use ./libs/ocaml-tree-sitter-core/ instead of the full
 # path, then recent versions of opam crash with a 'git ls-files fatal error'
 # about some 'libs/ocaml-tree-sitter-core/../../.git/...' not being a git repo.
-REQUIRED_DEPS = ./ ./libs/ocaml-tree-sitter-core/tree-sitter.opam
+# packages/conf-tree-sitter.opam is intentionally excluded: it is an optional
+# package for systems with a compatible system-installed tree-sitter (>= 0.22).
+# Install it manually with 'opam install ./packages/conf-tree-sitter.opam' if desired.
+REQUIRED_DEPS = ./osemgrep.opam ./libs/ocaml-tree-sitter-core/tree-sitter.opam
 
 # This target is portable; it only assumes you have 'gcc', 'opam' and
 # other build-essential tools and a working OCaml (e.g., ocamlc) switch setup.
@@ -176,10 +179,9 @@ REQUIRED_DEPS = ./ ./libs/ocaml-tree-sitter-core/tree-sitter.opam
 .PHONY: install-deps-for-semgrep-core
 install-deps-for-semgrep-core:
 	opam update -y
-# Fetch, build and install the tree-sitter runtime library locally.
-	cd libs/ocaml-tree-sitter-core \
-	&& ./configure \
-	&& ./scripts/install-tree-sitter-lib
+# Configure tree-sitter: uses system library if available (via pkg-config),
+# otherwise downloads and builds tree-sitter from source.
+	./scripts/setup-tree-sitter.sh
 	make install-opam-deps
 
 # Install OCaml dependencies (globally) from *.opam files.

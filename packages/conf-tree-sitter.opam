@@ -1,0 +1,29 @@
+opam-version: "2.0"
+synopsis:
+  "Virtual package relying on a system-installed tree-sitter C library (>= 0.20)"
+description: """
+Checks that the tree-sitter C library version >= 0.20 is installed on the
+system and discoverable via pkg-config.
+
+Install the appropriate system package for your platform (see depexts below),
+then run 'opam install ./packages/conf-tree-sitter.opam' to register it with opam.
+After that, 'make setup' will automatically prefer the system library over
+building tree-sitter from source.
+"""
+maintainer: ["Yoann Padioleau <yoann.padioleau@gmail.com>"]
+authors: ["Yoann Padioleau <yoann.padioleau@gmail.com>"]
+license: "ISC"
+homepage: "https://tree-sitter.github.io/tree-sitter/"
+bug-reports: "https://github.com/aryx/osemgrep/issues"
+dev-repo: "git+https://github.com/aryx/osemgrep.git"
+
+build: [
+  ["pkg-config" "--atleast-version=0.20" "tree-sitter"]
+]
+
+depexts: [
+  ["libtree-sitter-dev"] {os-distribution = "ubuntu" | os-distribution = "debian"}
+  ["tree-sitter-devel"]  {os-distribution = "fedora" | os-distribution = "centos" | os-distribution = "rhel"}
+  ["tree-sitter-dev"]    {os-distribution = "alpine"}
+  ["tree-sitter"]        {os = "macos"}
+]
