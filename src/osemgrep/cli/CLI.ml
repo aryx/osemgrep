@@ -12,6 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the file
  * LICENSE for more details.
  *)
+open Common
 module Http_helpers_ = Http_helpers
 module Env = Semgrep_envvars
 
@@ -144,24 +145,15 @@ let known_subcommands =
 
 let dispatch_subcommand (caps : caps) (argv : string array) =
   match Array.to_list argv with
-  (* impossible because argv[0] contains the program name *)
-  | [] -> assert false
+  | [] -> raise Impossible(* "argv[0] contains the program name" *)
   (* new: without any argument, we default to the help message now that
    * we removed support for the .semgrep.yml implicit config in pysemgrep.
    *)
-  | [ _ ]
-  | [ _; "--experimental" ] ->
+  | [ _ ] ->
       Help.print_help caps;
       Migration.abort_if_use_of_legacy_dot_semgrep_yml ();
       Exit_code.ok ~__LOC__
-  | [ _; ("-h" | "--help") ]
-  (* ugly: this --experimental management here is a bit ugly, to allow the
-   * different combination.
-   * alt: remove --experimental from argv, but it's useful to pass it down
-   * to the subcommands too.
-   *)
-  | [ _; ("-h" | "--help"); "--experimental" ]
-  | [ _; "--experimental"; ("-h" | "--help") ] ->
+  | [ _; ("-h" | "--help") ] ->
       Help.print_semgrep_dashdash_help caps;
       Exit_code.ok ~__LOC__
   | argv0 :: args -> (
@@ -179,7 +171,6 @@ let dispatch_subcommand (caps : caps) (argv : string array) =
         let subcmd_argv0 = argv0 ^ "-" ^ subcmd in
         subcmd_argv0 :: subcmd_args |> Array.of_list
       in
-      let experimental = Array.mem "--experimental" argv in
       (* basic metrics on what was the command *)
       Metrics_.add_feature "subcommand" subcmd;
       (* osemgrep-only: *)
@@ -193,23 +184,22 @@ let dispatch_subcommand (caps : caps) (argv : string array) =
       (* coupling: with known_subcommands if you add an entry below.
        * coupling: with Help.ml if you add an entry below.
        *)
-      try
         match subcmd with
         (* TODO: gradually remove those 'when experimental' guards as
          * we progress in osemgrep port (or use Pysemgrep.Fallback further
          * down when we know we don't handle certain kind of arguments).
          *)
-        | "publish" when experimental ->
+        | "publish" ->
             (Hook.get hook_semgrep_publish)
               (caps :> < Cap.stdout ; Cap.network >)
               subcmd_argv
-        | "login" when experimental -> Login_subcommand.main caps subcmd_argv
+        | "login" -> Login_subcommand.main caps subcmd_argv
         (* partial support, still use Pysemgrep.Fallback in it *)
         | "scan" -> Scan_subcommand.main caps subcmd_argv
         | "ci" -> Ci_subcommand.main caps subcmd_argv
         | "install-semgrep-pro" ->
             Install_semgrep_pro_subcommand.main caps subcmd_argv
-        (* osemgrep-only: and by default! no need experimental! *)
+        (* osemgrep-only: *)
         | "lsp" -> Lsp_subcommand.main caps subcmd_argv
         | "logout" ->
             Logout_subcommand.main (caps :> < Cap.stdout >) subcmd_argv
@@ -222,14 +212,11 @@ let dispatch_subcommand (caps : caps) (argv : string array) =
         | "test" -> Test_subcommand.main caps subcmd_argv
         | "validate" -> Validate_subcommand.main caps subcmd_argv
         | _ ->
-            if experimental then
               (* this should never happen because we default to 'scan',
                * but better to be safe than sorry.
                *)
               Error.abort (Printf.sprintf "unknown semgrep command: %s" subcmd)
-            else raise Pysemgrep.Fallback
-      with
-      | Pysemgrep.Fallback -> Pysemgrep.pysemgrep (caps :> < Cap.exec >) argv)
+   )
 [@@profiling]
 
 (*****************************************************************************)

@@ -123,8 +123,8 @@ let run_conf (caps : < caps ; .. >) (conf : Install_semgrep_pro_CLI.conf) :
        * mostly an internal developer option
        *)
       | { custom_binary = Some _; _ } -> ()
-      | _else_ -> raise Pysemgrep.Fallback)
-  | Maturity.Legacy -> raise Pysemgrep.Fallback
+      | _else_ -> failwith "TODO: only --custom_binary supported")
+  | Maturity.Legacy
   | Maturity.Experimental
   | Maturity.Develop ->
       ());

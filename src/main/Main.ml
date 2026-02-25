@@ -13,12 +13,7 @@
 (* A SEMantic GREP.
  * See https://semgrep.dev/ for more information.
  *
- * This is the entry point of the semgrep-core program used internally
- * by pysemgrep, the entry point of osemgrep, and currently also the entry point
- * of semgrep for windows. See also the ../../cli/bin/semgrep python wrapper
- * script which is currently the real entry point of semgrep.
- * LATER: when osemgrep is fully done we can just get rid of semgrep-core,
- * osemgrep, the wrapper script, and have a single binary called 'semgrep'.
+ * This is the entry point of osemgrep.
  *
  * Related work using code patterns (from oldest to newest):
  *  - Structural Search and Replace (SSR) in Jetbrains IDEs
@@ -81,24 +76,9 @@
  *)
 
 (*****************************************************************************)
-(* Helpers *)
-(*****************************************************************************)
-let eprint_experimental_windows (caps : <Cap.stderr; .. >) : unit =
-  let epr = CapConsole.eprint caps in
-  epr "!!!This is an experimental version of semgrep for Windows.!!!";
-  epr "!!!Not all features may work. In case of problems, report here:!!!";
-  epr "!!!https://github.com/semgrep/semgrep/issues/1330!!!";
-  ()
-
-(*****************************************************************************)
 (* Entry point *)
 (*****************************************************************************)
 
-(* We currently use the same binary for semgrep-core and osemgrep (and now
- * also for semgrep for windows). See 'make core' and './dune' install section.
- * We use the argv[0] trick below to decide whether the user wants the
- * semgrep-core or osemgrep (or semgrep) behavior.
- *)
 let () =
   Cap.main (fun (caps : Cap.all_caps) ->
       let argv = CapSys.argv caps in
@@ -108,22 +88,8 @@ let () =
       in
       match argv0 with
       (* osemgrep!! *)
-      | "osemgrep"
-      (* in the long term (and in the short term on windows) we want to ship
-       * osemgrep as the default "semgrep" binary, without any
-       * wrapper script such as cli/bin/semgrep around it.
-       *)
-      | "semgrep" ->
-          let exit_code =
-            match argv0 with
-            | "semgrep" ->
-                eprint_experimental_windows caps;
-                (* adding --experimemtal so we don't default back to pysemgrep *)
-                CLI.main
-                  (caps :> CLI.caps)
-                  (Array.append argv [| "--experimental" |])
-            | _else_ -> CLI.main (caps :> CLI.caps) argv
-          in
+      | "osemgrep"->
+          let exit_code = CLI.main (caps :> CLI.caps) argv in
           if not (Exit_code.Equal.ok exit_code) then
             Logs.info (fun m ->
                 m "Error: %s\nExiting with error status %i: %s\n%!"
@@ -132,10 +98,10 @@ let () =
           CapStdlib.exit caps exit_code.code
       (* legacy semgrep-core *)
       | _else_ -> begin
-          (* Added as part of the upgrade to OCaml 5. Under our typical workloads, this
-           * appears to yield similar performance to the default value of space_overhead
-           * under OCaml 4. *)
-          (* TODO Remove this gate once we have all builds migrated to OCaml 5 *)
+          (* Added as part of the upgrade to OCaml 5. Under our typical
+           * workloads, this appears to yield similar performance to the
+           * default value of space_overhead under OCaml 4. 
+           *)
           if USys.ocaml_release.major = 5 then
             Gc.set { (Gc.get ()) with space_overhead = 40 };
           Core_CLI.main caps argv

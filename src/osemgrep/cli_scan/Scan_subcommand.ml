@@ -733,7 +733,6 @@ let run_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
    *)
   (match conf.common.maturity with
   | Maturity.Default -> (
-      (* TODO: handle more confs, or fallback to pysemgrep further down *)
       match conf with
       | {
        show =
@@ -744,14 +743,10 @@ let run_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
            };
        _;
       } ->
-          raise Pysemgrep.Fallback
+          failwith "TODO: -dump-xxx command not supported"
       | { show = Some _; _ } -> ()
-      | _else_ -> raise Pysemgrep.Fallback)
-  (* this should never happen because --legacy is handled in cli/bin/semgrep *)
-  | Maturity.Legacy -> raise Pysemgrep.Fallback
-  (* ok the user explicitely requested --experimental (or --develop),
-   * let's keep going with osemgrep then
-   *)
+      | _else_ -> ())
+  | Maturity.Legacy
   | Maturity.Experimental
   | Maturity.Develop ->
       ());
@@ -762,7 +757,7 @@ let run_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
    *)
   CLI_common.setup_logging ~force_color:conf.output_conf.force_color
     ~level:conf.common.logging_level;
-  Logs.info (fun m -> m "Semgrep version: %s" Version.version);
+  Logs.info (fun m -> m "OSemgrep version: %s" Version.version);
 
   let conf =
     if conf.common.profile then (

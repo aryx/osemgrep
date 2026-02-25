@@ -864,13 +864,8 @@ let upload_findings (caps : < Cap.network ; Auth.cap_token ; Cap.exec ; .. >)
 let run_conf (caps : < caps ; .. >) (ci_conf : Ci_CLI.conf) : Exit_code.t =
   let conf = ci_conf.scan_conf in
   (match conf.common.maturity with
-  (* coupling: copy-pasted from Scan_subcommand.ml *)
-  | Maturity.Default -> (
-      (* TODO: handle more confs, or fallback to pysemgrep further down *)
-      match conf with
-      (* for now we allways fallback to pysemgrep :( *)
-      | _else_ -> raise Pysemgrep.Fallback)
-  | Maturity.Legacy -> raise Pysemgrep.Fallback
+  | Maturity.Default
+  | Maturity.Legacy
   | Maturity.Experimental
   | Maturity.Develop ->
       ());
