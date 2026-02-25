@@ -202,7 +202,10 @@ let dump_tree_sitter_cst (lang : Lang.t) (file : Fpath.t) : unit =
       Tree_sitter_ocaml.Parse.file !!file
       |> dump_and_print_errors Tree_sitter_ocaml.Boilerplate.dump_tree
            Tree_sitter_ocaml.Boilerplate.dump_extras
-  | Lang.C
+  | Lang.C ->
+      Tree_sitter_c.Parse.file !!file
+      |> dump_and_print_errors Tree_sitter_c.Boilerplate.dump_tree
+           Tree_sitter_c.Boilerplate.dump_extras
   | Lang.Cpp ->
       Tree_sitter_cpp.Parse.file !!file
       |> dump_and_print_errors Tree_sitter_cpp.Boilerplate.dump_tree
@@ -283,7 +286,8 @@ let test_parse_tree_sitter (caps : < Cap.readdir ; .. >) lang root =
                  Tree_sitter_rust.Parse.file !!file |> fail_on_error |> ignore
              | Lang.Ocaml ->
                  Tree_sitter_ocaml.Parse.file !!file |> fail_on_error |> ignore
-             | Lang.C
+             | Lang.C ->
+                 Tree_sitter_c.Parse.file !!file |> fail_on_error |> ignore
              | Lang.Cpp ->
                  Tree_sitter_cpp.Parse.file !!file |> fail_on_error |> ignore
              | Lang.Html ->

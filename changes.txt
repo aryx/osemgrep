@@ -10,7 +10,7 @@
   is on the OCaml and C languages (languages/cpp can also handle C, which
   is why languages/c/ was removed in the first place, but C++ is a bigger
   language so it is useful to also have languages/c/ when focusing on just
-  C code
+  C code)
 - restored js/ (Semgrep.js / jsoo build) 
 
 ** build infra
@@ -25,17 +25,23 @@
 
 ** test infra
 - switch to simpler Docker GHA workflow (was Dockerfile.libs) that
-  just build osemgrep and run test
+  just build osemgrep and run test, and that test the build for
+  OCaml 4.14 as well as OCaml 5.2.1
 
 * ----------------------------------------------------------------------------
 
 * Alpha (Q2 2025) (fork of semgrep 1.109)
 #just before Semgrep Inc. removed support for OCaml 4.x and focused on OCaml 5.
 
+** build infra
+- fork semgrep as semgrep-libs repo (later renamed to osemgrep) to compile
+  the libraries in semgrep that are used in my other projects such as
+  codemap, codegraph, efuns, etc (which are still in OCaml 4.x)
+
 * ----------------------------------------------------------------------------
 
 * # Changelog
-Past changes were in CHANGELOG.md
+Past changes that were in the original CHANGELOG.md
 
 ## [1.109.0](https://github.com/semgrep/semgrep/releases/tag/v1.109.0) - 2025-02-19
 
