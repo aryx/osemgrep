@@ -1,12 +1,20 @@
 # -*- org -*-
 
-* 0.1 (Q1 2026) (cleanup repo, just keep osemgrep, conf-tree-sitter.opam)
+* 2.0 (Q1 2026) (keep just osemgrep, cleanup repo, conf-tree-sitter.opam)
+
+** versioning
+- switch to 2.0 to not confuse with the original semgrep 1.xxx line.
+  Moreover the focus on Jsonnet instead of Yaml and the new syntax deserves
+  a major version jump.
 
 ** internals
 - cleanup the repo, just keep what is necessary to compile and test osemgrep
   (removed Python cli/, mypy, .precommit, most of .github/, .circleci/,
   images/, changelog.d/, CODE_OF_CONDUCT.md, flake and nix, dev/, etc.)
-- restored languages/c/ (C menhir/tree-sitter parser) as osemgrep focus
+- inline the cli/.../semgrep-interface submodule now in interfaces/
+- remove the vendored libs/testo and libs/pcre2 submodules and use instead the
+  official OPAM package
+- restored languages/c/ (C menhir/tree-sitter parser) as osemgrep's focus
   is on the OCaml and C languages (languages/cpp can also handle C, which
   is why languages/c/ was removed in the first place, but C++ is a bigger
   language so it is useful to also have languages/c/ when focusing on just
@@ -22,6 +30,8 @@
   with 'opam install ./packages/conf-tree-sitter.opam' to let opam handle the
   system dependency (e.g. libtree-sitter-dev on Ubuntu 24.04), like we
   do for the other external libraries dependencies (e.g., conf-pcre, conf-gmp).
+- rely on opam depext to install external C libraries to simplify the
+  configure and build process
 
 ** test infra
 - switch to simpler Docker GHA workflow (was Dockerfile.libs) that
