@@ -88,14 +88,14 @@ fi
 
 echo "Checking required tools..."
 
+# OCaml toolchain
+need_command ocaml
+need_command opam
+
 # Core build toolchain
 need_command make
 need_command git
 need_command gcc
-
-# OCaml toolchain
-need_command ocaml
-need_command opam
 
 # curl: used by opam to download packages
 need_command curl
