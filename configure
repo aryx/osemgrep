@@ -71,6 +71,17 @@ check_c_lib() {
     errors=$((errors + 1))
 }
 
+# On macOS, Homebrew installs libraries outside the default pkg-config search
+# path. Extend PKG_CONFIG_PATH once here so all subsequent pkg-config calls
+# (tree-sitter detection, C library checks) benefit.
+if command -v brew >/dev/null 2>&1; then
+    _brew_prefix="$(brew --prefix 2>/dev/null || true)"
+    if [ -n "$_brew_prefix" ]; then
+        PKG_CONFIG_PATH="${_brew_prefix}/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+        export PKG_CONFIG_PATH
+    fi
+fi
+
 ###############################################################################
 # Check required tools
 ###############################################################################
@@ -94,26 +105,44 @@ need_command curl
 # build, so this is a warning rather than a hard error.
 want_command pkg-config "tree-sitter will be built from source"
 
-# autoconf + automake: required when building tree-sitter from source
-# (not needed if a system tree-sitter is detected via pkg-config)
-want_command autoconf "required if tree-sitter must be built from source"
-want_command automake "required if tree-sitter must be built from source"
+# Detect system tree-sitter early so we know whether autoconf/automake are
+# needed. Coupling: REQUIRED_VERSION in scripts/setup-tree-sitter.sh.
+_ts_required="0.20"
+_ts_found=false
+if command -v pkg-config >/dev/null 2>&1 \
+   && pkg-config --exists tree-sitter 2>/dev/null \
+   && pkg-config --atleast-version="$_ts_required" tree-sitter 2>/dev/null; then
+    _ts_found=true
+fi
+
+# autoconf + automake: only needed when tree-sitter must be built from source.
+if ! $_ts_found; then
+    want_command autoconf "required to build tree-sitter from source"
+    want_command automake "required to build tree-sitter from source"
+fi
+
+echo ""
+
+###############################################################################
+# Check git submodules
+###############################################################################
+
+echo "Checking git submodules..."
+
+# libs/ocaml-tree-sitter-core is essential; an empty directory means
+# 'git submodule update --init --recursive' was not run after cloning.
+if [ -f "libs/ocaml-tree-sitter-core/configure" ]; then
+    ok "libs/ocaml-tree-sitter-core (initialized)"
+else
+    err "libs/ocaml-tree-sitter-core is empty; run: git submodule update --init --recursive"
+    errors=$((errors + 1))
+fi
 
 echo ""
 
 ###############################################################################
 # Check required C libraries
 ###############################################################################
-
-# On macOS, Homebrew installs libraries outside the default pkg-config search
-# path. Extend PKG_CONFIG_PATH once here so all subsequent checks benefit.
-if command -v brew >/dev/null 2>&1; then
-    _brew_prefix="$(brew --prefix 2>/dev/null || true)"
-    if [ -n "$_brew_prefix" ]; then
-        PKG_CONFIG_PATH="${_brew_prefix}/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
-        export PKG_CONFIG_PATH
-    fi
-fi
 
 echo "Checking required C libraries..."
 
@@ -125,13 +154,8 @@ check_c_lib "GMP"     "gmp"        "gmp.h"
 check_c_lib "libev"   "libev"      "ev.h"
 check_c_lib "libcurl" "libcurl"    "curl/curl.h"
 
-# tree-sitter: optional — if a system library >= 0.20 is found it will be used
-# directly; otherwise scripts/setup-tree-sitter.sh will build it from source.
-# Coupling: REQUIRED_VERSION in scripts/setup-tree-sitter.sh.
-_ts_required="0.20"
-if command -v pkg-config >/dev/null 2>&1 \
-   && pkg-config --exists tree-sitter 2>/dev/null \
-   && pkg-config --atleast-version="$_ts_required" tree-sitter 2>/dev/null; then
+# Report tree-sitter status (detection was done earlier).
+if $_ts_found; then
     ok "tree-sitter (pkg-config: $(pkg-config --modversion tree-sitter))"
 else
     warn "tree-sitter >= $_ts_required not found — will be compiled from source"
@@ -145,17 +169,38 @@ echo ""
 
 echo "Checking environment..."
 
-# OCaml version: >= 4.14 required; 5.x is also supported.
-if command -v ocaml >/dev/null 2>&1; then
-    _ocaml_ver=$(ocaml --version | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*' | head -1)
-    _major=$(echo "$_ocaml_ver" | cut -d. -f1)
-    _minor=$(echo "$_ocaml_ver" | cut -d. -f2)
-    if [ "$_major" -gt 4 ] || { [ "$_major" -eq 4 ] && [ "$_minor" -ge 14 ]; }; then
-        ok "OCaml $_ocaml_ver"
+# OCaml version: >= 4.13 required; any 5.x is also supported.
+# Check the active opam switch first (that is what the build uses); fall back
+# to whatever 'ocaml' resolves to in PATH.
+_ocaml_min_major=4
+_ocaml_min_minor=13
+_check_ocaml_version() {
+    local ver label major minor
+    ver="$1"
+    label="$2"
+    major=$(echo "$ver" | cut -d. -f1)
+    minor=$(echo "$ver" | cut -d. -f2)
+    if [ "$major" -gt "$_ocaml_min_major" ] \
+       || { [ "$major" -eq "$_ocaml_min_major" ] && [ "$minor" -ge "$_ocaml_min_minor" ]; }; then
+        ok "OCaml $ver ($label)"
     else
-        err "OCaml $_ocaml_ver is too old; need >= 4.14 (4.x) or any 5.x"
+        err "OCaml $ver ($label) is too old; need >= ${_ocaml_min_major}.${_ocaml_min_minor} (4.x) or any 5.x"
         errors=$((errors + 1))
     fi
+}
+
+if command -v opam >/dev/null 2>&1 && [ -d "${OPAMROOT:-$HOME/.opam}" ]; then
+    _switch=$(opam switch show 2>/dev/null || true)
+    _opam_ver=$(opam exec -- ocaml --version 2>/dev/null \
+                | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*' | head -1 || true)
+    if [ -n "$_opam_ver" ]; then
+        _check_ocaml_version "$_opam_ver" "opam switch: $_switch"
+    else
+        warn "could not determine OCaml version in opam switch '$_switch'"
+    fi
+elif command -v ocaml >/dev/null 2>&1; then
+    _path_ver=$(ocaml --version | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*' | head -1)
+    _check_ocaml_version "$_path_ver" "from PATH"
 fi
 
 # opam must have been initialized (opam init creates ~/.opam by default,
