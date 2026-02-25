@@ -10,13 +10,20 @@ information), with particular attention to improving OCaml and C support.
 
 ### Prerequisites
 
-OCaml 4.14.2 (via opam), dune, gcc, git, and a few C libraries.
+OCaml 4.13+ (via opam >= 2.1), gcc, git, curl, pkg-config.
 
 On Ubuntu/Debian:
 ```bash
-apt-get install build-essential pkg-config opam \
-                libpcre3-dev libpcre2-dev libgmp-dev libev-dev libcurl4-gnutls-dev
+apt-get install build-essential pkg-config opam curl
 ```
+
+On macOS:
+```bash
+brew install opam pkg-config
+```
+
+C libraries (pcre, pcre2, gmp, libev, libcurl) are installed automatically
+by `./configure` via opam's depext support — no need to install them manually.
 
 ### Quick start
 

@@ -13,9 +13,6 @@ RUN apt-get install -y build-essential autoconf automake pkgconf git wget curl
 # Setup OPAM and OCaml
 RUN apt-get install -y opam
 RUN opam init --disable-sandboxing -y # (disable sandboxing due to Docker)
-# Tell opam to run the system package manager automatically without prompting.
-# Without this, opam's depext prompt defaults to 'n' in non-interactive mode.
-RUN opam option depext-run-installs=true
 ARG OCAML_VERSION=4.14.2
 RUN opam switch create ${OCAML_VERSION} -v
 

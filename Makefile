@@ -193,7 +193,10 @@ setup:
 # Configure tree-sitter: uses system library if available (via pkg-config),
 # otherwise downloads and builds tree-sitter from source.
 	./scripts/setup-tree-sitter.sh
-	opam install -y --deps-only $(REQUIRED_DEPS)
+	# --confirm-level=unsafe-yes is needed to auto-confirm the depext prompt
+	# ("let opam run your package manager?") in non-interactive environments.
+	# -y alone does not cover this prompt. See https://github.com/ocaml/opam/issues/4814
+	opam install --confirm-level=unsafe-yes --deps-only $(REQUIRED_DEPS)
 
 # Install optional development dependencies in addition to build dependencies.
 .PHONY: dev-setup
