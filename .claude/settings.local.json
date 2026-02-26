@@ -7,7 +7,8 @@
       "Bash(git show:*)",
       "Bash(make build-core-test:*)",
       "Bash(git add:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(git cherry-pick:*)"
     ]
   }
 }

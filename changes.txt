@@ -4,26 +4,8 @@
 
 ** versioning
 - switch to 2.0 to not confuse with the original semgrep 1.xxx line.
-  Moreover the focus on Jsonnet instead of Yaml and the new syntax deserves
-  a major version jump.
-
-** internals
-- cleanup the repo, just keep what is necessary to compile and test osemgrep
-  (removed Python cli/, mypy, .precommit, most of .github/, .circleci/,
-  images/, changelog.d/, CODE_OF_CONDUCT.md, flake and nix, dev/, etc.)
-- inline the cli/.../semgrep-interface submodule now in interfaces/
-- removed the vendored libs/testo and libs/pcre2 submodules and use instead the
-  official OPAM packages
-- start to use Claude Code (impressive) and generated CLAUDE.md from /init
-- restored languages/c/ (C menhir/tree-sitter parser) as osemgrep's focus
-  is on the OCaml and C languages (languages/cpp can also handle C, which
-  is why languages/c/ was removed in the first place, but C++ is a bigger
-  language so it is useful to also have languages/c/ when focusing on just
-  C code)
-- restored js/ (Semgrep.js / jsoo build) 
-- restored osemgrep interactive
-- restored elixir parser
-- restored --ast-caching and --registry-caching
+  Moreover the focus on Jsonnet instead of Yaml and the focus on
+  using the new syntax (that is not that new) deserves a major version jump.
 
 ** build infra
 - support system-installed tree-sitter library instead of always building it
@@ -41,6 +23,25 @@
 - switch to simpler Docker GHA workflow (was Dockerfile.libs) that
   just build osemgrep and run test, and that test the build for
   OCaml 4.14 as well as OCaml 5.2.1
+
+** internals
+- cleanup the repo, just keep what is necessary to compile and test osemgrep
+  (removed Python cli/, mypy, .precommit, most of .github/, .circleci/,
+  images/, changelog.d/, CODE_OF_CONDUCT.md, flake and nix, dev/, etc.)
+- inline the cli/.../semgrep-interface submodule now in interfaces/
+- removed the vendored libs/testo and libs/pcre2 submodules and use instead the
+  official OPAM packages (so the only non-language submodule that remains
+  is libs/ocaml-tree-sitter-core)
+- start to use Claude Code (impressive) and generated CLAUDE.md from /init
+- restored languages/c/ (C menhir/tree-sitter parser) as osemgrep's focus
+  is on the OCaml and C languages (languages/cpp can also handle C, which
+  is why languages/c/ was removed in the first place, but C++ is a bigger
+  language so it is useful to also have languages/c/ when focusing on just
+  C code with a simpler AST to work on)
+- restored js/ (Semgrep.js / jsoo build) 
+- restored osemgrep interactive
+- restored elixir and vue parsers
+- restored --ast-caching (for osemgrep interactive) and --registry-caching
 
 * ----------------------------------------------------------------------------
 
