@@ -14,8 +14,7 @@
  *)
 open Common
 open Fpath_.Operators
-
-let tags = Logs_.create_tags [ __MODULE__ ]
+module Log = Log_parsing.Log
 
 (*****************************************************************************)
 (* Purpose *)
@@ -67,8 +66,8 @@ type ast_cached_value =
 (*****************************************************************************)
 
 let ast_or_exn_of_file (lang, file) =
-  Logs.debug (fun m ->
-      m ~tags "Parsing (and naming) %s (with lang %s)" !!file
+  Log.debug (fun m ->
+      m "Parsing (and naming) %s (with lang %s)" !!file
         (Lang.to_string lang));
   try
     (* finally calling the actual function *)
@@ -117,8 +116,8 @@ let ast_cached_value_of_file version lang (file : Fpath.t) : ast_cached_value =
 let parse_and_resolve_name ?(parsing_cache_dir = None) version lang
     (file : Fpath.t) =
   if is_binary_ast_filename file then (
-    Logs.debug (fun m ->
-        m ~tags "%s is already an AST binary file, unmarshalling its value"
+    Log.debug (fun m ->
+        m "%s is already an AST binary file, unmarshalling its value"
           !!file);
     let (v : ast_cached_value) = UMarshal_.get_value file in
     let { Cache_disk.value = either; extra = version2, _lang2, _file2, _mtime2 }
@@ -139,8 +138,8 @@ let parse_and_resolve_name ?(parsing_cache_dir = None) version lang
         (* simply calling the wrapped function *)
         let { Parsing_result2.ast; skipped_tokens; _ } =
           Logs_.with_debug_trace ~__FUNCTION__ (fun () ->
-              Logs.debug (fun m ->
-                  m ~tags "Parsing (and naming) %s (with lang %s)" !!file
+              Log.debug (fun m ->
+                  m "Parsing (and naming) %s (with lang %s)" !!file
                     (Lang.to_string lang));
               Parse_target.parse_and_resolve_name lang file)
         in

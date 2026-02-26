@@ -46,10 +46,10 @@ let _ =
                rule_file
            in
            let source_files =
-             Js.to_array source_files |> Array.to_list |> List.map Js.to_string
+             Js.to_array source_files |> Array.to_list |> List_.map Js.to_string
            in
            let targets =
-             List.map
+             List_.map
                (fun f : Target.t ->
                  Regular
                    (Target.mk_regular xlang Product.all (File (Fpath.v f))))

@@ -58,7 +58,7 @@ let try_with_log_exn_and_reraise (file : Fpath.t) f =
 let dump_elixir_raw_ast file =
   let x = Parse_elixir_tree_sitter.parse (Fpath.v file) in
   match x.program with
-  | Some x -> UCommon.pr (AST_elixir.show_program x)
+  | Some x -> UConsole.print (AST_elixir.show_program x)
   | None -> failwith (spf "could not parse %s" file)
 
 let dump_elixir_ast file =
@@ -66,7 +66,7 @@ let dump_elixir_ast file =
   match x.program with
   | Some x ->
       let x = Elixir_to_elixir.map_program x in
-      UCommon.pr (AST_elixir.show_program x)
+      UConsole.print (AST_elixir.show_program x)
   | None -> failwith (spf "could not parse %s" file)
 
 (*****************************************************************************)
@@ -125,7 +125,7 @@ let generate_ast_binary lang file =
   let file = Fpath.(file + Parse_with_caching.binary_suffix) in
   assert (Parse_with_caching.is_binary_ast_filename file);
   UMarshal_.write_value final file;
-  UCommon.pr2 (spf "saved marshalled generic AST in %s" !!file)
+  Logs.debug (fun m -> m "saved marshalled generic AST in %s" !!file)
 [@@action]
 
 let dump_exts_of_lang (caps : < Cap.stdout >) () =

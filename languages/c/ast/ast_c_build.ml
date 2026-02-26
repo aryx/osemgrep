@@ -115,7 +115,7 @@ let bracket_keep of_a (t1, x, t2) = (t1, of_a x, t2)
 
 let rec program xs =
   let env = empty_env () in
-  toplevels env xs |> List.flatten
+  toplevels env xs |> List_.flatten
 
 (* ---------------------------------------------------------------------- *)
 (* Toplevels *)
@@ -125,11 +125,11 @@ and toplevels env xs =
   ifdef_skipper xs (function
     | CppIfdef x -> Some x
     | _ -> None)
-  |> List.map (toplevel env)
+  |> List_.map (toplevel env)
 
 and toplevel env x =
   match x with
-  | X (D decl) -> declaration env decl |> List.map (fun x -> A.DefStmt x)
+  | X (D decl) -> declaration env decl |> List_.map (fun x -> A.DefStmt x)
   | X (S st) -> [ stmt env st ]
   | CppDirective x -> [ A.DirStmt (cpp_directive env x) ]
   | MacroVar (_, _)
@@ -150,11 +150,11 @@ and declaration env x =
       env.struct_defs_toadd <- [];
       env.enum_defs_toadd <- [];
       env.typedefs_toadd <- [];
-      (structs |> List.map (fun x -> A.StructDef x))
-      @ (enums |> List.map (fun x -> A.EnumDef x))
-      @ (typedefs |> List.map (fun x -> A.TypeDef x))
+      (structs |> List_.map (fun x -> A.StructDef x))
+      @ (enums |> List_.map (fun x -> A.EnumDef x))
+      @ (typedefs |> List_.map (fun x -> A.TypeDef x))
       @ (xs
-        |> List.map (fun x ->
+        |> List_.map (fun x ->
                (* could skip extern declaration? *)
                match x with
                | { A.v_type = A.TFunction ft; v_storage = storage; _ } ->
@@ -232,7 +232,7 @@ and function_type env x =
       | None, [], None -> ()
       | _ -> raise CplusplusConstruct);
 
-      (full_type env ret, List.map (parameter env) (params |> unparen))
+      (full_type env ret, List_.map (parameter env) (params |> unparen))
 
 and parameter env x =
   match x with
@@ -327,7 +327,7 @@ and initialiser_to_expr env x : A.expr =
             (bracket_keep
                (fun xs ->
                  xs
-                 |> List.map (function
+                 |> List_.map (function
                       | InitDesignators ([ DesignatorField (_, ident) ], _, init)
                         ->
                           (ident, initialiser_to_expr env init)
@@ -386,7 +386,7 @@ and cpp_directive env x =
       | DefineVar -> A.Define (tok, name, v)
       | DefineMacro args ->
           A.Macro
-            (tok, name, args |> unparen |> List.map (fun (s, ii) -> (s, ii)), v)
+            (tok, name, args |> unparen |> List_.map (fun (s, ii) -> (s, ii)), v)
       )
   | Include (tok, inc_kind) ->
       let s =
@@ -517,13 +517,13 @@ and ident_asm_operand _env (v1, v2, v3) = (v1, v2, v3)
 and expr_asm_operand env (v1, v2, v3) = (v1, v2, bracket_keep (expr env) v3)
 
 and compound env (t1, xs, t2) =
-  (t1, statements_sequencable env xs |> List.flatten, t2)
+  (t1, statements_sequencable env xs |> List_.flatten, t2)
 
 and statements_sequencable env xs =
   ifdef_skipper xs (function
     | CppIfdef x -> Some x
     | _ -> None)
-  |> List.map (statement_sequencable env)
+  |> List_.map (statement_sequencable env)
 
 and statement_sequencable env x =
   match x with
@@ -549,7 +549,7 @@ and cases env st =
             | X (S (Case (_, _, _, sts)))
             | X (S (Default (_, _, sts))) ->
                 let stmts_after_case =
-                  sts |> List.map (fun st_or_decl -> X st_or_decl)
+                  sts |> List_.map (fun st_or_decl -> X st_or_decl)
                 in
                 (* sts can contain a Case itself, which we want to pack
                  * together *)
@@ -562,7 +562,7 @@ and cases env st =
                        | _ -> true)
                 in
                 let stmts =
-                  List.map
+                  List_.map
                     (function
                       | X (S st) -> stmt env st
                       | x ->
@@ -732,8 +732,8 @@ and full_type env x =
   | TPointer (tok, t, _) -> A.TPointer (tok, full_type env t)
   | TPrimitive (x, t) -> A.TBase (primitive_type env (x, t))
   | TSized (xs, baseopt) ->
-      let ys = xs |> List.map sized_type in
-      let ii = xs |> List.map snd in
+      let ys = xs |> List_.map sized_type in
+      let ii = xs |> List_.map snd in
       let last_s, last_i =
         match baseopt with
         | None -> ("", [])
@@ -771,7 +771,7 @@ and full_type env x =
             {
               A.s_name = name;
               s_kind = struct_kind env kind;
-              s_flds = (t1, class_members_sequencable env xs |> List.flatten, t2);
+              s_flds = (t1, class_members_sequencable env xs |> List_.flatten, t2);
             }
           in
           env.struct_defs_toadd <- def' :: env.struct_defs_toadd;
@@ -786,7 +786,7 @@ and full_type env x =
             (s, tok)
         | Some n -> name env n
       in
-      let xs' = xs |> unparen |> enum_elems_sequencable env |> List.flatten in
+      let xs' = xs |> unparen |> enum_elems_sequencable env |> List_.flatten in
       let def = { A.e_name = name; e_type = failwith "TODO"; e_consts = xs' } in
       env.enum_defs_toadd <- def :: env.enum_defs_toadd;
       A.TEnumName name
@@ -806,7 +806,7 @@ and full_type env x =
 (* ---------------------------------------------------------------------- *)
 and class_member env x : A.field_def list =
   match x with
-  | F (DeclList (xs, _)) -> xs |> List.map (fieldkind env)
+  | F (DeclList (xs, _)) -> xs |> List_.map (fieldkind env)
   | QualifiedIdInClass (_, _)
   | Access (_, _) ->
       debug (ClassMember x);
@@ -820,13 +820,13 @@ and class_members_sequencable env xs =
   ifdef_skipper xs (function
     | CppIfdef x -> Some x
     | _ -> None)
-  |> List.map (class_member_sequencable env)
+  |> List_.map (class_member_sequencable env)
 
 and enum_elems_sequencable env (xs : enum_elem sequencable list) =
   ifdef_skipper xs (function
     | CppIfdef x -> Some x
     | _ -> None)
-  |> List.map (enum_elem_sequencable env)
+  |> List_.map (enum_elem_sequencable env)
 
 and enum_elem_sequencable env x =
   match x with
@@ -896,10 +896,10 @@ let any any =
   match any with
   | Expr x -> A.Expr (expr env x)
   | Stmt x -> A.Stmt (stmt env x)
-  | Stmts xs -> A.Stmts (List.map (stmt env) xs)
+  | Stmts xs -> A.Stmts (List_.map (stmt env) xs)
   | Toplevel x -> (
       match toplevel env x with
       | [ x ] -> A.Stmt x
       | xs -> A.Stmts xs)
-  | Toplevels xs -> A.Stmts (List.map (toplevel env) xs |> List.flatten)
+  | Toplevels xs -> A.Stmts (List.concat_map (toplevel env) xs)
   | _ -> failwith "Ast_c_simple_build.any: only Expr/Stmt/Stmts handled"

@@ -395,7 +395,7 @@ and stmt (st : stmt) : G.stmt =
   |> G.s
 
 and stmts (x : stmt sequencable list) =
-  list (sequencable stmt) x |> List.flatten
+  list (sequencable stmt) x |> List_.flatten
 
 and ms_try_handler (l, inner, r) x =
   let try_stmt =
@@ -541,7 +541,7 @@ and struct_def { s_name; s_kind; s_flds } =
                   [ G.basic_field n None (Some t) ])))
           s_flds
       in
-      (entity, G.TypeDef { G.tbody = G.AndType (l, List.flatten fields, r) })
+      (entity, G.TypeDef { G.tbody = G.AndType (l, List_.flatten fields, r) })
   | Union ->
       let _l, fields, _r =
         bracket
@@ -551,7 +551,7 @@ and struct_def { s_name; s_kind; s_flds } =
                   G.OrConstructor (n, [ t ]))))
           s_flds
       in
-      (entity, G.TypeDef { G.tbody = G.OrType (List.flatten fields) })
+      (entity, G.TypeDef { G.tbody = G.OrType (List_.flatten fields) })
 
 and field_def { fld_name; fld_type } =
   let v1 = option name fld_name in
@@ -568,7 +568,7 @@ and enum_def { e_name = v1; e_type = _v2_TODO; e_consts = v3 } =
       v3
   in
   let entity = G.basic_entity v1 in
-  (entity, G.TypeDef { G.tbody = G.OrType (List.flatten v3) })
+  (entity, G.TypeDef { G.tbody = G.OrType (List_.flatten v3) })
 
 and type_def { t_name = v1; t_type = v2 } =
   let v1 = name v1 and v2 = type_ v2 in
@@ -687,7 +687,7 @@ and sequencable_for_or_type :
       []
 
 let toplevel (x : stmt) = stmt x
-let program v = list (sequencable toplevel) v |> List.flatten
+let program v = list (sequencable toplevel) v |> List_.flatten
 
 let any = function
   | Expr v1 ->
