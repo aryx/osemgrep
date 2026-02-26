@@ -3,7 +3,9 @@
     "allow": [
       "Bash(make check:*)",
       "Bash(make test:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git show:*)",
+      "Bash(make build-core-test:*)"
     ]
   }
 }
