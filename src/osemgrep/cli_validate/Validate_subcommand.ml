@@ -101,7 +101,7 @@ let find_targets_rules (caps : < caps ; .. >) ~(strict : bool) ~token_opt
    *)
   let rules_and_origin, fatal_errors =
     Rule_fetching.rules_from_rules_source ~token_opt ~rewrite_rule_ids:true
-      ~strict
+      ~registry_caching:false ~strict
       (caps :> < Cap.network ; Cap.tmp ; Cap.readdir >)
       rules_source
   in
@@ -165,7 +165,7 @@ let check_targets_rules (caps : < caps ; .. >) ~token_opt targets_rules
   (* There should not be any errors, because we got these rules online. *)
   let metarules_and_origin, _errors =
     Rule_fetching.rules_from_dashdash_config ~token_opt
-      ~rewrite_rule_ids:true (* default *)
+      ~rewrite_rule_ids:true ~registry_caching:false
       (caps :> < Cap.network ; Cap.tmp ; Cap.readdir >)
       config
   in

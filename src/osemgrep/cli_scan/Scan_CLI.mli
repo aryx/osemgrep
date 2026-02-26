@@ -28,6 +28,7 @@ type conf = {
   incremental_output : bool;
   (* Networking options *)
   metrics : Metrics_.config;
+  registry_caching : bool; (* similar to core_runner_conf.ast_caching *)
   version_check : bool;
   (* Debugging/logging/profiling options *)
   common : CLI_common.conf;

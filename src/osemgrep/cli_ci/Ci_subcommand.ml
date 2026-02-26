@@ -419,7 +419,7 @@ let decode_json_rules caps (rules : Yojson.Basic.t) :
   CapTmp.with_temp_file caps#tmp ~contents:data ~suffix:".json" (fun file ->
       match
         Rule_fetching.load_rules_from_file ~rewrite_rule_ids:false ~origin:App
-          caps file
+          ~registry_caching:false caps file
       with
       | Ok rules -> rules
       | Error _err ->
@@ -865,8 +865,8 @@ let run_conf (caps : < caps ; .. >) (ci_conf : Ci_CLI.conf) : Exit_code.t =
   let conf = ci_conf.scan_conf in
   (match conf.common.maturity with
   | Maturity.Default
-    when conf.core_runner_conf.ast_caching ->
-      Error.abort "--ast_caching requires --experimental"
+    when conf.core_runner_conf.ast_caching || conf.registry_caching ->
+      Error.abort "--ast_caching/--registry_caching requires --experimental"
   | Maturity.Default
   | Maturity.Legacy
   | Maturity.Experimental

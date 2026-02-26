@@ -339,8 +339,8 @@ let mk_core_run_for_osemgrep (caps : < Core_scan.caps ; .. >)
   in
   core_run_for_osemgrep
 
-let rules_from_rules_source ~token_opt ~rewrite_rule_ids ~strict caps
-    rules_source =
+let rules_from_rules_source ~token_opt ~rewrite_rule_ids ~registry_caching
+    ~strict caps rules_source =
   (* Create the wait hook for our progress indicator *)
   let spinner_ls =
     if Console_Spinner.should_show_spinner () then
@@ -350,7 +350,7 @@ let rules_from_rules_source ~token_opt ~rewrite_rule_ids ~strict caps
   (* Fetch the rules *)
   let rules_and_origins =
     Rule_fetching.rules_from_rules_source_async ~token_opt ~rewrite_rule_ids
-      ~strict
+      ~registry_caching ~strict
       (caps :> < Cap.network ; Cap.tmp ; Cap.readdir >)
       rules_source
   in
@@ -684,6 +684,7 @@ let run_scan_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
     rules_from_rules_source
       (caps :> < Cap.network ; Cap.tmp ; Cap.readdir >)
       ~token_opt:settings.api_token ~rewrite_rule_ids:conf.rewrite_rule_ids
+      ~registry_caching:conf.registry_caching
       ~strict:conf.core_runner_conf.strict conf.rules_source
   in
 
@@ -737,8 +738,8 @@ let run_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
    * coupling: see the 'NEW' section in Scan_CLI.ml for all those new flags
    *)
   | Maturity.Default
-    when conf.core_runner_conf.ast_caching ->
-      Error.abort "--ast_caching requires --experimental"
+    when conf.core_runner_conf.ast_caching || conf.registry_caching ->
+      Error.abort "--ast_caching/--registry_caching requires --experimental"
   | Maturity.Default -> (
       match conf with
       | {

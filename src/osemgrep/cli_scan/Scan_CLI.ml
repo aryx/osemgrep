@@ -52,6 +52,7 @@ type conf = {
   incremental_output : bool;
   (* Networking options *)
   metrics : Metrics_.config;
+  registry_caching : bool; (* similar to core_runner_conf.ast_caching *)
   version_check : bool;
   (* Debugging/logging/profiling options *)
   common : CLI_common.conf;
@@ -103,6 +104,8 @@ let default : conf =
     rewrite_rule_ids = true;
     (* will send metrics only if the user uses the registry or the app *)
     metrics = Metrics_.Auto;
+    (* like ast_caching, better to default to false for now *)
+    registry_caching = false;
     version_check = true;
     (* ugly: should be separate subcommands *)
     version = false;
@@ -969,7 +972,14 @@ let o_ast_caching : bool Term.t =
 Requires --experimental.
 |}
 
-
+(* TODO: add also an --offline flag? what about metrics? *)
+let o_registry_caching : bool Term.t =
+  H.negatable_flag [ "registry-caching" ] ~neg_options:[ "no-registry-caching" ]
+    ~default:default.registry_caching
+    ~doc:
+      {|Cache for 24 hours in ~/.semgrep/cache rules from the registry.
+Requires --experimental.
+|}
 (*
    Let's use the following convention: the prefix '--x-' means "forbidden"
    or "experimental".
@@ -1331,13 +1341,13 @@ let cmdline_term caps ~allow_empty_config : conf Term.t =
       max_chars_per_line max_lines_per_finding max_log_list_entries
       max_memory_mb max_target_bytes metrics num_jobs no_secrets_validation
       nosem optimizations oss output pattern pro project_root pro_intrafile
-      pro_lang pro_path_sensitive remote replacement rewrite_rule_ids sarif
-      sarif_outputs scan_unknown_extensions secrets severity
-      show_supported_languages strict target_roots test test_ignore_todo text
-      text_outputs time_flag timeout _timeout_interfileTODO timeout_threshold
-      trace trace_endpoint use_git _use_semgrepignore_v2 validate version
-      version_check vim vim_outputs x_ignore_semgrepignore_files x_ls x_ls_long
-      x_tr =
+      pro_lang pro_path_sensitive registry_caching remote replacement
+      rewrite_rule_ids sarif sarif_outputs scan_unknown_extensions secrets
+      severity show_supported_languages strict target_roots test
+      test_ignore_todo text text_outputs time_flag timeout
+      _timeout_interfileTODO timeout_threshold trace trace_endpoint use_git
+      _use_semgrepignore_v2 validate version version_check vim vim_outputs
+      x_ignore_semgrepignore_files x_ls x_ls_long x_tr =
     (* Print a warning if any of the internal or experimental options.
        We don't want users to start relying on these. *)
     if x_ignore_semgrepignore_files || x_ls || x_ls_long || x_tr then
@@ -1521,6 +1531,7 @@ let cmdline_term caps ~allow_empty_config : conf Term.t =
       error_on_findings = error;
       autofix;
       metrics;
+      registry_caching;
       version_check;
       output;
       output_conf;
@@ -1557,14 +1568,15 @@ let cmdline_term caps ~allow_empty_config : conf Term.t =
     $ o_max_log_list_entries $ o_max_memory_mb $ o_max_target_bytes $ o_metrics
     $ o_num_jobs $ o_no_secrets_validation $ o_nosem $ o_optimizations $ o_oss
     $ o_output $ o_pattern $ o_pro $ o_project_root $ o_pro_intrafile
-    $ o_pro_languages $ o_pro_path_sensitive $ o_remote $ o_replacement
-    $ o_rewrite_rule_ids $ o_sarif $ o_sarif_outputs $ o_scan_unknown_extensions
-    $ o_secrets $ o_severity $ o_show_supported_languages $ o_strict
-    $ o_target_roots $ o_test $ Test_CLI.o_test_ignore_todo $ o_text
-    $ o_text_outputs $ o_time $ o_timeout $ o_timeout_interfile
-    $ o_timeout_threshold $ o_trace $ o_trace_endpoint $ o_use_git
-    $ o_use_semgrepignore_v2 $ o_validate $ o_version $ o_version_check $ o_vim
-    $ o_vim_outputs $ o_ignore_semgrepignore_files $ o_ls $ o_ls_long $ o_tr)
+    $ o_pro_languages $ o_pro_path_sensitive $ o_registry_caching $ o_remote
+    $ o_replacement $ o_rewrite_rule_ids $ o_sarif $ o_sarif_outputs
+    $ o_scan_unknown_extensions $ o_secrets $ o_severity
+    $ o_show_supported_languages $ o_strict $ o_target_roots $ o_test
+    $ Test_CLI.o_test_ignore_todo $ o_text $ o_text_outputs $ o_time
+    $ o_timeout $ o_timeout_interfile $ o_timeout_threshold $ o_trace
+    $ o_trace_endpoint $ o_use_git $ o_use_semgrepignore_v2 $ o_validate
+    $ o_version $ o_version_check $ o_vim $ o_vim_outputs
+    $ o_ignore_semgrepignore_files $ o_ls $ o_ls_long $ o_tr)
 
 let doc = "run semgrep rules on files"
 

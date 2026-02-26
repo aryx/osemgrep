@@ -337,6 +337,7 @@ let scan_subset_cmdline_term : Scan_CLI.conf Term.t =
         error_on_findings = true;
         autofix;
         metrics;
+        registry_caching = false;
         version_check;
         output;
         output_conf;

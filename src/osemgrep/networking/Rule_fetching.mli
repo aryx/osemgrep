@@ -71,6 +71,7 @@ val langs_of_pattern : string * Analyzer.t option -> Analyzer.t list
 val rules_from_rules_source :
   token_opt:Auth.token option ->
   rewrite_rule_ids:bool ->
+  registry_caching:bool ->
   strict:bool ->
   < caps ; .. > ->
   Rules_source.t ->
@@ -80,6 +81,7 @@ val rules_from_rules_source :
 val rules_from_rules_source_async :
   token_opt:Auth.token option ->
   rewrite_rule_ids:bool ->
+  registry_caching:bool ->
   strict:bool ->
   < caps ; .. > ->
   Rules_source.t ->
@@ -90,6 +92,7 @@ val rules_from_rules_source_async :
 val rules_from_dashdash_config_async :
   rewrite_rule_ids:bool ->
   token_opt:Auth.token option ->
+  registry_caching:bool ->
   < caps ; .. > ->
   Rules_config.t ->
   (rules_and_origin list * Rule_error.t list) Lwt.t
@@ -101,6 +104,7 @@ val rules_from_dashdash_config_async :
 val rules_from_dashdash_config :
   rewrite_rule_ids:bool ->
   token_opt:Auth.token option ->
+  registry_caching:bool ->
   < caps ; .. > ->
   Rules_config.t ->
   rules_and_origin list * Rule_error.t list
@@ -114,6 +118,7 @@ val rules_from_dashdash_config :
 val load_rules_from_file :
   rewrite_rule_ids:bool ->
   origin:origin ->
+  registry_caching:bool ->
   < Cap.network ; Cap.tmp ; .. > ->
   Fpath.t ->
   (rules_and_origin, Rule_error.t) Result.t

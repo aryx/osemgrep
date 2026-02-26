@@ -108,12 +108,11 @@ let dirty_paths_of_folder folder =
     Some (List_.map (fun x -> folder // x) dirty_paths)
   else None
 
-(* TODO: registry caching is not anymore in semgrep-OSS! *)
 let decode_rules caps data =
   CapTmp.with_temp_file caps#tmp ~contents:data ~suffix:".json" (fun file ->
       match
         Rule_fetching.load_rules_from_file ~rewrite_rule_ids:false ~origin:App
-          caps file
+          ~registry_caching:true caps file
       with
       | Ok res ->
           Logs.app (fun m ->
@@ -297,10 +296,9 @@ let fetch_rules session =
       (fun source ->
         let in_docker = !Semgrep_envvars.v.in_docker in
         let config = Rules_config.parse_config_string ~in_docker source in
-        (* TODO: registry_caching is not anymore in semgrep-OSS! *)
         Rule_fetching.rules_from_dashdash_config_async
           ~rewrite_rule_ids:true (* default *)
-          ~token_opt:(auth_token ()) session.caps config)
+          ~token_opt:(auth_token ()) ~registry_caching:true session.caps config)
       rules_source
   in
 

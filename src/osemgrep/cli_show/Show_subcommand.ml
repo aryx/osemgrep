@@ -142,7 +142,7 @@ let run_conf (caps : < caps ; .. >) (conf : Show_CLI.conf) : Exit_code.t =
       let rules_and_errors, errors =
         Rule_fetching.rules_from_dashdash_config
           ~rewrite_rule_ids:true (* command-line default *)
-          ~token_opt
+          ~token_opt ~registry_caching:false
           (caps :> < Cap.network ; Cap.tmp ; Cap.readdir >)
           config
       in
