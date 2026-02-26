@@ -732,6 +732,13 @@ let run_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
    * probably also need to modify it in Ci_subcommand.ml
    *)
   (match conf.common.maturity with
+  (* those are osemgrep-only option not available in pysemgrep,
+   * so better print a good error message for it.
+   * coupling: see the 'NEW' section in Scan_CLI.ml for all those new flags
+   *)
+  | Maturity.Default
+    when conf.core_runner_conf.ast_caching ->
+      Error.abort "--ast_caching requires --experimental"
   | Maturity.Default -> (
       match conf with
       | {

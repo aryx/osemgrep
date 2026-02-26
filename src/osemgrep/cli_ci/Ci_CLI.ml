@@ -284,6 +284,7 @@ let scan_subset_cmdline_term : Scan_CLI.conf Term.t =
         matching_explanations;
         (* coupling(symbol-analysis): this will be set later by the scan config *)
         symbol_analysis = false;
+        ast_caching = false;
       }
     in
     let include_ =

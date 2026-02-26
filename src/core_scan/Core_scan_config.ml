@@ -73,6 +73,7 @@ type t = {
   max_memory_mb : int;
   max_match_per_file : int;
   ncores : int;
+  parsing_cache_dir : Fpath.t option;
   (* a.k.a -fast (on by default) *)
   filter_irrelevant_rules : bool;
   (* telemetry *)
@@ -113,6 +114,7 @@ let default =
     max_memory_mb = 0;
     max_match_per_file = 10_000;
     ncores = 1;
+    parsing_cache_dir = None;
     (* a.k.a -fast, on by default *)
     filter_irrelevant_rules = true;
     (* debugging and telemetry flags *)

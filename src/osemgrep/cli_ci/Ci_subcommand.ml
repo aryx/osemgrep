@@ -865,6 +865,9 @@ let run_conf (caps : < caps ; .. >) (ci_conf : Ci_CLI.conf) : Exit_code.t =
   let conf = ci_conf.scan_conf in
   (match conf.common.maturity with
   | Maturity.Default
+    when conf.core_runner_conf.ast_caching ->
+      Error.abort "--ast_caching requires --experimental"
+  | Maturity.Default
   | Maturity.Legacy
   | Maturity.Experimental
   | Maturity.Develop ->

@@ -1,4 +1,5 @@
 open Common
+open Fpath_.Operators
 module J = JSON
 module E = Core_error
 
@@ -115,6 +116,16 @@ let dump_il (caps : < Cap.stdout >) file =
     print s
   in
   Visit_function_defs.visit report_func_def_with_name ast
+[@@action]
+
+let generate_ast_binary lang file =
+  let final =
+    Parse_with_caching.ast_cached_value_of_file Version.version lang file
+  in
+  let file = Fpath.(file + Parse_with_caching.binary_suffix) in
+  assert (Parse_with_caching.is_binary_ast_filename file);
+  UMarshal_.write_value final file;
+  UCommon.pr2 (spf "saved marshalled generic AST in %s" !!file)
 [@@action]
 
 let dump_exts_of_lang (caps : < Cap.stdout >) () =

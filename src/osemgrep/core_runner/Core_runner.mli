@@ -23,6 +23,8 @@ type conf = {
      only set by the scan config from the app
   *)
   symbol_analysis : bool;
+  (* osemgrep-only: *)
+  ast_caching : bool;
 }
 [@@deriving show]
 

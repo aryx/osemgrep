@@ -110,6 +110,9 @@ let ncores = ref Core_scan_config.default.ncores
 (* ------------------------------------------------------------------------- *)
 (* optional optimizations *)
 (* ------------------------------------------------------------------------- *)
+(* see Flag_semgrep.ml *)
+let use_parsing_cache = ref Core_scan_config.default.parsing_cache_dir
+
 (* similar to filter_irrelevant_patterns, but use the whole rule to extract
  * the regexp *)
 let filter_irrelevant_rules =
@@ -338,6 +341,7 @@ let mk_config () : Core_scan_config.t =
     max_match_per_file = !max_match_per_file;
     ncores = !ncores;
     filter_irrelevant_rules = !filter_irrelevant_rules;
+    parsing_cache_dir = !use_parsing_cache;
     (* open telemetry *)
     tracing =
       (match (!trace, !trace_endpoint) with
@@ -375,6 +379,12 @@ let mk_config () : Core_scan_config.t =
 
 let all_actions (caps : Cap.all_caps) () =
   [
+    ( "-generate_ast_binary",
+      " <file> save in file.ast.binary the marshalled generic AST of file",
+      Arg_.mk_action_1_conv Fpath.v (fun file ->
+          Core_actions.generate_ast_binary
+            (Lang.of_opt_exn !lang)
+            file) );
     (* this is run by pysemgrep --validate *)
     ( "-check_rules",
       " <metachecks file> <files or dirs>",
@@ -524,6 +534,9 @@ let options caps (actions : unit -> Arg_.cmdline_actions) =
       Arg.String (fun s -> equivalences_file := Some (Fpath.v s)),
       " <file> obtain list of code equivalences from YAML file" );
     ("-j", Arg.Set_int ncores, " <int> number of cores to use (default = 1)");
+    ( "-use_parsing_cache",
+      Arg.String (fun s -> use_parsing_cache := Some (Fpath.v s)),
+      " <dir> store and use the parsed generic ASTs in dir" );
     ( "-no_gc_tuning",
       Arg.Clear Flag.gc_tuning,
       " use OCaml's default garbage collector settings" );

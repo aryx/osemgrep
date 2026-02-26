@@ -1,4 +1,5 @@
 open Common
+open Fpath_.Operators
 module Env = Semgrep_envvars
 module Out = Semgrep_output_v1_t
 
@@ -45,6 +46,8 @@ type conf = {
   dataflow_traces : bool;
   (* set by the scan config from the app *)
   symbol_analysis : bool;
+  (* osemgrep-only: *)
+  ast_caching : bool;
 }
 [@@deriving show]
 
@@ -102,6 +105,7 @@ let default_conf : conf =
     nosem = true;
     strict = false;
     symbol_analysis = false;
+    ast_caching = false;
   }
 
 (*****************************************************************************)
@@ -164,6 +168,7 @@ let core_scan_config_of_conf (conf : conf) : Core_scan_config.t =
    timeout_threshold;
    max_memory_mb;
    optimizations;
+   ast_caching;
    matching_explanations;
    nosem = _TODO;
    strict;
@@ -175,6 +180,10 @@ let core_scan_config_of_conf (conf : conf) : Core_scan_config.t =
       (* We do our own output in osemgrep, no need for Core_scan.scan() output *)
       let output_format = Core_scan_config.NoOutput in
       let filter_irrelevant_rules = optimizations in
+      let parsing_cache_dir =
+        if ast_caching then Some (!Env.v.user_dot_semgrep_dir / "cache" / "asts")
+        else None
+      in
       {
         ncores = num_jobs;
         output_format;
@@ -182,6 +191,7 @@ let core_scan_config_of_conf (conf : conf) : Core_scan_config.t =
         timeout_threshold;
         max_memory_mb;
         filter_irrelevant_rules;
+        parsing_cache_dir;
         matching_explanations;
         strict;
         report_time = time_flag;

@@ -379,17 +379,6 @@ let targets_of_config (config : Core_scan_config.t) (rules : Rule.t list) :
 (* Parsing *)
 (*****************************************************************************)
 
-let parse_and_resolve_name (lang : Lang.t) (fpath : Fpath.t) :
-    AST_generic.program * Tok.location list =
-  let { Parsing_result2.ast; skipped_tokens; _ } =
-    Logs_.with_debug_trace ~__FUNCTION__ (fun () ->
-        Logs.debug (fun m ->
-            m "Parsing (and naming) %s (with lang %s)" !!fpath
-              (Lang.to_string lang));
-        Parse_target.parse_and_resolve_name lang fpath)
-  in
-  (ast, skipped_tokens)
-
 (* Lang heuristic to determine if a rule is relevant or can be filtered out *)
 let is_rule_used_by_targets (analyzer_set : Analyzer.t Set_.t) (rule : Rule.t) =
   match rule.target_analyzer with
@@ -802,7 +791,12 @@ let mk_target_handler (caps : < Cap.time_limit >) (config : Core_scan_config.t)
 
       (* TODO: can we skip all of this if there are no applicable
           rules? In particular, can we skip print_cli_progress? *)
-      let xtarget = Xtarget.resolve parse_and_resolve_name target in
+      let xtarget =
+        Xtarget.resolve
+          (Parse_with_caching.parse_and_resolve_name
+             ~parsing_cache_dir:config.parsing_cache_dir AST_generic.version)
+          target
+      in
       let xconf =
         {
           Match_env.config = Rule_options.default;

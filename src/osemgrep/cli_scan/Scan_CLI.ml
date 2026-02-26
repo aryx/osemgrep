@@ -961,6 +961,15 @@ let o_remote : string option Term.t =
   in
   Arg.value (Arg.opt Arg.(some string) None info)
 
+let o_ast_caching : bool Term.t =
+  H.negatable_flag [ "ast-caching" ] ~neg_options:[ "no-ast-caching" ]
+    ~default:default.core_runner_conf.ast_caching
+    ~doc:
+      {|Store in ~/.semgrep/cache/asts/ the parsed ASTs to speedup things.
+Requires --experimental.
+|}
+
+
 (*
    Let's use the following convention: the prefix '--x-' means "forbidden"
    or "experimental".
@@ -1312,7 +1321,7 @@ let cmdline_term caps ~allow_empty_config : conf Term.t =
   (* !The parameters must be in alphabetic orders to match the order
      of the corresponding '$ o_xx $' further below!
   *)
-  let combine allow_local_builds allow_untrusted_validators autofix
+  let combine allow_local_builds allow_untrusted_validators ast_caching autofix
       baseline_commit common config dataflow_traces _diff_depthTODO dryrun
       dump_ast dump_command_for_core dump_engine_path emacs emacs_outputs error
       exclude_ exclude_minified_files exclude_rule_ids files_with_matches
@@ -1406,6 +1415,7 @@ let cmdline_term caps ~allow_empty_config : conf Term.t =
         timeout;
         timeout_threshold;
         max_memory_mb;
+        ast_caching;
         dataflow_traces;
         nosem;
         strict;
@@ -1535,8 +1545,8 @@ let cmdline_term caps ~allow_empty_config : conf Term.t =
     (* !the o_xxx must be in alphabetic orders to match the parameters of
      * combine above! *)
     const combine $ o_allow_local_builds $ o_allow_untrusted_validators
-    $ o_autofix $ o_baseline_commit $ CLI_common.o_common $ o_config
-    $ o_dataflow_traces $ o_diff_depth $ o_dryrun $ o_dump_ast
+    $ o_ast_caching $ o_autofix $ o_baseline_commit $ CLI_common.o_common
+    $ o_config $ o_dataflow_traces $ o_diff_depth $ o_dryrun $ o_dump_ast
     $ o_dump_command_for_core $ o_dump_engine_path $ o_emacs $ o_emacs_outputs
     $ o_error $ o_exclude $ o_exclude_minified_files $ o_exclude_rule_ids
     $ o_files_with_matches $ o_force_color $ o_gitlab_sast
