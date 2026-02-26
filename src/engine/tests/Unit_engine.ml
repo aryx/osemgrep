@@ -66,6 +66,7 @@ let full_lang_info =
     (Lang.Scala, "scala", ".scala");
     (Lang.Swift, "swift", ".swift");
     (Lang.Html, "html", ".html");
+    (Lang.Vue, "vue", ".vue");
     (Lang.Terraform, "terraform", ".tf");
     (Lang.Kotlin, "kotlin", ".kt");
     (Lang.Solidity, "solidity", ".sol");
@@ -318,7 +319,7 @@ let maturity_tests () =
       make_maturity_tests Lang.Jsonnet "jsonnet" ".jsonnet" Experimental;
       make_maturity_tests Lang.Clojure "clojure" ".clj" Experimental
       (* Not even experimental yet *)
-      (* HTML, XML, Dart *);
+      (* HTML, XML, Vue, Dart *);
     ]
 
 (*****************************************************************************)
