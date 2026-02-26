@@ -222,6 +222,10 @@ parsers, especially ocamlyacc/menhir based parsers.
   (synopsis "XXX")
   (description "XXX")
 )
+(package (name parser_elixir)
+  (synopsis "XXX")
+  (description "XXX")
+)
 (package (name parser_go)
   (synopsis "XXX")
   (description "XXX")
@@ -566,6 +570,11 @@ Uses indentation and standard braces to determine a crude parse tree
 ; needed because lots of dune language libs use tree-sitter-lang
 ; as a common base as in tree-sitter-lang.typescript
 (package (name tree-sitter-lang)
+  (synopsis "XXX")
+  (description "XXX")
+  (allow_empty)
+)
+(package (name tree-sitter-lang-pro)
   (synopsis "XXX")
   (description "XXX")
   (allow_empty)

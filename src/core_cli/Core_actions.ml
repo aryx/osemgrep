@@ -53,6 +53,21 @@ let try_with_log_exn_and_reraise (file : Fpath.t) f =
       Logs.err (fun m -> m "%s" (E.string_of_error err));
       Exception.reraise e
 
+(* temporary *)
+let dump_elixir_raw_ast file =
+  let x = Parse_elixir_tree_sitter.parse (Fpath.v file) in
+  match x.program with
+  | Some x -> UCommon.pr (AST_elixir.show_program x)
+  | None -> failwith (spf "could not parse %s" file)
+
+let dump_elixir_ast file =
+  let x = Parse_elixir_tree_sitter.parse (Fpath.v file) in
+  match x.program with
+  | Some x ->
+      let x = Elixir_to_elixir.map_program x in
+      UCommon.pr (AST_elixir.show_program x)
+  | None -> failwith (spf "could not parse %s" file)
+
 (*****************************************************************************)
 (* Dumpers *)
 (*****************************************************************************)

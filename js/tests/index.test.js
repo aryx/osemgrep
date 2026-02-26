@@ -9,6 +9,7 @@ const languages = [
   "csharp",
   "dart",
   "dockerfile",
+  "elixir",
   "go",
   "hack",
   "html",

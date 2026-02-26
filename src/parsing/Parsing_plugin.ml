@@ -1,25 +1,8 @@
-(* Martin Jambon
- *
- * Copyright (C) 2023 Semgrep Inc.
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * version 2.1 as published by the Free Software Foundation, with the
- * special exception on linking described in file LICENSE.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the file
- * LICENSE for more details.
- *)
-open Common
-
-(*****************************************************************************)
-(* Prelude *)
-(*****************************************************************************)
 (*
-   External parsers to be registered here by semgrep-pro.
+   External parsers to be registered here by proprietary extensions of semgrep.
 *)
+
+open Common
 
 (*****************************************************************************)
 (* Types and globals *)
@@ -141,11 +124,6 @@ end
 module Csharp = struct
   let is_optional, register_parsers, is_available, parse_pattern, parse_target =
     make ~optional:true Lang.Csharp
-end
-
-module Elixir = struct
-  let is_optional, register_parsers, is_available, parse_pattern, parse_target =
-    make Lang.Elixir
 end
 
 let all_possible_plugins = List.rev !all_possible_plugins

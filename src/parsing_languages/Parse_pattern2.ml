@@ -145,6 +145,9 @@ let parse_pattern options lang str =
       let pattern = extract_pattern_from_tree_sitter_result res in
       QL_to_generic.any pattern
   (* Tree-sitter only and directly to generic AST *)
+  | Lang.Apex ->
+      let res = Parsing_plugin.Apex.parse_pattern str in
+      extract_pattern_from_tree_sitter_result res
   | Lang.Csharp ->
       let parse_pattern =
         if Parsing_plugin.Csharp.is_available () then
@@ -162,6 +165,10 @@ let parse_pattern options lang str =
   | Lang.Dockerfile ->
       let res = Parse_dockerfile_tree_sitter.parse_docker_or_bash_pattern str in
       extract_pattern_from_tree_sitter_result res
+  | Lang.Elixir ->
+      let res = Parse_elixir_tree_sitter.parse_pattern str in
+      let pattern = extract_pattern_from_tree_sitter_result res in
+      Elixir_to_generic.any pattern
   | Lang.Hack ->
       let res = Parse_hack_tree_sitter.parse_pattern str in
       extract_pattern_from_tree_sitter_result res
@@ -204,13 +211,6 @@ let parse_pattern options lang str =
       extract_pattern_from_tree_sitter_result res
   | Lang.Swift ->
       let res = Parse_swift_tree_sitter.parse_pattern str in
-      extract_pattern_from_tree_sitter_result res
-  (* external plugins *)
-  | Lang.Apex ->
-      let res = Parsing_plugin.Apex.parse_pattern str in
-      extract_pattern_from_tree_sitter_result res
-  | Lang.Elixir ->
-      let res = Parsing_plugin.Elixir.parse_pattern str in
       extract_pattern_from_tree_sitter_result res
   | Lang.Move_on_sui ->
       let res = Parse_move_on_sui_tree_sitter.parse_pattern str in
