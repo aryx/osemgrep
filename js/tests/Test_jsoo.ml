@@ -107,14 +107,14 @@ let () =
                  Unit_LS.tests
                    (all_caps :> < Cap.random ; Cap.network ; Cap.tmp >);
                ]
-               |> List.flatten
+               |> List_.flatten
              in
              let lwt_tests =
                [
                  Test_LS_e2e.lwt_tests
                    (all_caps :> < Cap.random ; Cap.network ; Cap.tmp >);
                ]
-               |> List.flatten
+               |> List_.flatten
              in
              let tests =
                List_.map
