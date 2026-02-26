@@ -482,6 +482,7 @@ For more information see https://semgrep.dev
     ; Unicode - used via python-str-repr
     uucp
     uutf
+    (notty (<> :os win32))
     ; logging
     logs
     ; JSON/YAML/XML

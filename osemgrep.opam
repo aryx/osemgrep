@@ -33,6 +33,7 @@ depends: [
   "terminal_size"
   "uucp"
   "uutf"
+  "notty" {os != "win32"}
   "logs"
   "atdgen"
   "yojson" {>= "2.0.0"}
