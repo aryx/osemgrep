@@ -23,7 +23,7 @@
 - restored js/ (Semgrep.js / jsoo build) 
 - restored osemgrep interactive
 - restored elixir parser
-- restored --ast-caching
+- restored --ast-caching and --registry-caching
 
 ** build infra
 - support system-installed tree-sitter library instead of always building it
