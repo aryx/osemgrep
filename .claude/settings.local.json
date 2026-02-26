@@ -5,7 +5,8 @@
       "Bash(make test:*)",
       "Bash(grep:*)",
       "Bash(git show:*)",
-      "Bash(make build-core-test:*)"
+      "Bash(make build-core-test:*)",
+      "Bash(git add:*)"
     ]
   }
 }
