@@ -158,6 +158,9 @@ let tests (caps : Cap.all_caps) =
       Test_ci_subcommand.tests (caps :> Ci_subcommand.caps);
       Unit_test_subcommand.tests (caps :> Test_subcommand.caps);
       Test_show_subcommand.tests (caps :> Show_subcommand.caps);
+      Test_publish_subcommand.tests
+        (* = Publish_subcommand.caps + Cap.exec for 'semgrep login' *)
+        (caps :> < Cap.stdout ; Cap.network ; Cap.tmp ; Cap.readdir ; Cap.exec >);
       Test_osemgrep.tests (caps :> CLI.caps);
       Test_target_selection.tests (caps :> CLI.caps);
       (* Networking tests disabled as they will get rate limited sometimes *)

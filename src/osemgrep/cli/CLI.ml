@@ -56,10 +56,6 @@ let default_subcommand = "scan"
 (* Hooks *)
 (*****************************************************************************)
 (* alt: define our own Pro_CLI.ml in semgrep-pro *)
-let hook_semgrep_publish :
-    (< Cap.stdout ; Cap.network > -> string array -> Exit_code.t) Hook.t =
-  Hook.create (fun _caps _argv ->
-      failwith "semgrep publsh not available (requires semgrep pro)")
 
 let hook_semgrep_show : (caps -> string array -> Exit_code.t) Hook.t =
   Hook.create Show_subcommand.main
@@ -182,9 +178,7 @@ let dispatch_subcommand (caps : caps) (argv : string array) =
          * down when we know we don't handle certain kind of arguments).
          *)
         | "publish" ->
-            (Hook.get hook_semgrep_publish)
-              (caps :> < Cap.stdout ; Cap.network >)
-              subcmd_argv
+            Publish_subcommand.main caps subcmd_argv
         | "login" -> Login_subcommand.main caps subcmd_argv
         (* partial support, still use Pysemgrep.Fallback in it *)
         | "scan" -> Scan_subcommand.main caps subcmd_argv

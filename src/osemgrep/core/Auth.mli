@@ -30,6 +30,11 @@ val cap_token_and_network_and_tmp :
   < Cap.network ; Cap.tmp ; .. > ->
   < cap_token ; Cap.network ; Cap.tmp >
 
+val cap_token_and_network_and_tmp_and_readdir :
+  token ->
+  < Cap.network ; Cap.tmp ; Cap.readdir ; .. > ->
+  < cap_token ; Cap.network ; Cap.tmp ; Cap.readdir >
+
 val cap_token_and_network_and_tmp_and_exec :
   token ->
   < Cap.network ; Cap.tmp ; Cap.exec ; .. > ->

@@ -35,6 +35,14 @@ let cap_token_and_network_and_tmp token caps =
     method tmp = caps#tmp
   end
 
+let cap_token_and_network_and_tmp_and_readdir token caps =
+  object
+    method token = token
+    method network = caps#network
+    method tmp = caps#tmp
+    method readdir = caps#readdir
+  end
+
 let cap_token_and_network_and_tmp_and_exec token caps =
   object
     method token = token
