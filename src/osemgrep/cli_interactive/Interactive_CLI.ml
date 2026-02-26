@@ -42,7 +42,7 @@ let cmdline_term : conf Term.t =
   (* those parameters must be in alphabetic order, like in the 'const combine'
    * further below, so it's easy to add new options.
    *)
-  let combine ast_caching common exclude include_ lang target_roots turbo =
+  let combine common exclude include_ lang target_roots turbo =
     let lang =
       match lang with
       (* TODO? we could omit the language like for -e and try all languages?*)
@@ -64,13 +64,13 @@ let cmdline_term : conf Term.t =
       (* LATER: accept all CLI args *)
       targeting_conf =
         { Scan_CLI.default.targeting_conf with include_; exclude };
-      core_runner_conf = { Scan_CLI.default.core_runner_conf with ast_caching };
+      core_runner_conf = Scan_CLI.default.core_runner_conf;
       turbo;
       common;
     }
   in
   Term.(
-    const combine $ Scan_CLI.o_ast_caching $ CLI_common.o_common
+    const combine $ CLI_common.o_common
     $ Scan_CLI.o_exclude $ Scan_CLI.o_include $ Scan_CLI.o_lang
     $ Scan_CLI.o_target_roots $ o_turbo)
 

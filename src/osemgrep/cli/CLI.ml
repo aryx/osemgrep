@@ -196,7 +196,10 @@ let dispatch_subcommand (caps : caps) (argv : string array) =
         | "logout" ->
             Logout_subcommand.main (caps :> < Cap.stdout >) subcmd_argv
         | "install-ci" -> Install_ci_subcommand.main caps subcmd_argv
-        | "interactive" -> Interactive_subcommand.main subcmd_argv
+        | "interactive" ->
+            Interactive_subcommand.main
+              (caps :> < Cap.readdir >)
+              subcmd_argv
         | "show" -> (Hook.get hook_semgrep_show) caps subcmd_argv
         | "test" -> Test_subcommand.main caps subcmd_argv
         | "validate" -> Validate_subcommand.main caps subcmd_argv

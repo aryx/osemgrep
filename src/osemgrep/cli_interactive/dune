@@ -7,13 +7,14 @@
   (inline_tests)
   (libraries
     cmdliner
+
     commons
     concurrency
 
     semgrep.parsing
     semgrep.matching
     semgrep.engine
-    semgrep.running
+    semgrep.core_scan
 
     osemgrep_core
     osemgrep_configuring

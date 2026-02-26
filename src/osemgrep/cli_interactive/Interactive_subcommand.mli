@@ -5,7 +5,7 @@
 
    This function returns an exit code to be passed to the 'exit' function.
 *)
-val main : string array -> Exit_code.t
+val main : < Cap.readdir ; .. > -> string array -> Exit_code.t
 
 (* internal *)
-val run_conf : Interactive_CLI.conf -> Exit_code.t
+val run_conf : < Cap.readdir ; .. > -> Interactive_CLI.conf -> Exit_code.t

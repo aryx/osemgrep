@@ -1,4 +1,7 @@
 open Common.Operators
+
+(* Notty define its own Cap module so we need to use Cap_ for our own *)
+module Cap_ = Cap
 open Notty
 open Notty_unix
 
@@ -22,7 +25,7 @@ open Notty_unix
  *    osemgrep-pro interactive)
  *)
 
-let logger = Logging.get_logger [ __MODULE__ ]
+let _tags = Logs_.create_tags [ __MODULE__ ]
 
 (*****************************************************************************)
 (* Types *)
@@ -65,7 +68,7 @@ type iformula_zipper =
 
 type matches_by_file = {
   file : string;
-  matches : Pattern_match.t Zipper.t;
+  matches : Core_match.t Zipper.t;
       (** A zipper, because we want to be able to go back and forth
         through the matches in the file.
       *)
@@ -96,7 +99,7 @@ type menu_mode = Navigator | Pattern
    coupling: if you add refs below, please update fresh_state() further below.
 *)
 type state = {
-  xlang : Xlang.t;
+  xlang : Analyzer.t;
   xtargets : xtarget list;
   file_zipper : matches_by_file Framed_zipper.t ref Lock_protected.t;
       (** ref because our matches might change at any time when the
@@ -473,19 +476,19 @@ let fk = Tok.unsafe_fake_tok ""
 
 let translate_formula iformula =
   let rec aux = function
-    | IPat (pat, true) -> Some (Rule.P pat)
-    | IPat (pat, false) -> Some (Rule.Not (fk, P pat))
+    | IPat (pat, true) -> Some (Rule.f (P pat))
+    | IPat (pat, false) -> Some (Rule.f (Not (fk, Rule.f (P pat))))
     | Header -> None
     | IAll ipats ->
         let pats =
-          Zipper.to_list ipats |> List_.map fst |> List_.map_filter aux
+          Zipper.to_list ipats |> List_.map fst |> List_.filter_map aux
         in
-        Some (Rule.And (fk, { conjuncts = pats; conditions = []; focus = [] }))
+        Some (Rule.f (And (fk, pats)))
     | IAny ipats ->
         let pats =
-          Zipper.to_list ipats |> List_.map fst |> List_.map_filter aux
+          Zipper.to_list ipats |> List_.map fst |> List_.filter_map aux
         in
-        Some (Rule.Or (fk, pats))
+        Some (Rule.f (Or (fk, pats)))
   in
   match aux iformula with
   | None -> failwith "should not happen"
@@ -493,10 +496,10 @@ let translate_formula iformula =
 
 let mk_fake_rule xlang formula =
   let target_selector, target_analyzer =
-    Rule.selector_and_analyzer_of_xlang xlang
+    Rule.selector_and_analyzer_of_analyzer xlang
   in
   {
-    Rule.id = (Rule_ID.of_string "-i", fk);
+    Rule.id = (Rule_ID.of_string_exn "-i", fk);
     mode = `Search formula;
     min_version = None;
     max_version = None;
@@ -513,6 +516,7 @@ let mk_fake_rule xlang formula =
     product = `SAST;
     metadata = None;
     validators = None;
+    dependency_formula = None;
   }
 
 let atomic_map_file_zipper f state =
@@ -546,7 +550,7 @@ let reset_file_zipper state =
 
 let buffer_matches_of_xtarget state (fake_rule : Rule.search_rule) xconf xtarget
     =
-  let hook _s (_m : Pattern_match.t) = () in
+  let matches_hook ms = ms in
   if
     Match_rules.is_relevant_rule_for_xtarget
       (fake_rule :> Rule.rule)
@@ -554,19 +558,19 @@ let buffer_matches_of_xtarget state (fake_rule : Rule.search_rule) xconf xtarget
   then
     let ({ Core_result.matches; _ } : _ Core_result.match_result) =
       (* Calling the engine! *)
-      Match_search_mode.check_rule fake_rule hook xconf xtarget
+      Match_search_mode.check_rule ~matches_hook fake_rule xconf xtarget
     in
     matches
-    |> List_.map_filter (fun (m : Pattern_match.t) ->
-           if m.file =*= xtarget.file then Some m
+    |> List_.filter_map (fun (m : Core_match.t) ->
+           if m.path.internal_path_to_content =*= xtarget.path.internal_path_to_content then Some m
            else (
-             logger#warning
-               "Interactive: got match from non-current-xtarget file";
+             Logs.warn (fun m ->
+               m "Interactive: got match from non-current-xtarget file");
              None))
     |> List.sort
          (fun
-           { Pattern_match.range_loc = l1, _; _ }
-           { Pattern_match.range_loc = l2, _; _ }
+           { Core_match.range_loc = l1, _; _ }
+           { Core_match.range_loc = l2, _; _ }
          -> Int.compare l1.pos.bytepos l2.pos.bytepos)
     |> fun matches ->
     match List.length matches with
@@ -574,7 +578,7 @@ let buffer_matches_of_xtarget state (fake_rule : Rule.search_rule) xconf xtarget
     | _ ->
         let matches = Zipper.of_list matches in
         let matches_by_file =
-          { file = Fpath.to_string xtarget.file; matches }
+          { file = Fpath.to_string xtarget.path.internal_path_to_content; matches }
         in
         (* It's OK to append here, which just puts it at the
             end, because we already sorted by file name.
@@ -601,7 +605,7 @@ let buffer_matches_of_new_iformula (new_iform : iformula_zipper) (state : state)
   let fake_rule = mk_fake_rule state.xlang rule_formula in
   let xconf =
     {
-      Match_env.config = Rule_options.default_config;
+      Match_env.config = Rule_options.default;
       equivs = [];
       nested_formula = false;
       matching_explanations = false;
@@ -616,7 +620,7 @@ let buffer_matches_of_new_iformula (new_iform : iformula_zipper) (state : state)
            Lock_protected.with_lock
              (fun x1 ->
                Lock_protected.with_lock
-                 (fun x2 -> Fpath.compare x1.Xtarget.file x2.Xtarget.file)
+                 (fun x2 -> Fpath.compare x1.Xtarget.path.internal_path_to_content x2.Xtarget.path.internal_path_to_content)
                  x2)
              x1)
     |> List.iter (fun xtarget_prot ->
@@ -629,17 +633,14 @@ let buffer_matches_of_new_iformula (new_iform : iformula_zipper) (state : state)
     |> ignore
 
 let parse_pattern_opt s state =
-  try
-    let lang = Xlang.to_lang_exn state.xlang in
-    let pat = Parse_pattern.parse_pattern lang s in
-    Some
-      (Xpattern.mk_xpat
-         (Xpattern.Sem (lazy pat, lang))
-         (s, Tok.unsafe_fake_tok ""))
-  with
-  | Parsing.Parse_error
-  | Parsing_error.Lexical_error _ ->
-      None
+  let lang = Analyzer.to_lang_exn state.xlang in
+  match Parse_pattern.parse_pattern lang s with
+  | Ok pat ->
+      Some
+        (Xpattern.mk_xpat
+           (Xpattern.Sem (pat, lang))
+           (s, Tok.unsafe_fake_tok ""))
+  | Error _ -> None
 
 (*****************************************************************************)
 (* User Interface (Preview Pane) *)
@@ -659,7 +660,7 @@ let placement_wrt_bound (lb, rb) idx =
  * into things that are in the match, or are not.
  *)
 let split_line (t1 : Tok.location) (t2 : Tok.location) (row, line) =
-  let end_line, end_col, _ = Tok.end_pos_of_loc t2 in
+  let end_line, end_col, _ = Loc.end_pos t2 in
   if row < t1.pos.line then (line, "", "")
   else if row > t2.pos.line then (line, "", "")
   else
@@ -678,8 +679,8 @@ let split_line (t1 : Tok.location) (t2 : Tok.location) (row, line) =
       Common2.string_of_chars (List.rev m_rev),
       Common2.string_of_chars (List.rev r_rev) )
 
-let preview_of_match { Pattern_match.range_loc = t1, t2; _ } file state =
-  let lines = UCommon.cat file in
+let preview_of_match { Core_match.range_loc = t1, t2; _ } file state =
+  let lines = UFile.cat (Fpath.v file) in
   let start_line = t1.pos.line in
   let end_line = t2.pos.line in
   let max_height = height_of_preview state.term in
@@ -706,7 +707,7 @@ let preview_of_match { Pattern_match.range_loc = t1, t2; _ } file state =
     (* Row is 1-indexed *)
     |> List_.mapi (fun idx x -> (idx + 1, x))
     (* Get only the lines that we care about (the ones in the preview) *)
-    |> List_.map_filter (fun (idx, line) ->
+    |> List_.filter_map (fun (idx, line) ->
            if preview_start <= idx && idx < preview_end then
              Some (idx, split_line t1 t2 (idx, line))
            else None)
@@ -981,20 +982,20 @@ let parse_command ({ xlang; _ } as state : state) =
   | _ when String.starts_with ~prefix:"not " s ->
       let s = Str.string_after s 4 in
       (* TODO: error handle *)
-      let lang = Xlang.to_lang_exn xlang in
-      let lpat = lazy (Parse_pattern.parse_pattern lang s) in
+      let lang = Analyzer.to_lang_exn xlang in
+      let pat = Parse_pattern.parse_pattern lang s |> Result.get_ok in
       Pat
         ( Xpattern.mk_xpat
-            (Xpattern.Sem (lpat, lang))
+            (Xpattern.Sem (pat, lang))
             (s, Tok.unsafe_fake_tok ""),
           false )
   | _else_ ->
       (* TODO: error handle *)
-      let lang = Xlang.to_lang_exn xlang in
-      let lpat = lazy (Parse_pattern.parse_pattern lang s) in
+      let lang = Analyzer.to_lang_exn xlang in
+      let pat = Parse_pattern.parse_pattern lang s |> Result.get_ok in
       Pat
         ( Xpattern.mk_xpat
-            (Xpattern.Sem (lpat, lang))
+            (Xpattern.Sem (pat, lang))
             (s, Tok.unsafe_fake_tok ""),
           true )
 
@@ -1235,36 +1236,44 @@ let interactive_loop ~turbo xlang xtargets =
 
 (* All the business logic after command-line parsing. Return the desired
    exit code. *)
-let run_conf (conf : Interactive_CLI.conf) : Exit_code.t =
+let run_conf (caps : < Cap_.readdir ; .. >) (conf : Interactive_CLI.conf) :
+    Exit_code.t =
   CLI_common.setup_logging ~force_color:false ~level:conf.common.logging_level;
-  let targets, _skipped =
-    Find_targets.get_target_fpaths conf.targeting_conf conf.target_roots
+  let scanning_roots =
+    conf.target_roots |> List_.map Scanning_root.of_fpath
+  in
+  let targets, _errors, _skipped =
+    Find_targets.get_target_fpaths caps conf.targeting_conf scanning_roots
   in
   (* TODO: support generic and regex patterns as well. See code in Deep.
    * Just use Parse_rule.parse_xpattern xlang (str, fk)
    *)
-  let xlang = Xlang.L (conf.lang, []) in
+  let xlang = Analyzer.L (conf.lang, []) in
   let targets =
-    targets |> List.filter (Filter_target.filter_target_for_xlang xlang)
+    targets |> List.filter (Filter_target.filter_target_for_analyzer xlang)
   in
-  let config = Core_runner.core_scan_config_of_conf conf.core_runner_conf in
-  let config = { config with roots = conf.target_roots; lang = Some xlang } in
+  let parser analyzer file =
+    let { ast; skipped_tokens; _ } : Parsing_result2.t =
+      Parse_target.parse_and_resolve_name analyzer file
+    in
+    (ast, skipped_tokens)
+  in
   let xtargets =
     targets
     |> List_.map (fun file ->
            let xtarget =
-             Core_scan.xtarget_of_file
-               ~parsing_cache_dir:config.parsing_cache_dir xlang file
+             Xtarget.resolve parser
+               (Target.mk_regular xlang Product.all (File file))
            in
            Lock_protected.protect xtarget)
   in
   interactive_loop ~turbo:conf.turbo xlang xtargets;
-  Exit_code.ok
+  Exit_code.ok ~__LOC__
 
 (*****************************************************************************)
 (* Entry point *)
 (*****************************************************************************)
 
-let main (argv : string array) : Exit_code.t =
+let main (caps : < Cap_.readdir ; .. >) (argv : string array) : Exit_code.t =
   let conf = Interactive_CLI.parse_argv argv in
-  run_conf conf
+  run_conf caps conf
