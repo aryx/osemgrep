@@ -90,12 +90,22 @@ type env = {
   conn: conn option;
   last_uri: string;
   lang: Lang.t;
+  lsp_lang: LSP_lang.t;
 }
+
+let lsp_lang_of_lang lang =
+  match lang with
+  | Lang.Ocaml -> LSP_ocaml.lsp_lang
+  | Lang.C | Lang.Cpp -> LSP_c.lsp_lang lang
+  | Lang.Go -> LSP_go.lsp_lang
+  | lang ->
+      failwith (spf "LSP_client: unsupported language: %s" (Lang.show lang))
 
 let global = ref {
   conn = None;
   last_uri = "";
   lang = Lang.Ocaml;
+  lsp_lang = LSP_ocaml.lsp_lang;
 }
 
 let debug = ref false
@@ -103,15 +113,6 @@ let debug = ref false
 (*****************************************************************************)
 (* Helpers *)
 (*****************************************************************************)
-
-(* TODO: make this configurable via CLI flag or env var *)
-let server lang =
-  match lang with
-  | Lang.Ocaml -> LSP_ocaml.server_cmd ()
-  | Lang.C | Lang.Cpp -> LSP_c.server_cmd ()
-  | Lang.Go -> LSP_go.server_cmd ()
-  | lang ->
-      failwith (spf "LSP_client: unsupported language: %s" (Lang.show lang))
 
 (* Walk up from [dir] looking for a file matching [marker].
  * Returns the first directory containing it, or None. *)
@@ -131,14 +132,8 @@ let rec find_marker_upward marker dir =
  *
  * We start from the first scanning root and walk upward.
  * Falls back to CWD if no marker is found. *)
-let find_project_root lang (roots : string list) =
-  let marker =
-    match lang with
-    | Lang.Ocaml -> LSP_ocaml.project_root_marker
-    | Lang.C | Lang.Cpp -> LSP_c.project_root_marker
-    | Lang.Go -> LSP_go.project_root_marker
-    | _ -> ""
-  in
+let find_project_root (lsp_lang : LSP_lang.t) (roots : string list) =
+  let marker = lsp_lang.project_root_marker in
   if marker = "" then Sys.getcwd ()
   else
     let start_dir =
@@ -215,43 +210,11 @@ let rec read_response : type a. Jsonrpc.Id.t * a Lsp.Client_request.t -> conn ->
      )
 
 (*****************************************************************************)
-(* Language-specific helpers *)
-(*****************************************************************************)
-
-(* Return the LSP languageId string for didOpen notifications *)
-let language_id lang =
-  match lang with
-  | Lang.Ocaml -> LSP_ocaml.language_id
-  | Lang.C | Lang.Cpp -> LSP_c.language_id lang
-  | Lang.Go -> LSP_go.language_id
-  | lang -> failwith (spf "LSP_client: unsupported language: %s" (Lang.show lang))
-
-(* Language dispatch: clean hover string *)
-let clean_hover_string lang s =
-  match lang with
-  | Lang.Ocaml -> LSP_ocaml.clean_hover s
-  | Lang.C | Lang.Cpp -> LSP_c.clean_hover s
-  | Lang.Go -> LSP_go.clean_hover s
-  | lang ->
-      failwith (spf "LSP_client: hover cleanup not supported for %s"
-                  (Lang.show lang))
-
-(* Language dispatch: parse type string *)
-let parse_type_string lang s =
-  match lang with
-  | Lang.Ocaml -> LSP_ocaml.parse_type s
-  | Lang.C | Lang.Cpp -> LSP_c.parse_type s
-  | Lang.Go -> LSP_go.parse_type s
-  | lang ->
-      failwith (spf "LSP_client: type parsing not supported for %s"
-                  (Lang.show lang))
-
-(*****************************************************************************)
 (* Hover query *)
 (*****************************************************************************)
 
 let type_at_tok tk (uri : DocumentUri.t) conn =
-  let lang = !global.lang in
+  let lsp_lang = !global.lsp_lang in
   let line = Tok.line_of_tok tk in
   let col = Tok.col_of_tok tk in
   if !debug then UCommon.pr2_gen (line, col);
@@ -276,10 +239,10 @@ let type_at_tok tk (uri : DocumentUri.t) conn =
       | `MarkupContent { MarkupContent.value = s; kind = _ } ->
             if !debug then UCommon.pr2_gen x;
             if !debug then UCommon.pr2 (spf "RAW hover: [%s]" s);
-            let s = clean_hover_string lang s in
+            let s = lsp_lang.clean_hover s in
             if !debug then UCommon.pr2 (spf "CLEANED hover: [%s]" s);
             let ty =
-              try parse_type_string lang s
+              try lsp_lang.parse_type s
               with exn ->
                   if !debug then
                     UCommon.pr2_gen ("Exn parse_type_string", s, exn);
@@ -295,10 +258,10 @@ let type_at_tok tk (uri : DocumentUri.t) conn =
 (* Entry points *)
 (*****************************************************************************)
 
-let connect_server ~root lang =
+let connect_server ~root (lsp_lang : LSP_lang.t) =
   (* the PWD of the server process is used to look for the .cmt so
    * run this program from the project you want to analyze *)
-  let cmd = server lang in
+  let cmd = lsp_lang.server_cmd () in
   let ic, oc = Unix.open_process cmd in
   let conn = { ic; oc } in
 
@@ -360,7 +323,7 @@ let rec with_file_open tok f =
               ~uri
               ~text: (UFile.read_file file)
               ~version:1
-              ~languageId:(language_id !global.lang)
+              ~languageId:!global.lsp_lang.language_id
           )
         )
       in
@@ -390,9 +353,10 @@ let get_type_of_expr (e : G.expr) =
 let init ?(lang = Lang.Ocaml) ?(expr = false) ?(roots = []) () =
   if !debug then UCommon.pr2
     (spf "LSP_client: INIT (lang=%s)" (Lang.show lang));
-  let root = find_project_root lang roots in
-  let conn = connect_server ~root lang in
-  global := { conn = Some conn; last_uri = ""; lang };
+  let lsp_lang = lsp_lang_of_lang lang in
+  let root = find_project_root lsp_lang roots in
+  let conn = connect_server ~root lsp_lang in
+  global := { conn = Some conn; last_uri = ""; lang; lsp_lang };
   Core_hooks.get_type := get_type;
   if expr then Core_hooks.get_type_of_expr := get_type_of_expr;
   Stack_.push (fun () ->

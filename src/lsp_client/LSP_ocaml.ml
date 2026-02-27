@@ -92,3 +92,11 @@ let parse_type s =
   match Ocaml_to_generic.any (AST_ocaml.T ty) with
   | G.T ty -> ty
   | _ -> raise Impossible
+
+let lsp_lang : LSP_lang.t = {
+  server_cmd;
+  language_id;
+  project_root_marker;
+  clean_hover;
+  parse_type;
+}

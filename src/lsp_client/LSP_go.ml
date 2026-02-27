@@ -89,3 +89,11 @@ let parse_type s =
   | Some ty -> ty
   | None ->
       failwith (spf "LSP_client: cannot parse Go type from: %s" s)
+
+let lsp_lang : LSP_lang.t = {
+  server_cmd;
+  language_id;
+  project_root_marker;
+  clean_hover;
+  parse_type;
+}
