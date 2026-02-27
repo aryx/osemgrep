@@ -1,4 +1,3 @@
-open Printf
 open Fpath_.Operators
 
 (*****************************************************************************)
@@ -56,12 +55,13 @@ let rec delete_files parent (x : file_tree) =
    Files are deleted automatically.
 *)
 let with_file_trees trees func =
-  let workspace =
-    UTmp.get_temp_dir_name ()
-    (* This is meant only to be used in test code. *)
-    (* nosemgrep: forbid-random *)
-    / sprintf "test-list_files-%i" (Random.bits ())
-  in
+  (* Use Filename.temp_file to atomically create a unique path, then replace
+     the file with a directory. Previously we used sprintf "test-list_files-%i"
+     (Random.bits()) which could produce colliding names across concurrent
+     test runs. *)
+  let tmp = Filename.temp_file "test-list_files-" "" in
+  Sys.remove tmp;
+  let workspace = Fpath.v tmp in
   Unix.mkdir !!workspace 0o777;
   Common.protect
     ~finally:(fun () ->
