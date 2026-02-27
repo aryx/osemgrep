@@ -1,6 +1,6 @@
 # -*- org -*-
 
-* 2.0! (Q1 2026) (keep just osemgrep, remove python cli/, cleanup repo, conf-tree-sitter.opam)
+* 2.0! (Q1 2026) (restored --x-lsp, keep just osemgrep, remove python cli/, cleanup repo, conf-tree-sitter.opam)
 # started to use Claude Code
 
 ** versioning
@@ -45,6 +45,10 @@
 - restored osemgrep interactive
 - restored elixir and vue parsers
 - restored --ast-caching (for osemgrep interactive) and --registry-caching
+- restored and modernized the 2020 LSP client experiment (LSP_client.ml).
+  New --x-lsp flag connects to ocamllsp to get inferred type information
+  for identifiers, enabling typed metavariables like ($X : string) to
+  work without type annotations in the source code.
 - cherry picked my modifs from Feb 2025 to June 2025 that was after
   I forked at 1.109 until 1.123
 
