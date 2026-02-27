@@ -27,6 +27,8 @@
 open Common
 module G = AST_generic
 
+let project_root_marker = "dune-project"
+
 let clean_hover s =
   (* Step 1: strip markdown code fences if present.
    * e.g. "```ocaml\nval read_file : Fpath.t -> string\n```\n---\nRead..."

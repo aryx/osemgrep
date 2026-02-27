@@ -34,6 +34,8 @@
 open Common
 module G = AST_generic
 
+let project_root_marker = "compile_commands.json"
+
 let clean_hover s =
   let lines = String.split_on_char '\n' s in
   (* Look for "Type: TYPE" (variables) or "→ TYPE" (functions) *)

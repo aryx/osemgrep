@@ -29,6 +29,8 @@
 open Common
 module G = AST_generic
 
+let project_root_marker = "go.mod"
+
 let clean_hover s =
   (* Step 1: strip ```go ... ``` code fences.
    * e.g. "```go\nvar x int\n```\n\nDocumentation..."

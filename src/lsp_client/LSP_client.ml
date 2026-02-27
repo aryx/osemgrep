@@ -1,6 +1,7 @@
-(* Yoann Padioleau
+(* Yoann Padioleau, Claude Code
  *
  * Copyright (C) 2020 r2c
+ * Copyright (C) 2026 Yoann Padioleau
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -143,9 +144,9 @@ let rec find_marker_upward marker dir =
 let find_project_root lang (roots : string list) =
   let marker =
     match lang with
-    | Lang.Go -> "go.mod"
-    | Lang.Ocaml -> "dune-project"
-    | Lang.C | Lang.Cpp -> "compile_commands.json"
+    | Lang.Ocaml -> LSP_ocaml.project_root_marker
+    | Lang.C | Lang.Cpp -> LSP_c.project_root_marker
+    | Lang.Go -> LSP_go.project_root_marker
     | _ -> ""
   in
   if marker = "" then Sys.getcwd ()
