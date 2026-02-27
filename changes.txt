@@ -1,13 +1,14 @@
 # -*- org -*-
 
-* 2.0! (Q1 2026) (restored --x-lsp with C/clangd support, keep just osemgrep, remove python cli/, cleanup repo, conf-tree-sitter.opam)
+* 2.0! (Q1 2026) (restored --x-lsp for OCaml and added C/clangd, keep just osemgrep (remove python cli/), conf-tree-sitter.opam)
 # started to use Claude Code
 
 ** features
-- new --x-lsp flag to connect to an LSP server (e.g. ocamllsp) and get
+- restored --x-lsp flag to connect to an LSP server (e.g. ocamllsp) and get
   inferred type information for identifiers during pattern matching,
   enabling typed metavariables like ($X : string) to work without
-  type annotations in the source code.
+  type annotations in the source code. A similar feature was
+  added in 2020 as a POC (Proof Of Concept).
 - new --x-lsp-expr flag (implies --x-lsp) extends this to arbitrary
   expressions (function calls, match expressions, etc.), not just
   identifiers.
@@ -18,8 +19,9 @@
 
 ** versioning
 - switch to 2.0 to not confuse with the original semgrep 1.xxx line.
-  Moreover the focus on Jsonnet instead of Yaml and the focus on
-  using the new syntax (that is not that new) deserves a major version jump.
+  Moreover the focus on Jsonnet instead of Yaml, the focus on
+  using the new syntax (that is not that new), and now the support
+  for --x-lsp deserves a major version jump.
 
 ** build infra
 - improved configure script with actual detection of required programs
@@ -62,7 +64,7 @@
   New --x-lsp flag connects to ocamllsp to get inferred type information
   for identifiers, enabling typed metavariables like ($X : string) to
   work without type annotations in the source code.
-- cherry picked my modifs from Feb 2025 to June 2025 that was after
+- cherry picked my modifs from Feb 2025 to June 2025 that were after
   I forked at 1.109 until 1.123
 
 * ----------------------------------------------------------------------------
@@ -121,7 +123,7 @@
 - simplify pro docker image, merge ocaml and python steps
 
 ** HR
-- me joing SCA team to work on transitive reachability (and AI+PA)
+- me joining SCA team to work on transitive reachability (and AI+PA)
 
 * -----------------------------------------------------------
 
