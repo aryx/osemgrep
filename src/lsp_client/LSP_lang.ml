@@ -6,9 +6,16 @@
  *)
 
 type t = {
+  (* Command to start the language server, e.g. "ocamllsp", "clangd", "gopls" *)
   server_cmd : unit -> string;
+  (* LSP languageId for didOpen notifications, e.g. "ocaml", "c", "go" *)
   language_id : string;
+  (* File whose presence marks the project root, e.g. "dune-project", "go.mod" *)
   project_root_marker : string;
+  (* Extract the type string from a hover response.
+   * e.g. "```ocaml\nval f : int -> int\n```\n---\ndoc" -> "val f : int -> int" *)
   clean_hover : string -> string;
+  (* Parse a cleaned type string into the generic AST.
+   * e.g. "int -> int" -> TyFun([TyN "int"], TyN "int") *)
   parse_type : string -> AST_generic.type_;
 }
