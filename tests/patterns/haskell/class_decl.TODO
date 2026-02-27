@@ -1,0 +1,11 @@
+module Test where
+
+-- ERROR:
+class Eq a where
+  eq :: a -> a -> Bool
+
+-- ERROR:
+class Show a where
+  show :: a -> String
+
+data Foo = Bar
