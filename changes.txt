@@ -1,6 +1,7 @@
 # -*- org -*-
 
-* 2.0 (Q1 2026) (keep just osemgrep, cleanup repo, conf-tree-sitter.opam, Claude)
+* 2.0! (Q1 2026) (keep just osemgrep, remove python cli/, cleanup repo, conf-tree-sitter.opam)
+# started to use Claude Code
 
 ** versioning
 - switch to 2.0 to not confuse with the original semgrep 1.xxx line.
@@ -8,6 +9,8 @@
   using the new syntax (that is not that new) deserves a major version jump.
 
 ** build infra
+- improved configure script with actual detection of required programs
+  and libraries
 - support system-installed tree-sitter library instead of always building it
   from source. A new script scripts/setup-tree-sitter.sh detects a system
   tree-sitter via pkg-config (>= 0.20) and uses it directly, falling back to
