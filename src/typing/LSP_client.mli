@@ -1,16 +1,20 @@
-(** LSP client: connect to ocamllsp to get type information.
+(** LSP client: connect to a language server to get type information.
  *
- * This module spawns an ocamllsp process and communicates with it over
- * JSON-RPC to resolve types. The resolved types are wired into
- * {!Core_hooks.get_type} (and optionally {!Core_hooks.get_type_of_expr})
- * so the matching engine can use them.
+ * This module spawns a language server process (e.g., ocamllsp, clangd)
+ * and communicates with it over JSON-RPC to resolve types. The resolved
+ * types are wired into {!Core_hooks.get_type} (and optionally
+ * {!Core_hooks.get_type_of_expr}) so the matching engine can use them.
+ *
+ * Supported languages: OCaml (ocamllsp), C (clangd).
  *)
 
 val debug : bool ref
 (** Enable debug output to stderr. *)
 
-val init : ?expr:bool -> unit -> unit
-(** Connect to the LSP server and register the {!Core_hooks.get_type} hook.
+val init : ?lang:Lang.t -> ?expr:bool -> unit -> unit
+(** Connect to the LSP server for [lang] and register the
+    {!Core_hooks.get_type} hook.
+    [lang] defaults to [Lang.Ocaml].
     If [~expr:true], also register {!Core_hooks.get_type_of_expr} to resolve
     types for arbitrary expressions (not just identifiers).
     Also registers a cleanup function in {!Core_hooks.exit} to shut down

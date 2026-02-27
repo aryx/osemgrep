@@ -1,0 +1,36 @@
+Test data for --x-lsp with clangd (C language server).
+
+The typed metavar pattern (int $X) matches expressions whose type is
+'int'. Without --x-lsp, semgrep only knows types from syntactic
+declarations. With --x-lsp, clangd resolves types across files via
+the header (lib.h), so e.g. add(x, 1) is recognized as int.
+
+Usage (run from this directory):
+
+  osemgrep scan --x-lsp --x-lsp-expr -e '(int $X)' -l c main.c
+
+Expected results:
+  Without --x-lsp:            8 findings  (syntactic types only)
+  With --x-lsp --x-lsp-expr: 14 findings  (clangd resolves interfile types)
+
+Note on compile_commands.json:
+  clangd looks for a compile_commands.json to find compiler flags and
+  include paths. For this simple test it is not needed — clangd's
+  fallback heuristic finds lib.h because it is in the same directory.
+  For larger projects with custom include paths or cross-directory
+  headers, you would generate one (e.g. via bear, cmake, or meson)
+  and place it at the project root. The "directory" field must be an
+  absolute path for clangd to find it. Example:
+
+  [
+    {
+      "directory": "/absolute/path/to/tests/lsp/c",
+      "command": "cc -c lib.c -o lib.o",
+      "file": "lib.c"
+    },
+    {
+      "directory": "/absolute/path/to/tests/lsp/c",
+      "command": "cc -c main.c -o main.o",
+      "file": "main.c"
+    }
+  ]
