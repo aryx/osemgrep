@@ -1,6 +1,6 @@
 # -*- org -*-
 
-* 2.0! (Q1 2026) (restored --x-lsp for OCaml(via ocamllsp) and added C(clangd)/C++(clangd)/Go(gopls), keep just osemgrep (remove python cli/), conf-tree-sitter.opam)
+* 2.0! (Q1 2026) (restored --x-lsp for OCaml(via ocamllsp) and added C(clangd)/C++(clangd)/Go(gopls), keep just osemgrep (remove python cli/), conf-tree-sitter.opam, Haskell)
 # started to use Claude Code
 
 ** features
@@ -8,7 +8,7 @@
   inferred type information for identifiers during pattern matching,
   enabling typed metavariables like ($X : string) to work without
   type annotations in the source code. A similar feature was
-  added in 2020 as a POC (Proof Of Concept).
+  added in Q3 2020 as a POC (Proof Of Concept).
 - new --x-lsp-expr flag (implies --x-lsp) extends this to arbitrary
   expressions (function calls, match expressions, etc.), not just
   identifiers.
@@ -1434,7 +1434,7 @@ autofix?
 - r2c launch (but actually just talk about financing
   that was done 2 years ago)
 
-* 0.26 (Q3 2020) (metavariable-comparison, LSP POC, pattern-from-code POC, TS/PHP, Ruby, Java/Go/JS tree-sitter switch)
+* 0.26 (Q3 2020) (metavariable-comparison, -lsp POC, pattern-from-code POC, TS/PHP, Ruby, Java/Go/JS tree-sitter switch)
 
 semgrep-app/manage policy start?
 
@@ -1460,9 +1460,11 @@ with partial support for macros.
 - experiment with souffle/DOOP Datalog (Emma)
   update: still no use of Datalog as of Q4 2024
 - experiment with LSP, PoC demo for OCaml LSP server, real
-  typed metavariables!
+  typed metavariables! using -lsp flag to semgrep-core
   update: resumed a bit with LSIF/SCIP by Brandon in 2024 but
   still not really used in Q4 2024 (SMS could maybe unlock it)
+  update: resumed totally in Q1 2026 by me with new --x-lsp and supporting
+  more languages (thx to Claude Code)
 
 ** ecosystem
 - finalized !!pattern-from-code!! in playground (emma), with blog posts
