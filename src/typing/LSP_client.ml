@@ -16,43 +16,76 @@
 (*****************************************************************************)
 (* Prelude *)
 (*****************************************************************************)
-(* Original 2020 experiment: use semgrep as an LSP *client* connecting to
- * ocamllsp (or go-langserver) to get type information for identifiers
- * during pattern matching. This allowed semgrep to leverage the language
+(* Use semgrep as an LSP *client* connecting to ocamllsp (or another
+ * language server) to get type information for identifiers during
+ * pattern matching. This allows semgrep to leverage the language
  * server's type knowledge to improve matching accuracy.
  *
- * The code was commented out because the ocamllsp OPAM package wasn't
- * ready at the time. It was deleted in PR #7598 (April 2023) during the
- * "Port LS to OCaml" rewrite. Restored here for reference/future work.
+ * Originally written in 2020, restored and modernized in 2026.
  *
- * To make this compile again, you would need:
- * - ocaml-lsp-server opam package (for the Lsp library)
- * - Wire Hooks.get_type back into the matching engine
- * - Update APIs (Parse_info -> Tok, Common -> List_, etc.)
+ * To use: run osemgrep from the project directory you want to analyze
+ * (the PWD is used by ocamllsp to find .cmt files).
  *)
 
-(* COMMENTED FOR NOW, ocamllsp OPAM package not ready yet
-
 open Common
-
-module J = JSON
-module C = Lsp.Client_request
-open Lsp
-open Types
-
-module PI = Parse_info
+open Lsp.Types
 module G = AST_generic
+
+(*****************************************************************************)
+(* Synchronous I/O module for Lsp.Io functor *)
+(*****************************************************************************)
+
+(* Identity monad — we do everything synchronously *)
+module Sync = struct
+  type 'a t = 'a
+
+  let return x = x
+  let raise exn = Stdlib.raise exn
+
+  module O = struct
+    let ( let+ ) x f = f x
+    let ( let* ) x f = f x
+  end
+end
+
+(* Channel implementation over stdlib in_channel/out_channel *)
+module Chan = struct
+  type input = in_channel
+  type output = out_channel
+
+  let read_line ic =
+    try Some (Stdlib.input_line ic)
+    with End_of_file -> None
+
+  let read_exactly ic n =
+    try
+      let buf = Bytes.create n in
+      Stdlib.really_input ic buf 0 n;
+      Some (Bytes.unsafe_to_string buf)
+    with End_of_file -> None
+
+  let write oc strings =
+    List.iter (Stdlib.output_string oc) strings;
+    Stdlib.flush oc
+end
+
+module Io = Lsp.Io.Make (Sync) (Chan)
 
 (*****************************************************************************)
 (* Types and globals *)
 (*****************************************************************************)
+type conn = {
+  ic: in_channel;
+  oc: out_channel;
+}
+
 type env = {
-  io: Io.t option;
+  conn: conn option;
   last_uri: string;
 }
 
 let global = ref {
-  io = None;
+  conn = None;
   last_uri = "";
 }
 
@@ -62,124 +95,135 @@ let debug = ref false
 (* Helpers *)
 (*****************************************************************************)
 
-let server =
- match 1 with
- | 1 -> "/home/pad/.opam/4.09.1/bin/ocamllsp"
- | 2 -> "/home/pad/go/bin/go-langserver"
- | _ -> raise Impossible
-
+(* TODO: make this configurable via CLI flag or env var *)
+let server () =
+  (* Look for ocamllsp in the current opam switch *)
+  let opam_bin =
+    try String.trim (UCmd.cmd_to_list "opam var bin" |> List.hd)
+    with _exn -> "/usr/bin"
+  in
+  Filename.concat opam_bin "ocamllsp"
 
 (*****************************************************************************)
-(* LSP library helpers *)
+(* LSP JSON-RPC helpers *)
 (*****************************************************************************)
-let init_request path =
-  let capabilities = ClientCapabilities.create () in
-  let params = InitializeParams.create
-      ~capabilities
-      ~rootUri:path
-     ~trace:`Verbose
-      () in
-  let req = Client_request.Initialize params in
-  req
-
 let counter = ref 0
 
-(* copy paste of Client_request filled with new cases *)
-module Client_request2 = struct
-open Import
-open Client_request
-open Types
-open Extension
-
-let method_ (type a) (t : a t) =
-  match t with
-  | Initialize _ -> "initialize"
-  | Shutdown -> "shutdown"
-  | ExecuteCommand _ -> "workspace/executeCommand"
-  | DebugEcho _ -> "debug/echo"
-  | TextDocumentHover _ -> "textDocument/hover"
-  | _ -> assert false
-
-let params (type a) (t : a t) =
-  match t with
-  | Initialize params -> InitializeParams.yojson_of_t params
-  | ExecuteCommand params -> ExecuteCommandParams.yojson_of_t params
-  | DebugEcho params -> DebugEcho.Params.yojson_of_t params
-  | TextDocumentHover params -> HoverParams.yojson_of_t params
-  | Shutdown -> `Null
-  | _ -> assert false
-
-let to_jsonrpc_request t ~id =
-  let method_ = method_ t in
-  let params = params t in
-  Jsonrpc.Message.create ~id ~method_ ~params ()
-
-let response_of_json (type a) (t : a t) (json : Json.t) : a =
-  match t with
-  | Initialize _ -> InitializeResult.t_of_yojson json
-  | ExecuteCommand _ -> json
-  | DebugEcho _ -> DebugEcho.Result.t_of_yojson json
-  | TextDocumentHover _ -> Json.Option.t_of_yojson Hover.t_of_yojson json
-  | x ->
-    pr2_gen ("Response TODO", x);
-    failwith "TODO"
-end
-
-let send_request req io =
+let send_request (type a) (req : a Lsp.Client_request.t) conn =
   incr counter;
-  let id = Stdune.Right !counter in
-  let json_rpc = Client_request2.to_jsonrpc_request req ~id in
-  let json = Jsonrpc.Message.yojson_of_request json_rpc in
-  let either = Jsonrpc.Message.either_of_yojson json in
-  let packet = Jsonrpc.Message either in
-  Io.send io packet;
+  let id = `Int !counter in
+  let json_rpc = Lsp.Client_request.to_jsonrpc_request req ~id in
+  let packet = Jsonrpc.Packet.Request json_rpc in
+  Io.write conn.oc packet;
   id
 
-let send_notif notif io =
-  let json_rpc = Client_notification.to_jsonrpc notif in
-  let json_rpc = { json_rpc with Jsonrpc.Message.id = None } in
-  let packet = Jsonrpc.Message json_rpc in
-  Io.send io packet
+let send_notif notif conn =
+  let json_rpc = Lsp.Client_notification.to_jsonrpc notif in
+  let packet = Jsonrpc.Packet.Notification json_rpc in
+  Io.write conn.oc packet
 
-let rec read_response (id, req) io =
-  let res = Io.read io in
+let rec read_response : type a. Jsonrpc.Id.t * a Lsp.Client_request.t -> conn -> a =
+  fun (id, req) conn ->
+  let res = Io.read conn.ic in
   match res with
-  | None -> failwith "no answer"
-  | Some res ->
-     (match res with
-     | Jsonrpc.Message
-       { Jsonrpc.Message.method_ = "textDocument/publishDiagnostics"; _ } ->
-            read_response (id, req) io
-     | Jsonrpc.Message _ ->
-            pr2_gen ("Message TODO", res);
-            failwith "got a message, not a Response";
-     | Jsonrpc.Response {Jsonrpc.Response.id = id2 ; result }  ->
-         if id2 <> id
-         then failwith (spf "ids are different: %s" (Common.dump (id, id2)));
+  | None -> failwith "LSP_client: no answer from server"
+  | Some packet ->
+     (match packet with
+     | Jsonrpc.Packet.Notification
+       { Jsonrpc.Notification.method_ = "textDocument/publishDiagnostics"; _ } ->
+            (* skip diagnostics notifications, keep reading *)
+            read_response (id, req) conn
+     | Jsonrpc.Packet.Notification _ ->
+            (* skip other notifications *)
+            read_response (id, req) conn
+     | Jsonrpc.Packet.Response { Jsonrpc.Response.id = id2; result } ->
+         if not (Jsonrpc.Id.equal id2 id)
+         then failwith (spf "LSP_client: id mismatch: got %s, expected %s"
+                          (Dumper.dump id2) (Dumper.dump id));
          (match result with
          | Ok json ->
-             let response = Client_request2.response_of_json req json in
-             response
+             Lsp.Client_request.response_of_json req json
          | Error err ->
              let json = Jsonrpc.Response.Error.yojson_of_t err in
-             let s = Import.Json.to_pretty_string json in
-             failwith (spf "error: %s" s)
+             let s = Yojson.Safe.pretty_to_string json in
+             failwith (spf "LSP_client: server error: %s" s)
          )
+     | Jsonrpc.Packet.Request _ ->
+            (* server-initiated request; skip for now *)
+            read_response (id, req) conn
+     | Jsonrpc.Packet.Batch_response _
+     | Jsonrpc.Packet.Batch_call _ ->
+            failwith "LSP_client: unexpected batch packet"
      )
 
 (*****************************************************************************)
 (* OCaml LSP get type *)
 (*****************************************************************************)
 let final_type_string s =
-  (* remove type explanation for list, option, etc part 1 *)
-  let s = Str.global_replace (Str.regexp "\n\n") "XXX" s in
+  (* ocamllsp hover responses return the type as MarkupContent (markdown).
+   *
+   * coupling: the format is generated by hover_req.ml in ocaml-lsp-server:
+   *   https://github.com/ocaml/ocaml-lsp/blob/master/ocaml-lsp-server/src/hover_req.ml
+   * - format_as_code_block wraps the type in ```ocaml ... ``` fences
+   * - print_dividers joins sections with "\n***\n"
+   * - sections are: [type code block; syntax doc (optional); doc comment (optional)]
+   *
+   * The format varies depending on the identifier:
+   *
+   * For stdlib operators like (||):
+   *   "bool -> bool -> bool\n***\nThe boolean 'or'. Evaluation is ..."
+   *
+   * For local variables like 's':
+   *   "string"
+   *
+   * For functions with doc:
+   *   "```ocaml\nval read_file : Fpath.t -> string\n```\n---\nRead entire file."
+   *
+   * For type definitions:
+   *   "type t = { foo : int; bar : string }"
+   *
+   * We need to extract just the type signature from all these formats.
+   *)
 
-  (* no need \n, easier to have one line per type *)
+  (* Step 1: strip markdown code fences if present.
+   * e.g. "```ocaml\nval read_file : Fpath.t -> string\n```\n---\nRead..."
+   *   -> "val read_file : Fpath.t -> string\n\n---\nRead..."
+   *)
+  let s =
+    if s =~ "^```ocaml\n\\(.*\\)" then Common.matched1 s else s
+  in
+  let s = Str.global_replace (Str.regexp "```$") "" s in
+
+  (* Step 2: remove documentation after separators.
+   * ocamllsp separates the type from the doc with "\n***\n" or "\n---\n"
+   * or "\n\n". We split on the first separator and keep only the type part.
+   * e.g. "bool -> bool -> bool\n***\nThe boolean 'or'. Evaluation is ..."
+   *   -> "bool -> bool -> bool"
+   * e.g. "val read_file : Fpath.t -> string\n\n---\nRead entire file."
+   *   -> "val read_file : Fpath.t -> string"
+   *)
+  let s =
+    match Str.bounded_split (Str.regexp "\n\\*\\*\\*\n\\|\n---\n\\|\n\n") s 2 with
+    | type_part :: _ -> type_part
+    | [] -> s
+  in
+
+  (* Step 3: collapse newlines into spaces for multi-line type signatures.
+   * e.g. "int ->\nstring ->\nbool"
+   *   -> "int -> string -> bool"
+   *)
   let s = Str.global_replace (Str.regexp "\n") " " s in
 
-  (* remove type explanation for list, option, etc part 2 *)
-  let s = Str.global_replace (Str.regexp "XXX.*") " " s in
+  let s = String.trim s in
 
+  (* Step 4: extract the type name from type definitions, or pass through
+   * simple types unchanged.
+   * e.g. "type t = { foo : int; bar : string }" -> "t "  (the type name)
+   * e.g. "type 'a option" -> "'a option"  (abstract type)
+   * e.g. "sig ... end" -> "sig_TODO"  (module signatures, not handled)
+   * e.g. "bool -> bool -> bool" -> "bool -> bool -> bool"  (unchanged)
+   * e.g. "string" -> "string"  (unchanged)
+   *)
   let s =
     match s with
     | _ when s =~ "^type \\([^=]+\\)=.*" -> Common.matched1 s
@@ -189,44 +233,49 @@ let final_type_string s =
   in
   s
 
-let type_at_tok tk uri io =
-  let line = PI.line_of_info tk in
-  let col = PI.col_of_info tk in
-  if !debug then pr2_gen (line, col);
-  (* LSP is using 0-based lines and offset (column) *)
+let type_at_tok tk (uri : DocumentUri.t) conn =
+  let line = Tok.line_of_tok tk in
+  let col = Tok.col_of_tok tk in
+  if !debug then UCommon.pr2_gen (line, col);
+  (* LSP uses 0-based lines and columns *)
   let line = line - 1 in
 
-  let req = Client_request.TextDocumentHover
+  let req = Lsp.Client_request.TextDocumentHover
          (HoverParams.create
            ~textDocument:(TextDocumentIdentifier.create ~uri)
-           ~position:(Position.create ~line ~character:col)) in
-  let id = send_request req io in
-  let res = read_response (id, req) io in
-  if !debug then pr2_gen res;
+           ~position:(Position.create ~line ~character:col)
+           ()) in
+  let id = send_request req conn in
+  let res = read_response (id, req) conn in
+  if !debug then UCommon.pr2_gen res;
   match res with
   | None ->
-      if !debug then pr2 (spf "NO TYPE INFO for %s" (PI.string_of_info tk));
+      if !debug then UCommon.pr2 (spf "NO TYPE INFO for %s"
+                                    (Tok.content_of_tok tk));
       None
   | Some { Hover.contents = x; _ } ->
       (match x with
       | `MarkupContent { MarkupContent.value = s; kind = _ } ->
-            if !debug then pr2_gen x;
+            if !debug then UCommon.pr2_gen x;
+            if !debug then UCommon.pr2 (spf "RAW hover: [%s]" s);
             let s = final_type_string s in
+            if !debug then UCommon.pr2 (spf "CLEANED hover: [%s]" s);
             let ty =
               try
                 let ty = Parse_ml.type_of_string s in
-                (match Ml_to_generic.any (Ast_ml.T ty) with
+                (match Ocaml_to_generic.any (AST_ocaml.T ty) with
                 | G.T ty -> ty
                 | _ -> raise Impossible
                 )
               with exn ->
-                  pr2_gen ("Exn Parse_ml.type_of_string TODO", s);
+                  if !debug then
+                    UCommon.pr2_gen ("Exn Parse_ml.type_of_string", s, exn);
                   raise exn
             in
-            if !debug then pr2_gen ty;
+            if !debug then UCommon.pr2_gen ty;
             Some ty
       | _ ->
-            failwith "not a `MarkedContent`"
+            failwith "LSP_client: hover response not a MarkupContent"
       )
 
 (*****************************************************************************)
@@ -236,49 +285,58 @@ let type_at_tok tk uri io =
 let connect_server () =
   (* the PWD of the server process is used to look for the .cmt so
    * run this program from the project you want to analyze *)
+  let cmd = server () in
+  let ic, oc = Unix.open_process cmd in
+  let conn = { ic; oc } in
 
-  let inc, outc = Unix.open_process server in
-  let io = Io.make inc outc in
-  let req = init_request "file:///" in
-  let id = send_request req io in
-  let res = read_response (id, req) io in
-  if !debug then pr2_gen res;
-  let notif = Client_notification.Initialized in
-  send_notif notif io;
-  io
+  let capabilities = ClientCapabilities.create () in
+  let params = InitializeParams.create
+      ~capabilities
+      ~rootUri:(DocumentUri.of_path (Sys.getcwd ()))
+      ~trace:TraceValues.Verbose
+      () in
+  let req = Lsp.Client_request.Initialize params in
+  let id = send_request req conn in
+  let res = read_response (id, req) conn in
+  if !debug then UCommon.pr2_gen res;
+  let notif = Lsp.Client_notification.Initialized in
+  send_notif notif conn;
+  conn
 
-let rec get_type id =
+let rec get_type (id : G.ident) =
   let tok = snd id in
-  let file = PI.file_of_info tok in
-  let uri = "file://" ^ file in
+  let file = Tok.file_of_tok tok in
+  let uri = DocumentUri.of_path (Fpath.to_string file) in
+  let uri_s = DocumentUri.to_string uri in
   match !global with
-  | { io = Some io; last_uri } when last_uri = uri ->
-      (try type_at_tok tok uri io
+  | { conn = Some conn; last_uri } when last_uri = uri_s ->
+      (try type_at_tok tok uri conn
       with _exn -> None
       )
-  | { io = Some io; last_uri } when last_uri <> uri ->
+  | { conn = Some conn; last_uri } when last_uri <> uri_s ->
       if last_uri <> ""
       then begin
-        let notif = Client_notification.TextDocumentDidClose
+        let prev_uri = DocumentUri.of_path last_uri in
+        let notif = Lsp.Client_notification.TextDocumentDidClose
             (DidCloseTextDocumentParams.create
-              ~textDocument:(TextDocumentIdentifier.create ~uri)
+              ~textDocument:(TextDocumentIdentifier.create ~uri:prev_uri)
              )
         in
-        send_notif notif io;
+        send_notif notif conn;
        end;
 
-      let notif = Client_notification.TextDocumentDidOpen
+      let notif = Lsp.Client_notification.TextDocumentDidOpen
           (DidOpenTextDocumentParams.create
             ~textDocument: (TextDocumentItem.create
               ~uri
-              ~text: (Common.read_file file)
+              ~text: (UFile.read_file file)
               ~version:1
               ~languageId:"ocaml"
           )
         )
       in
-      send_notif notif io;
-      global := { !global with last_uri = uri };
+      send_notif notif conn;
+      global := { !global with last_uri = uri_s };
       (* try again *)
       get_type id
 
@@ -286,16 +344,13 @@ let rec get_type id =
      None
 
 let init () =
-  if !debug then pr2 "LSP INIT";
-  let io = connect_server () in
-  global := { io = Some io; last_uri = "" };
-  Hooks.get_type := get_type;
-  Hooks.exit |> Common.push (fun () ->
-      if !debug then pr2 "LSP CLOSING";
-      send_request Client_request.Shutdown io |> ignore;
-      Io.close io);
-  ()
-*)
-
-let init () =
+  if !debug then UCommon.pr2 "LSP_client: INIT";
+  let conn = connect_server () in
+  global := { conn = Some conn; last_uri = "" };
+  Core_hooks.get_type := get_type;
+  Stack_.push (fun () ->
+      if !debug then UCommon.pr2 "LSP_client: CLOSING";
+      send_request Lsp.Client_request.Shutdown conn |> ignore;
+      ignore (Unix.close_process (conn.ic, conn.oc))
+  ) Core_hooks.exit;
   ()

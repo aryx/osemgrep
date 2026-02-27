@@ -644,6 +644,14 @@ let run_scan_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
 
   (* step0: more initializations *)
 
+  (* Connect to LSP server for type information if requested *)
+  if conf.lsp then begin
+    (match conf.common.logging_level with
+     | Some Logs.Debug -> LSP_client.debug := true
+     | _ -> ());
+    LSP_client.init ()
+  end;
+
   (* imitate pysemgrep for backward compatible profiling metrics ? *)
   let profiler = Profiler.make () in
   (* the corresponding stop is done in check_targets_with_rules () *)

@@ -66,6 +66,8 @@ type conf = {
   allow_local_builds : bool;
   ls : bool;
   ls_format : Ls_subcommand.format;
+  (* Connect to an LSP server (e.g. ocamllsp) to get type information *)
+  lsp : bool;
 }
 [@@deriving show]
 
@@ -115,6 +117,7 @@ let default : conf =
     allow_local_builds = false;
     ls = false;
     ls_format = Ls_subcommand.default_format;
+    lsp = false;
   }
 
 (*************************************************************************)
@@ -972,6 +975,18 @@ Requires --experimental.
    Let's use the following convention: the prefix '--x-' means "forbidden"
    or "experimental".
 *)
+let o_lsp : bool Term.t =
+  let info =
+    Arg.info [ "x-lsp" ]
+      ~doc:
+        {|[EXPERIMENTAL] Connect to an LSP server (e.g. ocamllsp) to get
+type information for identifiers during pattern matching. The LSP server
+is found via 'opam var bin'. Run osemgrep from the project directory
+so the LSP server can find .cmt files.
+|}
+  in
+  Arg.value (Arg.flag info)
+
 let o_ls : bool Term.t =
   let info =
     Arg.info [ "x-ls" ]
@@ -1339,10 +1354,10 @@ let cmdline_term caps ~allow_empty_config : conf Term.t =
       test_ignore_todo text text_outputs time_flag timeout
       _timeout_interfileTODO timeout_threshold trace trace_endpoint use_git
       _use_semgrepignore_v2 validate version version_check vim vim_outputs
-      x_ignore_semgrepignore_files x_ls x_ls_long x_tr =
+      x_ignore_semgrepignore_files x_ls x_ls_long x_lsp x_tr =
     (* Print a warning if any of the internal or experimental options.
        We don't want users to start relying on these. *)
-    if x_ignore_semgrepignore_files || x_ls || x_ls_long || x_tr then
+    if x_ignore_semgrepignore_files || x_ls || x_ls_long || x_lsp || x_tr then
       Logs.warn (fun m ->
           m
             "!!! You're using one or more options starting with '--x-'. These \
@@ -1541,6 +1556,7 @@ let cmdline_term caps ~allow_empty_config : conf Term.t =
       allow_local_builds;
       ls;
       ls_format;
+      lsp = x_lsp;
     }
   in
   (* Term defines 'const' but also the '$' operator *)
@@ -1568,7 +1584,7 @@ let cmdline_term caps ~allow_empty_config : conf Term.t =
     $ o_timeout $ o_timeout_interfile $ o_timeout_threshold $ o_trace
     $ o_trace_endpoint $ o_use_git $ o_use_semgrepignore_v2 $ o_validate
     $ o_version $ o_version_check $ o_vim $ o_vim_outputs
-    $ o_ignore_semgrepignore_files $ o_ls $ o_ls_long $ o_tr)
+    $ o_ignore_semgrepignore_files $ o_ls $ o_ls_long $ o_lsp $ o_tr)
 
 let doc = "run semgrep rules on files"
 

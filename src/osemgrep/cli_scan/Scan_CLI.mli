@@ -47,6 +47,8 @@ type conf = {
   ls : bool;
   (* --x-ls-long: *)
   ls_format : Ls_subcommand.format;
+  (* --x-lsp: connect to LSP server for type info *)
+  lsp : bool;
 }
 [@@deriving show]
 
