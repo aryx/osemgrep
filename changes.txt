@@ -109,11 +109,14 @@
 - cherry picked my modifs from Feb 2025 to June 2025 that were after
   I forked at 1.109 until 1.123
 
+** HR
+- Hired Claude
+
 * ----------------------------------------------------------------------------
 
 * pause to work on principia softwarica and xix
 
-* 2.0 Alpha (Q2 2025) (fork of semgrep 1.109)
+* 2.0-Alpha (Q2 2025) (fork of semgrep 1.109)
 #just before Semgrep Inc. removed support for OCaml 4.x and focused on OCaml 5.
 
 ** build infra
