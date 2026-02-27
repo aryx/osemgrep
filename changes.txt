@@ -16,8 +16,18 @@
   The language server is selected automatically from the --lang flag.
   clangd resolves types across files (via headers), enabling interfile
   typed metavar matching like (int $X) on function call return values.
-- added test data in tests/lsp/ocaml/ and tests/lsp/c/ demonstrating
-  interfile type resolution with --x-lsp for both languages.
+- --x-lsp now supports Go via gopls. The project root (directory
+  containing go.mod) is auto-detected by walking upward from the target
+  file. gopls resolves interfile types, e.g. matching ($X: int) on
+  variables whose type comes from a function defined in another file
+  (6 findings without LSP → 10 with LSP in the test case).
+- auto-detection of the project root for LSP servers: find_project_root
+  walks upward from the scanning root looking for a marker file
+  (go.mod for Go, dune-project for OCaml, compile_commands.json for C).
+  This also fixes workspace URI handling for gopls which requires
+  absolute file:// URIs matching the workspace root.
+- added test data in tests/lsp/ocaml/, tests/lsp/c/, and tests/lsp/go/
+  demonstrating interfile type resolution with --x-lsp for each language.
 
 ** versioning
 - switch to 2.0 to not confuse with the original semgrep 1.xxx line.

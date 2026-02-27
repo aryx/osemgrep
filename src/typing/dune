@@ -20,6 +20,9 @@
    parser_c.ast
    parser_c.menhir
    parser_c.ast_generic
+   parser_go.ast
+   parser_go.menhir
+   parser_go.ast_generic
 
    ; No dependencies to semgrep_parsing here!
    ; we use parsers in Unit_matcher.ml but they are passed in

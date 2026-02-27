@@ -654,7 +654,10 @@ let run_scan_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
       | Rules_source.Pattern (_, Some (Analyzer.L (lang, _)), _) -> lang
       | _ -> Lang.Ocaml
     in
-    LSP_client.init ~lang ~expr:conf.lsp_expr ()
+    let roots =
+      List.map Scanning_root.to_string conf.target_roots
+    in
+    LSP_client.init ~lang ~expr:conf.lsp_expr ~roots ()
   end;
 
   (* imitate pysemgrep for backward compatible profiling metrics ? *)
