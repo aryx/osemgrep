@@ -3,6 +3,10 @@
  * Each supported language (OCaml, C, Go, ...) provides a value of this
  * type so that LSP_client can dispatch without repeating per-language
  * match statements.
+ *
+ * coupling: when adding a new language, also update the LSP server
+ * detection section at the end of ./configure so that it checks for
+ * the new server binary (and any non-PATH locations like ~/.cargo/bin).
  *)
 
 type t = {

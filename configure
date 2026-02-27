@@ -253,6 +253,54 @@ if [ "$errors" -ne 0 ]; then
     exit 1
 fi
 
+###############################################################################
+# Detect optional LSP servers for --x-lsp typed metavariables
+###############################################################################
+
+echo "Detecting optional LSP servers for --x-lsp..."
+
+# find_lsp_server NAME CMD EXTRA_DIRS...
+# Looks for CMD in PATH first, then in each EXTRA_DIR.
+# Reports what was found (or not). Never fatal.
+find_lsp_server() {
+    local name cmd dir
+    name="$1"; shift
+    cmd="$1"; shift
+
+    # Check PATH first
+    if command -v "$cmd" >/dev/null 2>&1; then
+        ok "$name ($cmd -> $(command -v "$cmd"))"
+        return 0
+    fi
+
+    # Check additional directories
+    for dir in "$@"; do
+        if [ -x "$dir/$cmd" ]; then
+            ok "$name ($dir/$cmd)"
+            return 0
+        fi
+    done
+
+    warn "$name ($cmd) not found — --x-lsp for this language will not work"
+}
+
+# ocamllsp: installed via opam, lives in the current opam switch bin dir
+_opam_bin=""
+if command -v opam >/dev/null 2>&1; then
+    _opam_bin=$(opam var bin 2>/dev/null || true)
+fi
+find_lsp_server "OCaml LSP"  ocamllsp  ${_opam_bin:+"$_opam_bin"}
+
+# clangd: usually in PATH via system package or LLVM install
+find_lsp_server "C/C++ LSP"  clangd    /usr/lib/llvm-*/bin
+
+# gopls: Go installs tools in ~/go/bin (GOPATH/bin) by default
+_gobin="${GOBIN:-${GOPATH:-$HOME/go}/bin}"
+find_lsp_server "Go LSP"     gopls     "$_gobin"
+
+# rust-analyzer: Rust toolchain installs it in ~/.cargo/bin
+find_lsp_server "Rust LSP"   rust-analyzer  "$HOME/.cargo/bin"
+
 echo ''
 echo 'Everything looks fine. You can now run: '
 echo ''
