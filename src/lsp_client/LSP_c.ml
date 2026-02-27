@@ -36,6 +36,16 @@ module G = AST_generic
 
 let project_root_marker = "compile_commands.json"
 
+let language_id lang =
+  match lang with
+  | Lang.C -> "c"
+  | Lang.Cpp -> "cpp"
+  | _ -> failwith "LSP_c: unsupported language"
+
+(* clangd is typically in PATH; uses compile_commands.json for
+ * project-specific flags. Handles both C and C++. *)
+let server_cmd () = "clangd"
+
 let clean_hover s =
   let lines = String.split_on_char '\n' s in
   (* Look for "Type: TYPE" (variables) or "→ TYPE" (functions) *)

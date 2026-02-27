@@ -107,19 +107,9 @@ let debug = ref false
 (* TODO: make this configurable via CLI flag or env var *)
 let server lang =
   match lang with
-  | Lang.Ocaml ->
-      (* Look for ocamllsp in the current opam switch *)
-      let opam_bin =
-        try String.trim (UCmd.cmd_to_list "opam var bin" |> List.hd)
-        with _exn -> "/usr/bin"
-      in
-      Filename.concat opam_bin "ocamllsp"
-  | Lang.C | Lang.Cpp ->
-      (* clangd is typically in PATH; uses compile_commands.json for
-       * project-specific flags. Handles both C and C++. *)
-      "clangd"
-  | Lang.Go ->
-      "gopls"
+  | Lang.Ocaml -> LSP_ocaml.server_cmd ()
+  | Lang.C | Lang.Cpp -> LSP_c.server_cmd ()
+  | Lang.Go -> LSP_go.server_cmd ()
   | lang ->
       failwith (spf "LSP_client: unsupported language: %s" (Lang.show lang))
 
@@ -231,10 +221,9 @@ let rec read_response : type a. Jsonrpc.Id.t * a Lsp.Client_request.t -> conn ->
 (* Return the LSP languageId string for didOpen notifications *)
 let language_id lang =
   match lang with
-  | Lang.Ocaml -> "ocaml"
-  | Lang.C -> "c"
-  | Lang.Cpp -> "cpp"
-  | Lang.Go -> "go"
+  | Lang.Ocaml -> LSP_ocaml.language_id
+  | Lang.C | Lang.Cpp -> LSP_c.language_id lang
+  | Lang.Go -> LSP_go.language_id
   | lang -> failwith (spf "LSP_client: unsupported language: %s" (Lang.show lang))
 
 (* Language dispatch: clean hover string *)

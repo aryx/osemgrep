@@ -30,6 +30,8 @@ open Common
 module G = AST_generic
 
 let project_root_marker = "go.mod"
+let language_id = "go"
+let server_cmd () = "gopls"
 
 let clean_hover s =
   (* Step 1: strip ```go ... ``` code fences.

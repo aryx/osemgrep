@@ -28,6 +28,15 @@ open Common
 module G = AST_generic
 
 let project_root_marker = "dune-project"
+let language_id = "ocaml"
+
+(* Look for ocamllsp in the current opam switch *)
+let server_cmd () =
+  let opam_bin =
+    try String.trim (UCmd.cmd_to_list "opam var bin" |> List.hd)
+    with _exn -> "/usr/bin"
+  in
+  Filename.concat opam_bin "ocamllsp"
 
 let clean_hover s =
   (* Step 1: strip markdown code fences if present.
