@@ -3,6 +3,15 @@
 * 2.0! (Q1 2026) (restored --x-lsp, keep just osemgrep, remove python cli/, cleanup repo, conf-tree-sitter.opam)
 # started to use Claude Code
 
+** features
+- new --x-lsp flag to connect to an LSP server (e.g. ocamllsp) and get
+  inferred type information for identifiers during pattern matching,
+  enabling typed metavariables like ($X : string) to work without
+  type annotations in the source code.
+- new --x-lsp-expr flag (implies --x-lsp) extends this to arbitrary
+  expressions (function calls, match expressions, etc.), not just
+  identifiers.
+
 ** versioning
 - switch to 2.0 to not confuse with the original semgrep 1.xxx line.
   Moreover the focus on Jsonnet instead of Yaml and the focus on
