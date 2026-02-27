@@ -16,6 +16,8 @@
   The language server is selected automatically from the --lang flag.
   clangd resolves types across files (via headers), enabling interfile
   typed metavar matching like (int $X) on function call return values.
+- added test data in tests/lsp/ocaml/ and tests/lsp/c/ demonstrating
+  interfile type resolution with --x-lsp for both languages.
 
 ** versioning
 - switch to 2.0 to not confuse with the original semgrep 1.xxx line.
