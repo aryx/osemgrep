@@ -1,0 +1,27 @@
+(library
+ (public_name semgrep.lsp_client)
+ (name semgrep_lsp_client)
+ (wrapped false)
+ (libraries
+   ppx_deriving.runtime
+
+   commons
+   lib_parsing
+
+   semgrep_core
+
+   lsp
+   jsonrpc
+   str
+   parser_ocaml.ast
+   parser_ocaml.menhir
+   parser_ocaml.ast_generic
+   parser_c.ast
+   parser_c.menhir
+   parser_c.ast_generic
+   parser_go.ast
+   parser_go.menhir
+   parser_go.ast_generic
+ )
+ (preprocess (pps ppx_deriving.show ppx_profiling))
+)

@@ -19,6 +19,7 @@
     osemgrep_networking
     osemgrep_core
     osemgrep_configuring
+    semgrep_lsp_client
     osemgrep_reporting
 
     ; ugly, should not depend when --dump/--validate/--test are deprecated
