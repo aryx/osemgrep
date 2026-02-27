@@ -1,0 +1,10 @@
+(library
+ (name lib)
+ (modules lib)
+)
+
+(executable
+ (name main)
+ (modules main)
+ (libraries lib)
+)

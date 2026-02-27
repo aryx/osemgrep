@@ -1,0 +1,23 @@
+Test data for --x-lsp with ocamllsp (OCaml language server).
+
+The typed metavar pattern ($X : int) should match expressions
+whose type is 'int'. Without --x-lsp, semgrep only knows types
+from explicit annotations. With --x-lsp, ocamllsp resolves inferred
+types across modules (via .cmt files built by dune).
+
+Setup (build the test project so ocamllsp has .cmt files):
+
+  cd tests/lsp/ocaml
+  dune build --root .
+
+Usage (run from this directory):
+
+  osemgrep scan --x-lsp --x-lsp-expr -e '($X : int)' -l ocaml main.ml
+
+Expected results:
+  Without --x-lsp:            6 findings  (syntactic matches only)
+  With --x-lsp --x-lsp-expr:  8 findings  (ocamllsp resolves intermodule types)
+
+Note: the dune-project file makes this a self-contained dune project
+so that it does not interfere with the osemgrep build. ocamllsp uses
+the PWD to find .merlin and .cmt files, so run from this directory.
