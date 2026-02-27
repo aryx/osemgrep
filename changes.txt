@@ -1,25 +1,28 @@
 # -*- org -*-
 
-* 2.0! (Q1 2026) (restored --x-lsp for OCaml(via ocamllsp) and added C(clangd)/C++(clangd)/Go(gopls)/Rust(rust-analyzer), keep just osemgrep (remove python cli/), conf-tree-sitter.opam, Haskell)
+* 2.0! (Q1 2026) (restored --lsp for OCaml(using ocamllsp) and added C(clangd)/C++(clangd)/Go(gopls)/Rust(rust-analyzer), keep just osemgrep (remove Python cli/), conf-tree-sitter.opam, Haskell/)
 # started to use Claude Code
 
-** features
-- restored --x-lsp flag to connect to an LSP server (e.g. ocamllsp) and get
-  inferred type information for identifiers during pattern matching,
+** semantic
+- restored --lsp flag (was --x-lsp) to connect to an LSP server (e.g. ocamllsp)
+  and get inferred type information for identifiers during pattern matching,
   enabling typed metavariables like ($X : string) to work without
   type annotations in the source code. A similar feature was
   added in Q3 2020 as a POC (Proof Of Concept).
-- new --x-lsp-expr flag (implies --x-lsp) extends this to arbitrary
+  The --lsp flag is designed as a generic channel to LSP servers: typing
+  is the first use case, but name resolution (fully qualified names,
+  alias resolution via textDocument/definition) is a natural next step.
+- new --lsp-expr flag (implies --lsp) extends this to arbitrary
   expressions (function calls, match expressions, etc.), not just
   identifiers.
-- --x-lsp now supports C via clangd (in addition to OCaml via ocamllsp).
+- --lsp now supports C via clangd (in addition to OCaml via ocamllsp).
   The language server is selected automatically from the --lang flag.
   clangd resolves types across files (via headers), enabling interfile
   typed metavar matching like (int $X) on function call return values.
-- --x-lsp now supports C++ via clangd (same server as C). clangd resolves
+- --lsp now supports C++ via clangd (same server as C). clangd resolves
   class method return types, template instantiation types, and 'auto'
   deduction across files (7 findings without LSP → 18 with LSP).
-- --x-lsp now supports Go via gopls. The project root (directory
+- --lsp now supports Go via gopls. The project root (directory
   containing go.mod) is auto-detected by walking upward from the target
   file. gopls resolves interfile types, e.g. matching ($X: int) on
   variables whose type comes from a function defined in another file
@@ -29,7 +32,7 @@
   (go.mod for Go, dune-project for OCaml, compile_commands.json for C).
   This also fixes workspace URI handling for gopls which requires
   absolute file:// URIs matching the workspace root.
-- --x-lsp now supports Rust via rust-analyzer. The project root (directory
+- --lsp now supports Rust via rust-analyzer. The project root (directory
   containing Cargo.toml) is auto-detected. rust-analyzer resolves interfile
   types, e.g. matching ($X: i32) on variables whose type comes from a
   function defined in another file (2 findings without LSP → 8 with LSP).
@@ -42,7 +45,7 @@
   initialization (rust-analyzer loads cargo metadata asynchronously).
 - added test data in tests/lsp/ocaml/, tests/lsp/c/, tests/lsp/cpp/,
   tests/lsp/go/, and tests/lsp/rust/ demonstrating interfile type
-  resolution with --x-lsp for each language.
+  resolution with --lsp for each language.
 
 ** languages
 - add Haskell language support (alpha): tree-sitter parser via semgrep-haskell
@@ -54,7 +57,7 @@
 - switch to 2.0 to not confuse with the original semgrep 1.xxx line.
   Moreover the focus on Jsonnet instead of Yaml, the focus on
   using the new syntax (that is not that new), and now the support
-  for --x-lsp deserves a major version jump.
+  for --lsp deserves a major version jump.
 
 ** build infra
 - improved configure script with actual detection of required programs
@@ -94,9 +97,9 @@
 - restored elixir and vue parsers
 - restored --ast-caching (for osemgrep interactive) and --registry-caching
 - restored and modernized the 2020 LSP client experiment (LSP_client.ml).
-  New --x-lsp flag connects to ocamllsp to get inferred type information
-  for identifiers, enabling typed metavariables like ($X : string) to
-  work without type annotations in the source code.
+  New --lsp flag (was --x-lsp) connects to ocamllsp to get inferred type
+  information for identifiers, enabling typed metavariables like
+  ($X : string) to work without type annotations in the source code.
 - cherry picked my modifs from Feb 2025 to June 2025 that were after
   I forked at 1.109 until 1.123
 
@@ -265,9 +268,9 @@
 * 1.90 (Q3 2024) (osemgrep test part2, Logs cleanup part2 and stream, osemgrep metrics, pattern-when:, semgrep-rpc with osemgrep, Move-on-{Aptos,Sui}/Circom/PromQL)
 # SMS launch,  C#(Pro-only)
 
-** rules
+** semantic
 - new pattern-when: based on my old idea (by intern Kat, mentored by amarin)
-  
+
 ** semgrep
 - switch to yellow for warning and use magenta for critical
 - fix long-standing tree-sitter bugs with extra (Martin) and
@@ -772,16 +775,20 @@
 * 1.30 (Q2 2023) (Turbo mode v1 and Vscode and LSP v1 launch!, osemgrep interactive POC, Cairo/Scala3, Semgrep Inc.)
 # Assistant beta launch! Deep and generics, Robur #1, 
 
+** semantic
+- metavariable-type generalized to more languages (Heejong first project)
+- support for Deep Go (Nat, in pro)
+- support for generics (Nat, in pro), not that hard actually :)
+
 ** rules
 - aliengrep and generic mode v2 (Martin)
 - named regexp patterns instead of using $1, $2 (Brandon)
-- metavariable-type generalized to more languages (Heejong first project)
 - more use of jsonnet for rule writing by SR
 
 ** static analysis
 - book club on SPA book (until interprocedural analysis chapter)
 - datalog experiment for book club, live_variable.dl
-  
+
 ** languages
 - Scala 3 (Brandon)
 - Cairo (Romain J external contributor)
@@ -949,10 +956,9 @@ Emma's post apr 2023:
   filter rules, customize rules by adding exclude, reuse rules from submodule,
   etc.
 
-** static analysis
+** semantic
 - toplevel dataflow generalization (Brandon)
 - AST-based autofix v1 (Nat) and blog post
-- Raw_tree.ml (Martin) with better Boilerplate
 
 ** languages
 - Apex (Martin)
@@ -1024,8 +1030,9 @@ Emma's post apr 2023:
 - Elixir: experimental support
 - Swift (Nat)
 
-** static analysis
+** semantic
 - taint traces in the CLI output and in PR comments (Iago/Nat)
+- taint labels (Iago, in pro)
 - AST-based autofix v0 (Nat)
 
 ** ecosystem
@@ -1058,10 +1065,14 @@ new hire: Brandon Wu
 * 0.102 (Q2 2022) (metavariable-focus:, semgrep-interfaces shared repo, semgrep ci, R/PHP(GA))
 # deep semgrep v2,
 
+** semantic
+- metavariable-focus (Iago)
+- Deep Semgrep v2: deep tainting v2, constant propagation via deep
+  tainting, field-sensitive tainting (see semgrep-pro section below)
+
 ** rules
 - start preprocessor mode (Cooper)
   update: called extract mode later
-- metavariable-focus (Iago)
 
 ** languages
 - R: 99.9% via tree-sitter-r, finish work started a long time ago,
@@ -1142,6 +1153,11 @@ start of market tightening
 * 0.86 (Q1 2022) (pass-all-rules-to-ocaml, Dockerfile, Deep Semgrep POC)
 #deep-semgrep POC/v1, pattern-depends-on:/sca POC, !covid continue but still did offsite!
 
+** semantic
+- Deep Semgrep POC/v1: interfile constant propagation, interfile typing
+  (for typed metavariables and deep inheritance subtyping), interfile
+  tainting (see semgrep-pro section below for details)
+
 ** rules
 
 ** performance
@@ -1149,7 +1165,7 @@ start of market tightening
 
 ** languages
 - Docker (Martin)
-- Scala GA? (matthew)  
+- Scala GA? (matthew)
 - Rust/Go: update to latest tree-sitter-xxx
 
 ** internals (precursor work of osemgrep)
@@ -1238,12 +1254,14 @@ start of market tightening
 
 * 0.67 (Q3 2021) (tainting v2 with formula, metachecker v2, x2 speedup, Terraform/Vue/HTML/OCaml(GA),C#(GA))
 
-** rules
+** semantic
 - tainting 2.0: formula for source/sink/sanitizer (Iago)
   which can remain OSS, and first discussions on interfile DeepSemgrep
+
+** rules
 - metachecker resume: parse rules with positions (with Emma)
   update: still not really used in Q4 2024
-  
+
 ** languages
 - Terraform
 - Vue
@@ -1286,9 +1304,9 @@ start of market tightening
 - update to latest tree-sitter-xxx for Java (support for Record, unicode)
 - improved C#   
 
-** static analysis
+** semantic
 - associative/commutative (AC) matching for b && c (Iago)
-- poor's man interprocedural tainting (Iago)  
+- poor's man interprocedural tainting (Iago)
 
 ** performance
 - switched to full-rule-in-ocaml (was semgrep --experimental), after
@@ -1329,8 +1347,13 @@ start of market tightening
 ** patterns
 - partial single field for YAML (and later Go)
 
-** equivalences
-- semantic numbers
+** semantic
+- !!dataflow-based constant propagation!! (Iago) id_constness field
+  (after push by me to Iago to finish that during vacation to get an offer)
+- semantic numbers (equivalence)
+- semgrep metachecker PoC (which led to full-rule-in-ocaml)
+  update: resumed by emma with Yaml support in Q2
+  update: never really used/advertised/shipped as of Q4 2024
 
 ** languages
 - Lua: by Ruin0x11
@@ -1341,13 +1364,6 @@ start of market tightening
   to handle ellipsis (Emma)
 - Scala: started work by contractor (Ethan)
   update: ethan failed, so I took over later
-
-** static analysis
-- !!dataflow-based constant propagation!! (Iago) id_constness field
-  (after push by me to Iago to finish that during vacation to get an offer)
-- semgrep metachecker PoC (which led to full-rule-in-ocaml)
-  update: resumed by emma with Yaml support in Q2
-  update: never really used/advertised/shipped as of Q4 2024
 
 ** performance
 - benchmarks (martin)
@@ -1418,7 +1434,7 @@ autofix?
 ** dogfood
 - new ocaml rules! dogfood! ported ocamllint rules
 
-** static analysis
+** semantic
 - resume work on IL/CFG (Iago)
 
 ** performance
@@ -1467,15 +1483,15 @@ semgrep-app/manage policy start?
 quick look again at tree-sitter-c and tree-sitter-cpp. Actually not bad,
 with partial support for macros.
 
-** static analysis
-- experiment with souffle/DOOP Datalog (Emma)
-  update: still no use of Datalog as of Q4 2024
+** semantic
 - experiment with LSP, PoC demo for OCaml LSP server, real
   typed metavariables! using -lsp flag to semgrep-core
   update: resumed a bit with LSIF/SCIP by Brandon in 2024 but
   still not really used in Q4 2024 (SMS could maybe unlock it)
-  update: resumed totally in Q1 2026 by me with new --x-lsp and supporting
+  update: resumed totally in Q1 2026 by me with new --lsp and supporting
   more languages (thx to Claude Code)
+- experiment with souffle/DOOP Datalog (Emma)
+  update: still no use of Datalog as of Q4 2024
 
 ** ecosystem
 - finalized !!pattern-from-code!! in playground (emma), with blog posts
@@ -1503,43 +1519,37 @@ with partial support for macros.
 
 semgrep-agent? semgrep in CI with diff analysis? in 2020?
 
-** rules/patterns
-
+** semantic
+- !!typed metavariables for Java/Go by propagating decls!! (Emma)
 - experimental tainting mode
   update: stayed experimental for a year, not much requested
+- !!tainting!! basic intraprocedural dataflow-based tainting!!
+- started work on IL, and CFG
+- switch to generic name resolver
+- finalized constant propagation (easy way, no dataflow yet)
+- "const analysis" for Python, use Final for Java
+- alias resolution for decorators
+- !! user-defined equivalences!! <=>, ==>, like in Coccinelle, just expr
+  update: not really used in a year, still "experimental" label
+  update: still not used as of Q4 2024
+- var vs const/let in JS
+- vardef to assign equivalence
 
+** rules/patterns
 - deep expression operator <... ...> like in Coccinelle,
-  and remove some implicit deep expr matching 
+  and remove some implicit deep expr matching
 - really deep statement matching, with '...' going really deep
   but safe thanks to unique_id
   update: a bit abused for fake taint rules
 - regexp on fieldnames in JS
 - metavariables on types in Go
 - return correct ranges for stmts matching
-- !!typed metavariables for Java/Go by propagating decls!! (Emma)
 - toplevel object pattern for JS
-
-** equivalences
-
-- finalized constant propagation (easy way, no dataflow yet)
-- var vs const/let in JS
-- !! user-defined equivalences!! <=>, ==>, like in Coccinelle, just expr
-  update: not really used in a year, still "experimental" label
-  update: still not used as of Q4 2024
-- alias resolution for decorators
-- vardef to assign equivalence
 
 ** languages
 - Ruby, via ocaml-tree-sitter (Martin + me), not finished but almost
 - OCaml, dogfood!
 - JSON (via JS :)
-
-** static analysis
-- switch to generic name resolver
-- use unique_id, and really deep stmt matching
-- started work on IL, and CFG
-- !!tainting!! basic intraprocedural dataflow-based tainting!!
-- "const analysis" for Python, use Final for Java
 
 ** performance
 
@@ -1613,10 +1623,22 @@ history: mix of ideas from my 'Ok' hack, the Python hook we had in Coccinelle
 - better pattern for parameters: metavars, ellipsis, match keyword parameter
 - decorators (a.k.a annotations, a.k.a attributes) in any order
 - '...' for fields, inheritance, optional expr
-- typed metavariables for literals!
 - JSX patterns
 - match field in any order
 - deep stmt matching for ..., flatten the blocks
+
+** semantic
+- typed metavariables for literals!
+- Started naming_ast.ml, generic name resolving (needed for
+  deep stmt matching to make sure the scope of metavar is right)
+  update: superseded by Naming_SAST.ml with deep-semgrep but still
+  not fully replaced as of Q4 2024
+- started constant propagation: require const keyword
+- import equivalences hack (drew/isaac)
+- deep expr matching for ExprStmt by default
+- idea for pattern-when: $X == null, based on Mark W. discussions,
+  but never implemented it
+  update: Kat intern in 2024 implemented it, but not fully satisfying
 
 ** languages
 - Python parsing at 99.95% of 2M LOC
@@ -1633,22 +1655,6 @@ history: mix of ideas from my 'Ok' hack, the Python hook we had in Coccinelle
 
 Started work by Sharon on tree-sitter vs babelfish vs javaparser for Java.
 But failed finish tree-sitter JSON to typed CST (ulzii after her also failed).
-
-** equivalences
-
-- idea for pattern-when: $X == null, based on Mark W. discussions,
-  but never implemented it
-  update: Kat intern in 2024 implemented it, but not fully satisfying
-- deep expr matching for ExprStmt by default
-- import equivalences hack (drew/isaac)
-- started constant propagation: require const keyword
-
-** static analysis
-
-- Started naming_ast.ml, generic name resolving (needed for
-  deep stmt matching to make sure the scope of metavar is right)
-  update: superseded by Naming_SAST.ml with deep-semgrep but still
-  not fully replaced as of Q4 2024
 
 ** ecosystem
 - integrate with registry of rules online (done in python wrapper, may
@@ -1731,14 +1737,10 @@ update: turn out C++ was pretty good because defined as extension of C (which
 The integration in Semgrep was not finished, but at least it stress-tested
 the AST generic to try to cover more than just Python and JS.
 
-** equivalences 
-
-- flexible keyword argument matching (ievans idea)
+** semantic
 - aliasing and naming (ievans idea) via id_info
   so subprocess.open match aliased open
-
-** static analysis
-
+- flexible keyword argument matching (ievans idea)
 - resume dataflow from facebook and port to AST generic, for check_ast_generic
   (useless assign)
 
