@@ -1,0 +1,32 @@
+Test data for --x-lsp with rust-analyzer (Rust language server).
+
+The typed metavar pattern ($X: i32) should match expressions whose type
+is 'i32' even when the type can only be determined by looking at the
+definition in another file (lib.rs).
+
+Prerequisites:
+  - rust-analyzer:  rustup component add rust-analyzer
+                    (or install from https://rust-analyzer.github.io/)
+  - cargo/rustc:    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+Setup:
+  Build the project so rust-analyzer can index it:
+    cd tests/lsp/rust && cargo check
+
+Without --x-lsp (2 findings — only let bindings with implicit typed patterns):
+  osemgrep scan -e '($X: i32)' --lang rust tests/lsp/rust/src/main.rs
+
+With --x-lsp (8 findings — rust-analyzer resolves interfile types):
+  osemgrep scan --x-lsp --x-lsp-expr -e '($X: i32)' --lang rust tests/lsp/rust/src/main.rs
+
+The 6 extra findings come from rust-analyzer knowing:
+  - x: i32 has an explicit type annotation (line 14)
+  - sum has type i32 (from add's return type defined in lib.rs)
+  - add(x, 1) and its subexpressions return i32
+  - sum in println!(..., sum, ...) has type i32
+Without --x-lsp, osemgrep cannot resolve add's return type because it
+is defined in lib.rs, not in main.rs.
+
+Note: osemgrep automatically finds the project root (directory containing
+Cargo.toml) by walking upward from the target file. This is needed because
+rust-analyzer requires the workspace root to match the Cargo project root.

@@ -1,6 +1,6 @@
 # -*- org -*-
 
-* 2.0! (Q1 2026) (restored --x-lsp for OCaml(via ocamllsp) and added C(clangd)/C++(clangd)/Go(gopls), keep just osemgrep (remove python cli/), conf-tree-sitter.opam, Haskell)
+* 2.0! (Q1 2026) (restored --x-lsp for OCaml(via ocamllsp) and added C(clangd)/C++(clangd)/Go(gopls)/Rust(rust-analyzer), keep just osemgrep (remove python cli/), conf-tree-sitter.opam, Haskell)
 # started to use Claude Code
 
 ** features
@@ -29,9 +29,20 @@
   (go.mod for Go, dune-project for OCaml, compile_commands.json for C).
   This also fixes workspace URI handling for gopls which requires
   absolute file:// URIs matching the workspace root.
+- --x-lsp now supports Rust via rust-analyzer. The project root (directory
+  containing Cargo.toml) is auto-detected. rust-analyzer resolves interfile
+  types, e.g. matching ($X: i32) on variables whose type comes from a
+  function defined in another file (2 findings without LSP → 8 with LSP).
+  Hover responses are parsed both with and without code fences, handling
+  rust-analyzer's variable ("let x: i32") and function signature
+  ("pub fn add(a: i32, b: i32) -> i32") formats.
+- LSP_client now responds to server-initiated requests (e.g.
+  window/workDoneProgress/create) instead of silently ignoring them.
+  Added warmup support for servers that need time to index after
+  initialization (rust-analyzer loads cargo metadata asynchronously).
 - added test data in tests/lsp/ocaml/, tests/lsp/c/, tests/lsp/cpp/,
-  and tests/lsp/go/ demonstrating interfile type resolution with --x-lsp
-  for each language.
+  tests/lsp/go/, and tests/lsp/rust/ demonstrating interfile type
+  resolution with --x-lsp for each language.
 
 ** languages
 - add Haskell language support (alpha): tree-sitter parser via semgrep-haskell

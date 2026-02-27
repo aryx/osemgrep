@@ -22,6 +22,7 @@
    parser_go.ast
    parser_go.menhir
    parser_go.ast_generic
+   parser_rust.ast_generic
  )
  (preprocess (pps ppx_deriving.show ppx_profiling))
 )

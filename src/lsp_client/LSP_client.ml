@@ -30,6 +30,7 @@
  *  - C: clangd (uses compile_commands.json or heuristics)
  *  - C++: clangd (same as C; uses compile_commands.json or heuristics)
  *  - Go: gopls (needs go.mod; project root auto-detected)
+ *  - Rust: rust-analyzer (needs Cargo.toml; project root auto-detected)
  *
  * To use: run osemgrep from the project directory you want to analyze.
  *)
@@ -98,6 +99,7 @@ let lsp_lang_of_lang lang =
   | Lang.Ocaml -> LSP_ocaml.lsp_lang
   | Lang.C | Lang.Cpp -> LSP_c.lsp_lang lang
   | Lang.Go -> LSP_go.lsp_lang
+  | Lang.Rust -> LSP_rust.lsp_lang
   | lang ->
       failwith (spf "LSP_client: unsupported language: %s" (Lang.show lang))
 
@@ -201,8 +203,11 @@ let rec read_response : type a. Jsonrpc.Id.t * a Lsp.Client_request.t -> conn ->
              let s = Yojson.Safe.pretty_to_string json in
              failwith (spf "LSP_client: server error: %s" s)
          )
-     | Jsonrpc.Packet.Request _ ->
-            (* server-initiated request; skip for now *)
+     | Jsonrpc.Packet.Request { Jsonrpc.Request.id = srv_id; _ } ->
+            (* Server-initiated request (e.g. window/workDoneProgress/create).
+             * Respond with null so the server can proceed, then keep reading. *)
+            let resp = Jsonrpc.Response.ok srv_id `Null in
+            Io.write conn.oc (Jsonrpc.Packet.Response resp);
             read_response (id, req) conn
      | Jsonrpc.Packet.Batch_response _
      | Jsonrpc.Packet.Batch_call _ ->
@@ -255,6 +260,85 @@ let type_at_tok tk (uri : DocumentUri.t) conn =
       )
 
 (*****************************************************************************)
+(* Server warmup (progress tracking) *)
+(*****************************************************************************)
+
+(* Drain LSP messages until all work-done-progress tokens have ended.
+ * rust-analyzer sends window/workDoneProgress/create requests followed
+ * by $/progress notifications with kind begin/report/end.  We track
+ * active tokens and return once all have ended (or after a timeout).
+ *
+ * Timeout is a safety net — we use Unix.select with a 30s ceiling per
+ * read, and bail after 60s total. *)
+let wait_for_server_ready conn =
+  if !debug then UCommon.pr2 "LSP_client: waiting for server to be ready...";
+  let active_tokens = Hashtbl.create 4 in
+  let start = Unix.gettimeofday () in
+  let max_seconds = 120.0 in
+  let idle_timeout = 5.0 in
+  let finished = ref false in
+  (* We need at least one progress begin before we start tracking *)
+  let seen_any_begin = ref false in
+  while not !finished do
+    let elapsed = Unix.gettimeofday () -. start in
+    if elapsed > max_seconds then begin
+      if !debug then UCommon.pr2 "LSP_client: warmup timeout, proceeding";
+      finished := true
+    end else begin
+      (* Use select to avoid blocking forever if the server goes quiet *)
+      let ready, _, _ =
+        Unix.select [Unix.descr_of_in_channel conn.ic] [] [] idle_timeout
+      in
+      if List.length ready =|= 0 then begin
+        (* No data for idle_timeout seconds *)
+        if !seen_any_begin && Hashtbl.length active_tokens =|= 0 then begin
+          (* All progress tokens ended — server is ready *)
+          finished := true
+        end else if not !seen_any_begin then begin
+          (* Never saw any progress — server may already be indexed *)
+          if !debug then UCommon.pr2 "LSP_client: no progress seen, assuming ready";
+          finished := true
+        end
+      end else begin
+        let packet = Io.read conn.ic in
+        match packet with
+        | None -> finished := true
+        | Some (Jsonrpc.Packet.Request { Jsonrpc.Request.id = srv_id; _ }) ->
+            (* Respond to server requests like window/workDoneProgress/create *)
+            let resp = Jsonrpc.Response.ok srv_id `Null in
+            Io.write conn.oc (Jsonrpc.Packet.Response resp)
+        | Some (Jsonrpc.Packet.Notification
+                  { Jsonrpc.Notification.method_ = "$/progress"; params = Some params }) ->
+            (* Track begin/end of progress tokens *)
+            (try
+              let json = Jsonrpc.Structured.yojson_of_t params in
+              (* Extract "token" and "value.kind" from the JSON.
+               * Token can be a string or integer, so stringify via Yojson. *)
+              let open Yojson.Safe.Util in
+              let token = Yojson.Safe.to_string (json |> member "token") in
+              let kind = json |> member "value" |> member "kind" |> to_string in
+              if !debug then
+                UCommon.pr2 (spf "LSP_client: progress %s: %s" token kind);
+              (match kind with
+               | "begin" ->
+                   seen_any_begin := true;
+                   Hashtbl.replace active_tokens token true
+               | "end" ->
+                   Hashtbl.remove active_tokens token;
+                   if !seen_any_begin && Hashtbl.length active_tokens =|= 0 then
+                     finished := true
+               | _other -> ())
+            with _exn -> ())
+        | Some (Jsonrpc.Packet.Notification _) -> ()
+        | Some _ -> ()
+      end
+    end
+  done;
+  if !debug then
+    UCommon.pr2 (spf "LSP_client: server ready (%.1fs)"
+                   (Unix.gettimeofday () -. start))
+
+(*****************************************************************************)
 (* Entry points *)
 (*****************************************************************************)
 
@@ -282,6 +366,11 @@ let connect_server ~root (lsp_lang : LSP_lang.t) =
   if !debug then UCommon.pr2_gen res;
   let notif = Lsp.Client_notification.Initialized in
   send_notif notif conn;
+  (* Some servers (e.g. rust-analyzer) need time to load the project
+   * before they can answer hover queries.  We drain messages until
+   * all work-done-progress tokens have ended, or a timeout. *)
+  if lsp_lang.needs_warmup then
+    wait_for_server_ready conn;
   conn
 
 (* Ensure the file is opened in the LSP server, then call [f] with

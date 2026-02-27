@@ -96,4 +96,5 @@ let lsp_lang : LSP_lang.t = {
   project_root_marker;
   clean_hover;
   parse_type;
+  needs_warmup = false;
 }

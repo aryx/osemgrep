@@ -18,4 +18,9 @@ type t = {
   (* Parse a cleaned type string into the generic AST.
    * e.g. "int -> int" -> TyFun([TyN "int"], TyN "int") *)
   parse_type : string -> AST_generic.type_;
+  (* Whether the server needs time to index after initialization.
+   * When true, LSP_client will drain progress notifications after
+   * didOpen before sending hover requests.  Needed for rust-analyzer
+   * which loads cargo metadata asynchronously. *)
+  needs_warmup : bool;
 }
