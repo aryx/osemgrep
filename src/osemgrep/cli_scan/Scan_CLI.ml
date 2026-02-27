@@ -980,23 +980,24 @@ Requires --experimental.
 *)
 let o_lsp : bool Term.t =
   let info =
-    Arg.info [ "x-lsp" ]
+    Arg.info [ "lsp" ]
       ~doc:
-        {|[EXPERIMENTAL] Connect to an LSP server (e.g. ocamllsp) to get
-type information for identifiers during pattern matching. The LSP server
-is found via 'opam var bin'. Run osemgrep from the project directory
-so the LSP server can find .cmt files.
+        {|Connect to an LSP server (e.g. ocamllsp, clangd, gopls,
+rust-analyzer) to get type information for identifiers during pattern
+matching. The LSP server is selected automatically from the --lang flag.
+Run osemgrep from the project directory so the LSP server can find
+build artifacts (e.g. .cmt files for OCaml, compile_commands.json for C).
 |}
   in
   Arg.value (Arg.flag info)
 
 let o_lsp_expr : bool Term.t =
   let info =
-    Arg.info [ "x-lsp-expr" ]
+    Arg.info [ "lsp-expr" ]
       ~doc:
-        {|[EXPERIMENTAL] Like --x-lsp but also resolve types for arbitrary
-expressions, not just identifiers. This is slower as it queries the LSP
-server for every expression node that needs type matching. Implies --x-lsp.
+        {|Like --lsp but also resolve types for arbitrary expressions,
+not just identifiers. This is slower as it queries the LSP server for
+every expression node that needs type matching. Implies --lsp.
 |}
   in
   Arg.value (Arg.flag info)
@@ -1368,10 +1369,10 @@ let cmdline_term caps ~allow_empty_config : conf Term.t =
       test_ignore_todo text text_outputs time_flag timeout
       _timeout_interfileTODO timeout_threshold trace trace_endpoint use_git
       _use_semgrepignore_v2 validate version version_check vim vim_outputs
-      x_ignore_semgrepignore_files x_ls x_ls_long x_lsp x_lsp_expr x_tr =
+      x_ignore_semgrepignore_files x_ls x_ls_long lsp lsp_expr x_tr =
     (* Print a warning if any of the internal or experimental options.
        We don't want users to start relying on these. *)
-    if x_ignore_semgrepignore_files || x_ls || x_ls_long || x_lsp || x_lsp_expr || x_tr then
+    if x_ignore_semgrepignore_files || x_ls || x_ls_long || x_tr then
       Logs.warn (fun m ->
           m
             "!!! You're using one or more options starting with '--x-'. These \
@@ -1570,8 +1571,8 @@ let cmdline_term caps ~allow_empty_config : conf Term.t =
       allow_local_builds;
       ls;
       ls_format;
-      lsp = x_lsp || x_lsp_expr;
-      lsp_expr = x_lsp_expr;
+      lsp = lsp || lsp_expr;
+      lsp_expr;
     }
   in
   (* Term defines 'const' but also the '$' operator *)

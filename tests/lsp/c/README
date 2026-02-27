@@ -1,17 +1,17 @@
-Test data for --x-lsp with clangd (C language server).
+Test data for --lsp with clangd (C language server).
 
 The typed metavar pattern (int $X) matches expressions whose type is
-'int'. Without --x-lsp, semgrep only knows types from syntactic
-declarations. With --x-lsp, clangd resolves types across files via
+'int'. Without --lsp, semgrep only knows types from syntactic
+declarations. With --lsp, clangd resolves types across files via
 the header (lib.h), so e.g. add(x, 1) is recognized as int.
 
 Usage (run from this directory):
 
-  osemgrep scan --x-lsp --x-lsp-expr -e '(int $X)' -l c main.c
+  osemgrep scan --lsp --lsp-expr -e '(int $X)' -l c main.c
 
 Expected results:
-  Without --x-lsp:            8 findings  (syntactic types only)
-  With --x-lsp --x-lsp-expr: 14 findings  (clangd resolves interfile types)
+  Without --lsp:            8 findings  (syntactic types only)
+  With --lsp --lsp-expr: 14 findings  (clangd resolves interfile types)
 
 Note on compile_commands.json:
   clangd looks for a compile_commands.json to find compiler flags and

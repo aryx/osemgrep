@@ -1,12 +1,12 @@
-(* Test file for --x-lsp with ocamllsp.
+(* Test file for --lsp with ocamllsp.
  *
  * The typed metavar pattern ($X : int) should match expressions
  * whose type is 'int' even when the type can only be determined
  * by looking at the signature in another file (lib.mli).
  *
- * Without --x-lsp, semgrep cannot know that Lib.add x 1 returns int
+ * Without --lsp, semgrep cannot know that Lib.add x 1 returns int
  * or that Lib.compute_ratio x 2 returns float.
- * With --x-lsp, ocamllsp resolves the types across modules.
+ * With --lsp, ocamllsp resolves the types across modules.
  *)
 
 let () =

@@ -1,12 +1,12 @@
-// Test file for --x-lsp with gopls (Go language server).
+// Test file for --lsp with gopls (Go language server).
 //
 // The typed metavar pattern (int $X) should match expressions
 // whose type is 'int' even when the type can only be determined
 // by looking at the definition in another file (lib.go).
 //
-// Without --x-lsp, semgrep cannot know that Add(x, 1) returns int
+// Without --lsp, semgrep cannot know that Add(x, 1) returns int
 // or that ComputeRatio(x, 2) returns float64.
-// With --x-lsp, gopls resolves the types across files.
+// With --lsp, gopls resolves the types across files.
 package main
 
 import "fmt"

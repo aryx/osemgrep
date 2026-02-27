@@ -254,10 +254,10 @@ if [ "$errors" -ne 0 ]; then
 fi
 
 ###############################################################################
-# Detect optional LSP servers for --x-lsp typed metavariables
+# Detect optional LSP servers for --lsp typed metavariables
 ###############################################################################
 
-echo "Detecting optional LSP servers for --x-lsp..."
+echo "Detecting optional LSP servers for --lsp..."
 
 # find_lsp_server NAME CMD EXTRA_DIRS...
 # Looks for CMD in PATH first, then in each EXTRA_DIR.
@@ -281,7 +281,7 @@ find_lsp_server() {
         fi
     done
 
-    warn "$name ($cmd) not found — --x-lsp for this language will not work"
+    warn "$name ($cmd) not found — --lsp for this language will not work"
 }
 
 # ocamllsp: installed via opam, lives in the current opam switch bin dir

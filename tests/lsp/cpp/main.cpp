@@ -1,12 +1,12 @@
-// Test file for --x-lsp with clangd (C++ language server).
+// Test file for --lsp with clangd (C++ language server).
 //
 // The typed metavar pattern (int $X) should match expressions whose type
 // is 'int' even when the type can only be determined by looking at the
 // class definition in another file (math_utils.h / math_utils.cpp).
 //
-// Without --x-lsp, semgrep cannot know that MathUtils::add(x, 1) returns
+// Without --lsp, semgrep cannot know that MathUtils::add(x, 1) returns
 // int or that identity<int>(x) returns int.
-// With --x-lsp, clangd resolves types across files and through templates.
+// With --lsp, clangd resolves types across files and through templates.
 
 #include "math_utils.h"
 

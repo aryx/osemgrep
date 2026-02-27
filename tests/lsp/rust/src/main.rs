@@ -1,12 +1,12 @@
-// Test file for --x-lsp with rust-analyzer.
+// Test file for --lsp with rust-analyzer.
 //
 // The typed metavar pattern ($X: i32) should match expressions
 // whose type is 'i32' even when the type can only be determined
 // by looking at the definition in another file (lib.rs).
 //
-// Without --x-lsp, semgrep cannot know that add(x, 1) returns i32
+// Without --lsp, semgrep cannot know that add(x, 1) returns i32
 // or that compute_ratio(x, 2) returns f64.
-// With --x-lsp, rust-analyzer resolves the types across files.
+// With --lsp, rust-analyzer resolves the types across files.
 
 use lsptest::{add, compute_ratio};
 

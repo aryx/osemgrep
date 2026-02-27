@@ -1,12 +1,12 @@
-/* Test file for --x-lsp with clangd.
+/* Test file for --lsp with clangd.
  *
  * The typed metavar pattern (int $X) should match expressions
  * whose type is 'int' even when the type can only be determined
  * by looking at the declaration in another file (lib.h / lib.c).
  *
- * Without --x-lsp, semgrep cannot know that add(x, 1) returns int
+ * Without --lsp, semgrep cannot know that add(x, 1) returns int
  * or that compute_ratio(x, 2) returns float.
- * With --x-lsp, clangd resolves the types across files.
+ * With --lsp, clangd resolves the types across files.
  */
 #include "lib.h"
 
