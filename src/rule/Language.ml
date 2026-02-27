@@ -1,1 +1,1 @@
-../../interfaces/semgrep_interfaces/Language.ml
+../../interfaces/Language.ml

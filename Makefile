@@ -171,7 +171,7 @@ build-core-test:
 .PHONY: core-test-e2e
 core-test-e2e:
 	SEMGREP_CORE=$(PWD)/bin/semgrep-core$(EXE) \
-	$(MAKE) -C interfaces/semgrep_interfaces test
+	$(MAKE) -C interfaces test
 
 ###############################################################################
 # External dependencies installation targets
