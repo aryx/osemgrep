@@ -1,0 +1,9 @@
+module Test where
+
+-- ERROR:
+add x y = x + y
+
+-- ERROR:
+mul x y = x * y
+
+foo = 42

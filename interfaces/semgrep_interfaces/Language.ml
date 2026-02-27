@@ -15,6 +15,7 @@ type t =
 | Elixir
 | Go
 | Hack
+| Haskell
 | Html
 | Java
 | Js
@@ -251,6 +252,19 @@ let list = [
   excluded_exts = [];
   reverse_exts = None;
   shebangs = [{|hhvm|}];
+  tags = [];
+};
+{
+  id = Haskell;
+  id_string = "haskell";
+  name = "Haskell";
+  keys = [{|haskell|}; {|hs|}];
+  exts = [{|.hs|}];
+  maturity = Alpha;
+  example_ext = Some {|.hs|};
+  excluded_exts = [];
+  reverse_exts = None;
+  shebangs = [{|runhaskell|}; {|runghc|}];
   tags = [];
 };
 {

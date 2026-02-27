@@ -29,6 +29,12 @@
 - added test data in tests/lsp/ocaml/, tests/lsp/c/, and tests/lsp/go/
   demonstrating interfile type resolution with --x-lsp for each language.
 
+** languages
+- add Haskell language support (alpha): tree-sitter parser via semgrep-haskell
+  submodule, intermediate AST_haskell.ml, Haskell_to_generic.ml converter,
+  and full CST-to-AST mapping (~1700 lines). Working patterns include type
+  signatures ($X :: $Y), data declarations, type aliases, and imports.
+
 ** versioning
 - switch to 2.0 to not confuse with the original semgrep 1.xxx line.
   Moreover the focus on Jsonnet instead of Yaml, the focus on

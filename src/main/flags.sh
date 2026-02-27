@@ -138,6 +138,8 @@ else
             "-lmirage_crypto_stubs"
             "-lmtime_clock_stubs"
             "-lmurmur3_stubs"
+            "-lnotty_unix_stubs"
+            "-lexpect_test_collector_stubs"
             "-lparmap_stubs"
             "-lpbrt_stubs"
             "-lpcre_stubs"

@@ -260,6 +260,27 @@
     "tags": []
   },
   {
+    "id": "haskell",
+    "name": "Haskell",
+    "keys": [
+      "haskell",
+      "hs"
+    ],
+    "maturity": "alpha",
+    "exts": [
+      ".hs"
+    ],
+    "example_ext": ".hs",
+    "excluded_exts": [],
+    "reverse_exts": null,
+    "shebangs": [
+      "runhaskell",
+      "runghc"
+    ],
+    "is_target_language": true,
+    "tags": []
+  },
+  {
     "id": "html",
     "name": "HTML",
     "keys": [

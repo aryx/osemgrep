@@ -1,0 +1,9 @@
+module Test where
+
+-- ERROR:
+newtype Age = Age Int
+
+-- ERROR:
+newtype Name = Name String
+
+data Foo = Bar
