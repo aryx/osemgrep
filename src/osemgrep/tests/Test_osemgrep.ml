@@ -55,9 +55,10 @@ let test_scan_config_registry_no_token (caps : CLI.caps) =
 (* Remaining part of test_login.py (see also Test_login_subcommand.ml) *)
 let test_scan_config_registry_with_invalid_token caps : Testo.t =
   Testo.create ~checked_output:(Testo.stderr ())
-    (* Flaky because the scan part hits the real semgrep.dev registry
+    (* Skipped because the scan part hits the real semgrep.dev registry
        and can fail with a network error instead of the expected 401.
        TODO: mock the registry HTTP response to make this deterministic. *)
+    ~skipped:"hits real semgrep.dev registry; needs HTTP mocking"
     ~tags:[ Test_tags.flaky ]
     __FUNCTION__
     ~normalize:[ Testo.mask_not_substrings [ "Saved access token" ] ]
