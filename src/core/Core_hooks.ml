@@ -23,4 +23,5 @@
 
 let exit = ref []
 let get_type = ref (fun _id -> None)
+let get_type_of_expr = ref (fun _e -> None)
 let get_def = ref (fun _id -> None)

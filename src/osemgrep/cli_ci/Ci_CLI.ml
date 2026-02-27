@@ -356,6 +356,7 @@ let scan_subset_cmdline_term : Scan_CLI.conf Term.t =
         ls = false;
         ls_format = Ls_subcommand.default_format;
         lsp = false;
+        lsp_expr = false;
       }
   in
   (* Term defines 'const' but also the '$' operator *)

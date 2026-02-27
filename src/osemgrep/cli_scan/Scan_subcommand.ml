@@ -649,7 +649,7 @@ let run_scan_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
     (match conf.common.logging_level with
      | Some Logs.Debug -> LSP_client.debug := true
      | _ -> ());
-    LSP_client.init ()
+    LSP_client.init ~expr:conf.lsp_expr ()
   end;
 
   (* imitate pysemgrep for backward compatible profiling metrics ? *)

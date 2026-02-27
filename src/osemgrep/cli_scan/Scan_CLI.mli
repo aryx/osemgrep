@@ -49,6 +49,8 @@ type conf = {
   ls_format : Ls_subcommand.format;
   (* --x-lsp: connect to LSP server for type info *)
   lsp : bool;
+  (* --x-lsp-expr: also resolve types for expressions *)
+  lsp_expr : bool;
 }
 [@@deriving show]
 

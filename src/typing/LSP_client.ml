@@ -303,14 +303,15 @@ let connect_server () =
   send_notif notif conn;
   conn
 
-let rec get_type (id : G.ident) =
-  let tok = snd id in
+(* Ensure the file is opened in the LSP server, then call [f] with
+ * the connection and URI. Handles didOpen/didClose as needed. *)
+let rec with_file_open tok f =
   let file = Tok.file_of_tok tok in
   let uri = DocumentUri.of_path (Fpath.to_string file) in
   let uri_s = DocumentUri.to_string uri in
   match !global with
   | { conn = Some conn; last_uri } when last_uri = uri_s ->
-      (try type_at_tok tok uri conn
+      (try f tok uri conn
       with _exn -> None
       )
   | { conn = Some conn; last_uri } when last_uri <> uri_s ->
@@ -338,16 +339,32 @@ let rec get_type (id : G.ident) =
       send_notif notif conn;
       global := { !global with last_uri = uri_s };
       (* try again *)
-      get_type id
+      with_file_open tok f
 
   | _ ->
      None
 
-let init () =
+let get_type (id : G.ident) =
+  with_file_open (snd id) type_at_tok
+
+(* Like get_type but works on any expression, not just identifiers.
+ * We pick the first original token from the expression and query
+ * LSP hover at that position. *)
+let get_type_of_expr (e : G.expr) =
+  let toks =
+    AST_generic_helpers.ii_of_any (G.E e)
+    |> List.filter Tok.is_origintok
+  in
+  match toks with
+  | tok :: _ -> with_file_open tok type_at_tok
+  | [] -> None
+
+let init ?(expr = false) () =
   if !debug then UCommon.pr2 "LSP_client: INIT";
   let conn = connect_server () in
   global := { conn = Some conn; last_uri = "" };
   Core_hooks.get_type := get_type;
+  if expr then Core_hooks.get_type_of_expr := get_type_of_expr;
   Stack_.push (fun () ->
       if !debug then UCommon.pr2 "LSP_client: CLOSING";
       send_request Lsp.Client_request.Shutdown conn |> ignore;

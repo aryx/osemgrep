@@ -1667,7 +1667,12 @@ and m_compatible_type lang typed_mvar t e =
         | Some idb ->
             m_type_option_with_hook idb (Some t) None >>= fun () ->
             with_bound_metavar
-        | None -> fail ())
+        | None -> (
+            (* semantic! try to handle typed metavariables for arbitrary
+             * expressions by querying LSP to get inferred type info *)
+            match !Core_hooks.get_type_of_expr e with
+            | Some tb -> m_type_ t tb >>= fun () -> with_bound_metavar
+            | None -> fail ()))
 
 (*---------------------------------------------------------------------------*)
 (* XML *)

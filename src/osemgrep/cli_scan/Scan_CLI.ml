@@ -68,6 +68,8 @@ type conf = {
   ls_format : Ls_subcommand.format;
   (* Connect to an LSP server (e.g. ocamllsp) to get type information *)
   lsp : bool;
+  (* Like lsp but also resolve types for arbitrary expressions *)
+  lsp_expr : bool;
 }
 [@@deriving show]
 
@@ -118,6 +120,7 @@ let default : conf =
     ls = false;
     ls_format = Ls_subcommand.default_format;
     lsp = false;
+    lsp_expr = false;
   }
 
 (*************************************************************************)
@@ -987,6 +990,17 @@ so the LSP server can find .cmt files.
   in
   Arg.value (Arg.flag info)
 
+let o_lsp_expr : bool Term.t =
+  let info =
+    Arg.info [ "x-lsp-expr" ]
+      ~doc:
+        {|[EXPERIMENTAL] Like --x-lsp but also resolve types for arbitrary
+expressions, not just identifiers. This is slower as it queries the LSP
+server for every expression node that needs type matching. Implies --x-lsp.
+|}
+  in
+  Arg.value (Arg.flag info)
+
 let o_ls : bool Term.t =
   let info =
     Arg.info [ "x-ls" ]
@@ -1354,10 +1368,10 @@ let cmdline_term caps ~allow_empty_config : conf Term.t =
       test_ignore_todo text text_outputs time_flag timeout
       _timeout_interfileTODO timeout_threshold trace trace_endpoint use_git
       _use_semgrepignore_v2 validate version version_check vim vim_outputs
-      x_ignore_semgrepignore_files x_ls x_ls_long x_lsp x_tr =
+      x_ignore_semgrepignore_files x_ls x_ls_long x_lsp x_lsp_expr x_tr =
     (* Print a warning if any of the internal or experimental options.
        We don't want users to start relying on these. *)
-    if x_ignore_semgrepignore_files || x_ls || x_ls_long || x_lsp || x_tr then
+    if x_ignore_semgrepignore_files || x_ls || x_ls_long || x_lsp || x_lsp_expr || x_tr then
       Logs.warn (fun m ->
           m
             "!!! You're using one or more options starting with '--x-'. These \
@@ -1556,7 +1570,8 @@ let cmdline_term caps ~allow_empty_config : conf Term.t =
       allow_local_builds;
       ls;
       ls_format;
-      lsp = x_lsp;
+      lsp = x_lsp || x_lsp_expr;
+      lsp_expr = x_lsp_expr;
     }
   in
   (* Term defines 'const' but also the '$' operator *)
@@ -1584,7 +1599,7 @@ let cmdline_term caps ~allow_empty_config : conf Term.t =
     $ o_timeout $ o_timeout_interfile $ o_timeout_threshold $ o_trace
     $ o_trace_endpoint $ o_use_git $ o_use_semgrepignore_v2 $ o_validate
     $ o_version $ o_version_check $ o_vim $ o_vim_outputs
-    $ o_ignore_semgrepignore_files $ o_ls $ o_ls_long $ o_lsp $ o_tr)
+    $ o_ignore_semgrepignore_files $ o_ls $ o_ls_long $ o_lsp $ o_lsp_expr $ o_tr)
 
 let doc = "run semgrep rules on files"
 
