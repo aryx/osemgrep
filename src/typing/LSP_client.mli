@@ -5,7 +5,7 @@
  * types are wired into {!Core_hooks.get_type} (and optionally
  * {!Core_hooks.get_type_of_expr}) so the matching engine can use them.
  *
- * Supported languages: OCaml (ocamllsp), C (clangd), Go (gopls).
+ * Supported languages: OCaml (ocamllsp), C (clangd), C++ (clangd), Go (gopls).
  *)
 
 val debug : bool ref

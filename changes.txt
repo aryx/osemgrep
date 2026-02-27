@@ -1,6 +1,6 @@
 # -*- org -*-
 
-* 2.0! (Q1 2026) (restored --x-lsp for OCaml and added C/clangd, keep just osemgrep (remove python cli/), conf-tree-sitter.opam)
+* 2.0! (Q1 2026) (restored --x-lsp for OCaml(via ocamllsp) and added C(clangd)/C++(clangd)/Go(gopls), keep just osemgrep (remove python cli/), conf-tree-sitter.opam)
 # started to use Claude Code
 
 ** features
@@ -16,6 +16,9 @@
   The language server is selected automatically from the --lang flag.
   clangd resolves types across files (via headers), enabling interfile
   typed metavar matching like (int $X) on function call return values.
+- --x-lsp now supports C++ via clangd (same server as C). clangd resolves
+  class method return types, template instantiation types, and 'auto'
+  deduction across files (7 findings without LSP → 18 with LSP).
 - --x-lsp now supports Go via gopls. The project root (directory
   containing go.mod) is auto-detected by walking upward from the target
   file. gopls resolves interfile types, e.g. matching ($X: int) on
@@ -26,8 +29,9 @@
   (go.mod for Go, dune-project for OCaml, compile_commands.json for C).
   This also fixes workspace URI handling for gopls which requires
   absolute file:// URIs matching the workspace root.
-- added test data in tests/lsp/ocaml/, tests/lsp/c/, and tests/lsp/go/
-  demonstrating interfile type resolution with --x-lsp for each language.
+- added test data in tests/lsp/ocaml/, tests/lsp/c/, tests/lsp/cpp/,
+  and tests/lsp/go/ demonstrating interfile type resolution with --x-lsp
+  for each language.
 
 ** languages
 - add Haskell language support (alpha): tree-sitter parser via semgrep-haskell

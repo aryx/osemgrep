@@ -1,0 +1,33 @@
+Test data for --x-lsp with clangd (C++ language server).
+
+The typed metavar pattern (int $X) should match expressions whose type
+is 'int' even when the type can only be determined by:
+  - looking at a class method declared in another file (math_utils.h)
+  - resolving a template instantiation (identity<int>(x))
+  - understanding 'auto' type deduction from interfile return types
+
+Prerequisites:
+  - clangd:  apt install clangd
+
+Setup:
+  Nothing to build — clangd uses heuristic fallback for simple projects
+  with headers in the same directory.
+
+  For larger projects, generate compile_commands.json:
+    cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 .
+  or with bear:
+    bear -- make
+
+Without --x-lsp (7 findings — only literals and identifiers with known types):
+  osemgrep scan -e '(int $X)' --lang cpp tests/lsp/cpp/main.cpp
+
+With --x-lsp (18 findings — clangd resolves interfile/template types):
+  osemgrep scan --x-lsp --x-lsp-expr -e '(int $X)' --lang cpp tests/lsp/cpp/main.cpp
+
+The 11 extra findings come from clangd knowing:
+  - sum has type int (from MathUtils::add's return type in math_utils.h)
+  - same has type int (from identity<int> template instantiation)
+  - MathUtils::add and identity<int> return int
+  - 'auto' variables sum and same are deduced as int
+Without --x-lsp, osemgrep cannot resolve class method return types,
+template instantiation types, or 'auto' deduction across files.

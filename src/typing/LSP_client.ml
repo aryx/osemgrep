@@ -27,6 +27,7 @@
  * Supported language servers:
  *  - OCaml: ocamllsp (run from the project dir so it finds .cmt files)
  *  - C: clangd (uses compile_commands.json or heuristics)
+ *  - C++: clangd (same as C; uses compile_commands.json or heuristics)
  *  - Go: gopls (needs go.mod; project root auto-detected)
  *
  * To use: run osemgrep from the project directory you want to analyze.
@@ -112,9 +113,9 @@ let server lang =
         with _exn -> "/usr/bin"
       in
       Filename.concat opam_bin "ocamllsp"
-  | Lang.C ->
+  | Lang.C | Lang.Cpp ->
       (* clangd is typically in PATH; uses compile_commands.json for
-       * project-specific flags *)
+       * project-specific flags. Handles both C and C++. *)
       "clangd"
   | Lang.Go ->
       "gopls"
@@ -144,7 +145,7 @@ let find_project_root lang (roots : string list) =
     match lang with
     | Lang.Go -> "go.mod"
     | Lang.Ocaml -> "dune-project"
-    | Lang.C -> "compile_commands.json"
+    | Lang.C | Lang.Cpp -> "compile_commands.json"
     | _ -> ""
   in
   if marker = "" then Sys.getcwd ()
@@ -231,6 +232,7 @@ let language_id lang =
   match lang with
   | Lang.Ocaml -> "ocaml"
   | Lang.C -> "c"
+  | Lang.Cpp -> "cpp"
   | Lang.Go -> "go"
   | lang -> failwith (spf "LSP_client: unsupported language: %s" (Lang.show lang))
 
@@ -501,7 +503,7 @@ let parse_type_go s =
 let clean_hover_string lang s =
   match lang with
   | Lang.Ocaml -> clean_hover_ocaml s
-  | Lang.C -> clean_hover_c s
+  | Lang.C | Lang.Cpp -> clean_hover_c s
   | Lang.Go -> clean_hover_go s
   | lang ->
       failwith (spf "LSP_client: hover cleanup not supported for %s"
@@ -510,7 +512,7 @@ let clean_hover_string lang s =
 let parse_type_string lang s =
   match lang with
   | Lang.Ocaml -> parse_type_ocaml s
-  | Lang.C -> parse_type_c s
+  | Lang.C | Lang.Cpp -> parse_type_c s
   | Lang.Go -> parse_type_go s
   | lang ->
       failwith (spf "LSP_client: type parsing not supported for %s"
