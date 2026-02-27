@@ -28,6 +28,7 @@ let lang_has_no_dollar_ids =
     | Elixir
     | R
     | Swift
+    | Haskell
     | Html
     | Xml
     | Ql

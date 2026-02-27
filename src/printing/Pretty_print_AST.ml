@@ -229,6 +229,7 @@ and if_stmt env (tok, e, s, sopt) =
     | Lang.Promql
     | Lang.Protobuf
     | Lang.Ql
+    | Lang.Haskell
     | Lang.Hack
     | Lang.Yaml
     | Lang.Html
@@ -304,6 +305,7 @@ and while_stmt env (tok, e, s) =
     | Lang.Promql
     | Lang.Protobuf
     | Lang.Dockerfile
+    | Lang.Haskell
     | Lang.Hack
     | Lang.Lua
     | Lang.Yaml
@@ -357,6 +359,7 @@ and do_while stmt env (s, e) =
     | Lang.Bash
     | Lang.Php
     | Lang.Dockerfile
+    | Lang.Haskell
     | Lang.Hack
     | Lang.Lua
     | Lang.Promql
@@ -413,6 +416,7 @@ and for_stmt env (for_tok, hdr, s) =
     | Lang.Protobuf
     | Lang.Html
     | Lang.Dockerfile
+    | Lang.Haskell
     | Lang.Hack
     | Lang.Lua
     | Lang.Yaml
@@ -513,6 +517,7 @@ and def_stmt env (entity, def_kind) =
       | Lang.Promql
       | Lang.Protobuf
       | Lang.Dockerfile
+      | Lang.Haskell
       | Lang.Hack
       | Lang.Lua
       | Lang.Yaml

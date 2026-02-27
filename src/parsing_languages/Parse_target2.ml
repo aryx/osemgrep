@@ -235,6 +235,10 @@ let just_parse_with_lang lang file : Parsing_result2.t =
       run file [ TreeSitter Parse_move_on_sui_tree_sitter.parse ] (fun x -> x)
   | Lang.Move_on_aptos ->
       run file [ TreeSitter Parse_move_on_aptos_tree_sitter.parse ] (fun x -> x)
+  | Lang.Haskell ->
+      run file
+        [ TreeSitter Parse_haskell_tree_sitter.parse ]
+        Haskell_to_generic.program
   | Lang.Circom ->
       run file [ TreeSitter Parse_circom_tree_sitter.parse ] (fun x -> x)
   (* External proprietary parsers. The parsers need to register themselves

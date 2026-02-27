@@ -218,6 +218,10 @@ let parse_pattern options lang str =
   | Lang.Move_on_aptos ->
       let res = Parse_move_on_aptos_tree_sitter.parse_pattern str in
       extract_pattern_from_tree_sitter_result res
+  | Lang.Haskell ->
+      let res = Parse_haskell_tree_sitter.parse_pattern str in
+      let pattern = extract_pattern_from_tree_sitter_result res in
+      Haskell_to_generic.any pattern
   | Lang.Circom ->
       let res = Parse_circom_tree_sitter.parse_pattern str in
       extract_pattern_from_tree_sitter_result res

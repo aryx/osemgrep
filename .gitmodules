@@ -154,3 +154,6 @@ url = https://github.com/semgrep/semgrep-circom.git
 [submodule "OSS/languages/toml/tree-sitter/semgrep-toml"]
 path = languages/toml/tree-sitter/semgrep-toml
 url = https://github.com/semgrep/semgrep-toml.git
+[submodule "languages/haskell/tree-sitter/semgrep-haskell"]
+	path = languages/haskell/tree-sitter/semgrep-haskell
+	url = https://github.com/semgrep/semgrep-haskell
