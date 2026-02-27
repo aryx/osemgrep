@@ -23,6 +23,9 @@
    parser_go.menhir
    parser_go.ast_generic
    parser_rust.ast_generic
+   parser_python.ast
+   parser_python.menhir
+   parser_python.ast_generic
  )
  (preprocess (pps ppx_deriving.show ppx_profiling))
 )

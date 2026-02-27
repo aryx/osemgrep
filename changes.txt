@@ -1,6 +1,6 @@
 # -*- org -*-
 
-* 2.0! (Q1 2026) (restored --lsp for OCaml(using ocamllsp) and added C(clangd)/C++(clangd)/Go(gopls)/Rust(rust-analyzer), keep just osemgrep (remove Python cli/), conf-tree-sitter.opam, Haskell/)
+* 2.0! (Q1 2026) (restored --lsp for OCaml(using ocamllsp) and added C(clangd)/C++(clangd)/Go(gopls)/Rust(rust-analyzer)/Python(ty or pyright), keep just osemgrep (remove Python cli/), conf-tree-sitter.opam, Haskell/)
 # started to use Claude Code
 
 ** semantic
@@ -43,9 +43,15 @@
   window/workDoneProgress/create) instead of silently ignoring them.
   Added warmup support for servers that need time to index after
   initialization (rust-analyzer loads cargo metadata asynchronously).
+- --lsp now supports Python via ty (Astral's fast Rust type checker)
+  or pyright (Microsoft). The server is auto-detected: ty is tried first,
+  then pyright-langserver. The project root (directory containing
+  pyproject.toml) is auto-detected. Both servers resolve interfile types
+  via type inference, e.g. matching ($X: int) on variables whose type
+  comes from a function defined in another file.
 - added test data in tests/lsp/ocaml/, tests/lsp/c/, tests/lsp/cpp/,
-  tests/lsp/go/, and tests/lsp/rust/ demonstrating interfile type
-  resolution with --lsp for each language.
+  tests/lsp/go/, tests/lsp/rust/, and tests/lsp/python/ demonstrating
+  interfile type resolution with --lsp for each language.
 
 ** languages
 - add Haskell language support (alpha): tree-sitter parser via semgrep-haskell

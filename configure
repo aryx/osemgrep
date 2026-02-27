@@ -303,6 +303,27 @@ find_lsp_server "Go LSP"     gopls     "$_gobin"
 # rust-analyzer: Rust toolchain installs it in ~/.cargo/bin
 find_lsp_server "Rust LSP"   rust-analyzer  "$HOME/.cargo/bin"
 
+# Python: try ty first (Astral's fast Rust type checker), then pyright
+# ty: installed via 'uv tool install ty' or 'cargo install ty'
+# pyright: installed via 'npm install -g pyright' or 'pipx install pyright'
+if command -v ty >/dev/null 2>&1 \
+   || [ -x "$HOME/.local/bin/ty" ] \
+   || [ -x "$HOME/.cargo/bin/ty" ]; then
+    _ty_path=$(command -v ty 2>/dev/null \
+               || { [ -x "$HOME/.local/bin/ty" ] && echo "$HOME/.local/bin/ty"; } \
+               || echo "$HOME/.cargo/bin/ty")
+    ok "Python LSP (ty -> $_ty_path)"
+elif command -v pyright-langserver >/dev/null 2>&1 \
+     || [ -x "$HOME/.local/bin/pyright-langserver" ] \
+     || [ -x "$HOME/.local/share/npm/bin/pyright-langserver" ]; then
+    _pr_path=$(command -v pyright-langserver 2>/dev/null \
+               || { [ -x "$HOME/.local/bin/pyright-langserver" ] && echo "$HOME/.local/bin/pyright-langserver"; } \
+               || echo "$HOME/.local/share/npm/bin/pyright-langserver")
+    ok "Python LSP (pyright -> $_pr_path)"
+else
+    warn "Python LSP (ty or pyright-langserver) not found — --lsp for Python will not work"
+fi
+
 echo ''
 echo 'Everything looks fine. You can now run: '
 echo ''

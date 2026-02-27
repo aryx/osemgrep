@@ -1,0 +1,37 @@
+Test data for --lsp with ty or pyright (Python language servers).
+
+The typed metavar pattern show($X: int) should match calls to show()
+where the argument's type is 'int', even when the type can only be
+determined by looking at the definition in another file (lib.py).
+
+Note: In Python, typed metavar patterns like ($X: int) must appear inside
+an expression context (e.g. a function call argument) to be parsed as a
+TypedMetavar node. A bare '$X: int' is parsed as a variable annotation
+statement (DefStmt) instead.
+
+Prerequisites (install one):
+  - ty (recommended): uv tool install ty
+                      (or: cargo install ty, or download from github.com/astral-sh/ty)
+  - pyright:          npm install -g pyright
+                      (or: pipx install pyright)
+
+Setup:
+  Nothing to build — ty and pyright analyse Python source directly.
+
+Without --lsp (2 findings — only x with explicit annotation and literal 42):
+  osemgrep scan -e 'show($X: int)' --lang python tests/lsp/python/main.py
+
+With --lsp (3 findings — ty/pyright resolves interfile types):
+  osemgrep scan --lsp --lsp-expr -e 'show($X: int)' --lang python tests/lsp/python/main.py
+
+The 1 extra finding comes from the type checker knowing:
+  - result_int has type int (from add's return type defined in lib.py)
+Without --lsp, osemgrep cannot resolve add's return type because it
+is defined in lib.py, not in main.py.
+
+show(result_float) correctly does NOT match because compute_ratio
+returns float, not int.
+
+Note: osemgrep automatically finds the project root (directory containing
+pyproject.toml) by walking upward from the target file. ty and pyright
+both need this to resolve imports correctly.

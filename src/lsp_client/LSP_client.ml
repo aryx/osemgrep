@@ -31,6 +31,7 @@
  *  - C++: clangd (same as C; uses compile_commands.json or heuristics)
  *  - Go: gopls (needs go.mod; project root auto-detected)
  *  - Rust: rust-analyzer (needs Cargo.toml; project root auto-detected)
+ *  - Python: ty or pyright (needs pyproject.toml; project root auto-detected)
  *
  * To use: run osemgrep from the project directory you want to analyze.
  *)
@@ -100,6 +101,7 @@ let lsp_lang_of_lang lang =
   | Lang.C | Lang.Cpp -> LSP_c.lsp_lang lang
   | Lang.Go -> LSP_go.lsp_lang
   | Lang.Rust -> LSP_rust.lsp_lang
+  | Lang.Python -> LSP_python.lsp_lang
   | lang ->
       failwith (spf "LSP_client: unsupported language: %s" (Lang.show lang))
 
@@ -176,6 +178,37 @@ let send_notif notif conn =
   let json_rpc = Lsp.Client_notification.to_jsonrpc notif in
   let packet = Jsonrpc.Packet.Notification json_rpc in
   Io.write conn.oc packet
+
+(* Read a response by ID, returning the raw JSON without typed deserialization.
+ * Used for Initialize where we don't need the result and some servers
+ * return capabilities the ocaml-lsp library can't parse. *)
+let rec read_response_raw id conn =
+  let res = Io.read conn.ic in
+  match res with
+  | None -> failwith "LSP_client: no answer from server"
+  | Some packet ->
+     (match packet with
+     | Jsonrpc.Packet.Notification _ ->
+            read_response_raw id conn
+     | Jsonrpc.Packet.Response { Jsonrpc.Response.id = id2; result } ->
+         if not (Jsonrpc.Id.equal id2 id)
+         then failwith (spf "LSP_client: id mismatch: got %s, expected %s"
+                          (Dumper.dump id2) (Dumper.dump id));
+         (match result with
+         | Ok json -> json
+         | Error err ->
+             let json = Jsonrpc.Response.Error.yojson_of_t err in
+             let s = Yojson.Safe.pretty_to_string json in
+             failwith (spf "LSP_client: server error: %s" s)
+         )
+     | Jsonrpc.Packet.Request { Jsonrpc.Request.id = srv_id; _ } ->
+            let resp = Jsonrpc.Response.ok srv_id `Null in
+            Io.write conn.oc (Jsonrpc.Packet.Response resp);
+            read_response_raw id conn
+     | Jsonrpc.Packet.Batch_response _
+     | Jsonrpc.Packet.Batch_call _ ->
+            failwith "LSP_client: unexpected batch packet"
+     )
 
 let rec read_response : type a. Jsonrpc.Id.t * a Lsp.Client_request.t -> conn -> a =
   fun (id, req) conn ->
@@ -362,8 +395,11 @@ let connect_server ~root (lsp_lang : LSP_lang.t) =
       () in
   let req = Lsp.Client_request.Initialize params in
   let id = send_request req conn in
-  let res = read_response (id, req) conn in
-  if !debug then UCommon.pr2_gen res;
+  (* We don't use the InitializeResult, and some servers (e.g. ty) return
+   * capabilities that the ocaml-lsp library can't deserialize.  So we
+   * read the raw response and skip typed parsing. *)
+  let _res = read_response_raw id conn in
+  if !debug then UCommon.pr2_gen _res;
   let notif = Lsp.Client_notification.Initialized in
   send_notif notif conn;
   (* Some servers (e.g. rust-analyzer) need time to load the project
