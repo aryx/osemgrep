@@ -45,16 +45,1752 @@
 - restored osemgrep interactive
 - restored elixir and vue parsers
 - restored --ast-caching (for osemgrep interactive) and --registry-caching
+- cherry picked my modifs from Feb 2025 to June 2025 that was after
+  I forked at 1.109 until 1.123
 
 * ----------------------------------------------------------------------------
 
-* Alpha (Q2 2025) (fork of semgrep 1.109)
+* pause to work on principia softwarica and xix
+
+* 2.0 Alpha (Q2 2025) (fork of semgrep 1.109)
 #just before Semgrep Inc. removed support for OCaml 4.x and focused on OCaml 5.
 
 ** build infra
 - fork semgrep as semgrep-libs repo (later renamed to osemgrep) to compile
   the libraries in semgrep that are used in my other projects such as
   codemap, codegraph, efuns, etc (which are still in OCaml 4.x)
+
+* 1.123 (Q2 2025) (cleanup Core_scan and Diff_Scan)
+# # transitive reachability v2, leaving Semgrep Inc.
+
+* 1.109 (Q1 2025) (OCaml 5 switch, Hook.ml, osemgrep ci v1, SCA2 POC)
+# transitive reachability v1, AI Appsec engineer launch, opengrep
+
+** rules
+
+** osemgrep, Python -> OCaml
+- resume osemgrep ci and switch to 1 HTTP request for starting a scan
+  instead of 3 (like Jonas did one year before for pysemgrep)
+
+** debug/test/error infra
+- new --log-backend and --fake-backend for osemgrep ci
+
+** ecosystem
+- opengrep fork of semgrep (with lots of FUD and lies)
+- AI Appsec engineer launch, SR agrees with 96% of AI triaging/filtering
+
+** internals
+- switch to new Hook.t from Nat, cleaned up many hooks, especially tainting
+  hooks (with Iago too)
+- removed ast_generic_v1.atd from semgrep-interfaces
+- a few move (restore src/ast_generic/, Generic_vs_generic.ml
+  became Pattern_vs_code.ml, etc. to cleanup)
+- switch to OCaml 5 (Nat) after GC tuning and many optis to fight
+  memory regressions over 4.14.0. Took us just 2 years, hmmm
+- capabilities
+  * new Cap.readdir and forbid_fs.jsonnet start
+
+** semgrep-pro
+
+*** SCA transitive reachability
+- semgrep-on-deps approach v1, for JS/npm
+
+*** SCA to OCaml (osemgrep)
+- produce correct text output for SCA finding, with lockfile attached
+- SCA processing in OCaml (via Core_scan hook)
+- moved some lockfile parsers to OCaml
+
+*** devops
+- simplify pro docker image, merge ocaml and python steps
+
+** HR
+- me joing SCA team to work on transitive reachability (and AI+PA)
+
+* -----------------------------------------------------------
+
+* 1.101 (Q4 2024) (osemgrep --sarif, -junit_xml, etc.)
+# semgrep-on-deps SCA idea, osemgrep test --pro, lockfileless
+
+** osemgrep, pysemgrep -> OCaml
+- merge Input_to_core.atd in semgrep_output_v1.atd and big cleanup
+- use Nat's RPC for moving junit_xml/gitlab/json/sarif formatter to OCaml
+  and remove pysemgrep code. Had to handle exposure/reachable,
+  and last fix on ci_unique_key and match_based_id. It works in osemgrep too!
+  Also had to fix a regression when ported gitlab about the date format.
+- Switch fully to SARIF by moving fast and breaking things; removed all
+  the incremental rollout and osemgrep metrics stuff of Amarin
+- big cleanup about text reporting with centralize Text_reports.ml
+  and Text_output.ml, unppize most of the Robur stuff
+  
+** backend
+- deprecate a few fields in semgrep_output_v1.atd (meta, semgrep_version)
+  now that not supported because too old (with Clara)
+
+** devops
+- returntocorp/semgrep -> semgrep/semgrep
+  and stop publishing to returntocorp/semgrep for Chris
+
+** debug/test/error infra
+- fix big regressions because of curl segfault in telemetry so
+  disable telemetry in a few places (Austin)
+
+** ecosystem
+- rename semgrep OSS to semgrep Community Edition (CE)
+
+** windows
+- more Fpath translation
+- manage to compile semgrep-core-pro after getting rid of Vue and update
+  to recent ocaml-tree-sitter fixing some linking issues
+- pysemgrep on windows experiment (Chris, Tom) and console_scripts/
+- scope doc for Tarides (Emma, after first draft by me)
+
+** internals
+- fix NO FILE INFO by resuming old PR of Andre of Pos.make without default arg
+- Core_error.t Tok.t => Tok.t option so far less fake token and
+  bad error message for fatal error without location
+  and incident "empty token" because some errors changed to FatalError
+- capabilities
+  * memory_limit capability (and rename alarm -> time_limit)
+  * CapExec.ml, port all UCmd.ml and used it especially on new SCA
+    dynamic deps code in OCaml of teapot and improve forbid_exec.jsonnet
+    
+** semgrep-pro
+
+*** rules
+- new proruleid: deepruleid: etc officially for osemgrep test --pro
+  and lots of cleanup of our rule tests to add the right annotations
+  (in semgrep-rules, semgrep-sca-rules, semgrep-rules-jsonnet) and
+  add as well many interfile: true in deep.yaml test file
+
+*** semgrep-pro
+- plug DeepScan and ProScan with osemgrep test --pro!, possible thx to big
+  refactoring to cleanup DeepScan/ProScan/CoreScan during Q3
+  for Claudio (but got many complaints because it broke some rules repo CI)
+- new hook_pro_scan now possible because semgrep test in OCaml
+- Cleaner Test_annotation.ml
+- gated logged-in check for many JSON and SARIF fields
+- fixed some SARIF regressions; we were filtering too much, we need
+  the rule section because they contain the severity of the finding
+
+*** static analysis
+- taint signature for callbacks and lambdas (Iago)
+  and new -dump-taint-analysis
+
+*** SCA/transitive reachability
+- start SCA TR task forc
+- idea of semgrep-on-deps to solve transitive reachability v0
+- toy project with inlined third-party deps for JS (with Ben Kettle (teapot))
+- callgraph analysis v0 (Heejong)
+
+*** ecosystem
+- fixed enough bugs to onboard all Intuit repos on SMS (with Nat, Austin)
+- lockfileless SCA (start of running commands in CI for "buildable" code)
+  and new --allow-local-build flag
+- dependency Path SCA UI in semgrep-app
+- new Scrat project (brat for SCA?) by Brandon
+- start of distributed Scan project of Amarin with SMS
+- start of producing SMS image in addition to docker images (Amarin)
+
+*** osemgrep, pysemgrep -> OCaml
+
+- finish POC of matthew macquaid for SCA in Core_scan, big SSC cleanup
+  with merging lots of types in semgrep_output_v1.atd and
+  cleaner Lockfile.t and Manifest.t out of Target and new
+  SCA_pattern.ml and SCA_version.ml as well as SCA_match.ml
+  focus-week:
+- produce correct JSON for SCA finding
+
+*** internals
+- introduce Module_env instead of ugly labels, and Iago introduced
+  also many envs instead of closures
+
+** Finance
+- series D! 100M
+  
+** HR
+- Amarin moved to SMS
+
+* 1.90 (Q3 2024) (osemgrep test part2, Logs cleanup part2 and stream, osemgrep metrics, pattern-when:, semgrep-rpc with osemgrep, Move-on-{Aptos,Sui}/Circom/PromQL)
+# SMS launch,  C#(Pro-only)
+
+** rules
+- new pattern-when: based on my old idea (by intern Kat, mentored by amarin)
+  
+** semgrep
+- switch to yellow for warning and use magenta for critical
+- fix long-standing tree-sitter bugs with extra (Martin) and
+  regenerated for all languages
+  
+** languages
+- Move on Aptos (external contrib)
+- Move on Sui (external contrib)
+- Circom (external contrib)
+
+** osemgrep, pysemgrep -> OCaml
+- osemgrep test part 2, accept multi targets per rule (.jsx and .js)
+  so no more json-diff on all semgrep-rules!
+  so can switch to osemgrep test in our rules repo!
+  (and get rid of semgrep-core -test_rules)
+- osemgrep logout as default, remove pysemgrep logout
+- take over metrics.atd and port a lot of pysemgrep metrics to osemgrep
+- port --time (needed by Brandon semgrep-rpc), and separate
+  better --debug and --time to reduce JSON side
+- better osemgrep ci --help and factorize with scan_subset_term
+- use Nat's RPC for vim/emacs formatter
+- semgrep rule validation now faster via OCaml (originally pydantic
+  big "model" by zz) with nice zz bloom-filter like approach where
+  call heavy jsonschema validation only to get good error message
+  when we know there is a syntax error; in most cases no need to
+  fallback to jsonschema as Parse_rule.ml validate.
+- osemgrep validate and use it in the rules repo too, from 1min
+  to 12s
+  
+** dogfood
+- run semgrep ci/scan with --oss-only/--pro/ with :canary and :develop
+  with --debug/--verbose in our CI semgrep.yml/jsonnet GHA workflow
+- feel the pain of 3h long scan! Was partly because wrong semgrepignore
+  file targeting for secrets (Emma), and was easily detected by me thx
+  to better logging; was obvious that file targeting was wrong just looking
+  at the (reduced) logs
+  
+** ecosystem
+- take over semgrep-rpc and switch to osemgrep calls (Brandon)
+  (for better playground experience?)
+- resume scip/lsif by Brandon (for Brat?)
+
+** devops
+- slow progress on Windows but produced a semgrep.exe (osemgrep)
+- switch to osemgrep test in our rules repo (and even osemgrep test --pro)
+
+** debug/test/error infra
+- big cleanup of the Logs, from Millions of lines to 20000 lines that can
+  be shown in github log window (with Andre),
+  new --max-log-list-entries
+- better error management, get exn popping up and handled
+- stream --debug
+- removed the global g_error (Cooper)
+- split src/tests/Test.ml with unit_steps_scan, unit_interfile, etc.
+- add Testo e2e tests for osemgrep, semgrep-core, osemgrep-pro
+
+** internals
+- big refactor of Core_scan/Deep_scan and removing core_scan_config.{root,lang}
+  so no more old targeting, remove Core_command.ml/Pro_core_command.ml useless
+  intermediate, factorize more with Core_scan, separate log_xxx helpers,
+  (lots of cleanup, possible thx to OSS/Pro merge)
+- Cleanup Diff_scan of heejong, intermediate separate helper functions
+- Reduced a lot Core_scan_config.t, remove lang and roots so no more
+  old file targeting
+- dumb-down semgrep-core remove -e/-f to avoid code duplication and old file
+  targeting; now superseded by osemgrep
+- OSS/src/core/ split with rules/ and targets/
+- capabilities
+  * stdout and forbid_console.jsonnet
+  * fork and alarm (renamed time_limit) capabilities
+    and started to factorize with Xxx_subcommand.caps
+  * use capabilities on SCIP work of brandon
+
+** semgrep-pro
+
+*** languages
+- Deep Python
+- C# big and first pro-only tree-sitter update (Martin)
+
+*** semgrep-pro
+- 3h long scan on the semgrep codebase itself regressions!
+- disable differential depth of Heejong, not conclusive
+- big Idx refactor, removed lots of closures so can marshal
+  the whole preprocessed info (with the hope of optimizing memory
+  before parmap calls in --pro-interfile)
+
+*** ecosystem
+- SMS (was called ZCS before the zero-config-semgrep) so we run
+  semgrep on our own cloud
+- IDE/CDX/Semgrep query console on pause
+  (to focus on SMS and Intuit)
+
+*** devops
+- semgrep-pro-develop docker image (Emma and then Amarin)
+  and start of using :pro-develop in CI
+- bump-version part moved from OSS to Pro: less back and forth during
+  release and no more mismatch between semgrep --version and semgrep-core-pro
+  --version
+- semgrep-rules-proprietary private submodule added (thx Cooper for
+  git/GHA auth magic)
+  
+** HR
+- Nat back to coding and Emma became manager
+
+* 1.78 (Q2 2024) (Logs cleanup part1, osemgrep test part1, nix, OSS/Pro repo merge)
+# Query console beta launch, -index_codegraph
+
+** rules
+- switch to new Low/High/Medium/Critical for severity (but got delayed
+  because of regressions), (with Clara and Claudio and Martin)
+
+** dogfood
+- handle 'let open X in' and wildcards imports in OCaml
+
+** osemgrep, pysemgrep -> OCaml
+- osemgrep test resume (Robur/Hannes could not manage to port it)
+  with 14x speedup experiment, with also better warnings about
+  tests without matches (Thx to new Logs)
+  weekly-demos:
+- implement fixtest for osemgrep test
+- use json-diff to track regressions with pysemgrep test
+- start new ruleid: extraction, todook: extraction, cleaner
+  separate of concerns with Test_annotations.ml
+- works also on windows!
+
+** devops
+- start to use Nix and have Nix CI workflows (Austin)
+- start official scope doc for Windows
+  https://www.notion.so/semgrep/Semgrep-for-Windows-Native-fc136d7baf344f298960d204109ba25f
+  and resume semgrep for windows on surface book 2 (but procastinate a lot),
+  had to fix lots of shits: symlinks, git in windows, cygwin vs native,
+  file paths, console coloring, etc.
+- removed used of ocaml-layer in Dockerfile so can easily switch to 5.2.0
+  or other OCaml versions without having to modify (unmaintained) intermediate
+  ocaml-layer, and fast enough thx to Depot (making ocaml-layer opti
+  redundant)
+  
+** debug/test/error infra
+- switch to Logs src instead of tags, and lots of Logs.xxx changes,
+  especially the one martin generated from easy logging logs#xxx
+  and document new way:
+  https://www.notion.so/semgrep/Logging-in-semgrep-semgrep-core-osemgrep-67c9046fa53744728d9d725a5a244f64
+
+** internals
+- new Console.ml merging Out.ml and Std_msg.ml, and UConsole.ml/CapConsole.ml too
+- capabilities:
+  * forbid_exec.jsonnet
+- merged semgrep-server in semgrep-pro repo (monorepo) and make it
+  compile again (proving the need for monorepo)
+  
+** semgrep-pro
+
+*** semgrep-pro
+- new -index_codegraph for Assitant Team; opted for v0 using
+  Graph_code instead of LSIF/SCIP and scip.proto for now
+  update: Brandon then took over
+- cleanup graph_code/ lib
+
+*** ecosystem
+- query console beta launch (Tom, Ustin, Brandon)
+- semgrep-server put on pause by Tom himself
+
+*** devops
+
+- merge the OSS in the Pro repo finally, with lots of help
+  from Iago to write those sync script. Did the final trigger to move
+  fast and break things during one weekend!
+- spent time to migrate many semgrep OSS CI checks to Pro and got help
+  from Andre, and other to assist
+- simple sync-to-OSS and sync-to-PRO GHA workflows, run manually
+  for now (via a cron later for the sync-to-OSS)
+
+** HR
+- california trip! Visit office 1 day with Giogio for pasqua and got eggs
+  and got new macbook pro 16 black!
+
+
+* 1.67 (Q1 2024) (unified logging, capabilities expansion random/exit/tmp/chdir)
+# semgrep-pro in docker and linux/arm64, Robur#2,
+
+** rules
+
+** static analysis
+- finished SPA book finally
+
+** osemgrep, pysemgrep -> OCaml
+- remove hidden files/dirs config so no need to port it and .semgrep/
+- Robur #2 resume, Reynir and Hannes, good progress on match_based_id
+  and python-str-repr tricky C library, use SARIF package,
+  gitlab_sast formatter (but no osemgrep test), text output v0
+- move more autofix in OCaml Core_scan (Brandon and Robur and Nat)
+  and use Nat's RPC for final push
+- merged POC of matthew for SCA in OCaml
+  update: I resumed it in Q4 2024 to make it work e2e
+- introduce Nat and Amarin to osemgrep codebase (but no contrib)
+- Critisized Amarin/Nat scope docs for incremental rollout and RPC
+  update: Nat was right and his RPC was useful; still he didn't port much code
+  update: rollout stuff was Amarin was not that useful, in Q4 I ended up
+  just doing hard change for SARIF formatting that was done in a week
+- port --scan-unknown-extensions (lots of work by Martin)
+- more port of semgrep install-semgrep-pro (needed for linux/arm64 install
+  too), and understand better interaction with backend and S3 buckets for
+  those binaries
+
+** AI
+- started to use chatGPT and Greptile suggested by Romain but
+  failed on OCaml codebases
+  
+** languages
+- update to latest tree-sitter-ocaml, and fix codemap to parse more files
+- C++ launch blog post draft for Milan/Chuchi on C++ and preprocessing
+  https://semgrep.dev/blog/2024/modernizing-static-analysis-for-c/
+
+** backend
+- started discussions on a new ci_config_from_cloud for
+  monorepos (with Clara, but failed)
+- add CI "actions" in osemgrep ci to get control ASAP of old versions
+  update: still not used nor ported in pysemgrep in Q4 2024
+
+** devops
+- windows build in CI (Tom, after my POC)
+- simplified many workflows now that all in jsonnet, removed useless intermediate
+  and document better the workflows
+- use more github cache
+- did many of the release as I did lots of modifs to the workflows
+- switch back to regular jsonnet+yq, ojsonnets has too many bugs
+  and bad error reporting (for Chris)
+- try switch to OCaml 5.2.0 but failed
+- switch more to setup-ocaml instead of ocaml-layer
+- remove jq/bash/curl from docker image and restore and postmortem
+- circleCI -> GHA for parsing-stats
+  update: still not fully working in Q4 2025
+  
+** debug/test/error infra
+- start of using opentelemetry for semgrep-core/pysemgrep (Emma, Chris)
+- unified logging: remove easy_logging and switch to Logs (Martin),
+  not without problems, now lots of logs
+- cleaned up Core_profiling.ml of Emma
+
+** internals
+- capabilities:
+  * for random, CapRandom.ml
+  * for exit forbid_exit.jsonnet
+  * for tmp and forbid_tmp.jsonnet and centralize in UTmp.ml
+    from UCommon and UFilename.ml
+  * for chdir
+- forbid Obj.magic and fix the remaining one in Oset
+- new Origin.ml useful for historical scanning (Cooper)
+    
+** semgrep-pro
+
+*** semgrep-pro
+- remove --ast-caching and --registry-caching from OSS, removed
+  also extract-mode
+  update: restored in 2026 (was never restored in pro)
+- watermarking r2c was and r2c pro was here
+
+*** ecosystem
+- semgrep-triager and vscode extension v0 and talk (Romain)
+- start of annotation work (Romain, Phil), I did skeleton to help starting it
+  for focus week (and cleaned up DeepScan and added many .mli to help
+  me for the skeleton)
+- start of stubber work (Romain, Phil)
+
+*** backend
+- work with tom for serving new linux/arm64 semgrep-core-proprietary binary
+
+*** devops
+- add semgrep-core-proprietary as part of returntocorp/semgrep docker image
+  (easier after owning/understanding most of the release process)
+  to save S3 cost zz/chris discovered (with help from Tom for
+  multi-arch and build also linux/arm64 semgrep-core-pro)
+- early experiment on OSS/Pro merge thx to Chris's links,
+  and Iago use of chatGPT for sync_repos.py
+
+** finance
+- we reached 10M ARR!
+
+** HR
+- team reorg, team-semgrep-core gone, Iago/Heejong in Code team with Claudio
+  and new team-enterprise-analysis (semgrep-pro) with Nat
+
+* -----------------------------------------------------------
+
+* 1.54 (Q4 2023) (:canary, LSP.js, Windows POC, osemgrep ci v0, capabilities POC, jsonnet GHA, C/C++(GA)/Dart)
+
+** rules
+- rule_schema_v2.atd (far more readable than rule_schema_v1.yml),
+  useful for visualization of whole DSL (thx codemap) with all those new features
+  recently added: SCA, Secrets, steps mode, advanced tainting options, post-processor,
+  preprocessor, pattern-anywhere: etc.
+- new anywhere: pattern (Cooper/Andre, was called disjoint-pattern originally),
+  similar to inside:
+
+** static analysis
+- progress on SPA book (IFDS)
+
+** languages
+- C/C++ updated to latest tree-sitter (Brandon)
+  and lots of work on C/C++ (Phil/Romain and Heejong/Iago)
+- Elixir Alpha (Amarin)
+- Dart (Brandon), fixed segfault?
+  update: still not finished as of Q4 2024 and emily left (Dart fan)
+- OCaml add oo in AST_ocaml.ml (useful for forbid_xxx.jsonnet and semgrep autofix 
+  to reach all code in semgrep for dogfood)
+
+** osemgrep
+- osemgrep --help color redesign (zz, me), and pysemgrep/osemgrep cli_ux redesign (zz)
+  for growth
+- use ATD for osemgrep/pysemgrep ci communications with backend, and
+  big pysemgrep cleanup (and improved understanding)
+- more reduction between semgrep-core and semgrep JSON output,
+  and better error_type: (from string to ADT) in semgrep JSON output,
+- more pysemgrep reduction, removed Input_to_core.atd complex
+  targets with rule ids (now paths: include/excluded handled in semgrep-core),
+  removed autocomplete
+- osemgrep ci v0, with big meta refactoring (switch to OCaml objects), use ATD for most comms,
+  and 'osemgrep ci' working end-to-end!
+- osemgrep metrics v2 (zz, amarin, and me), "life of a metrics" document,
+  semgrep_metrics.atd cleanup
+  update: but switched to Datalog in 2024 so might die
+- osemgrep login/logout v2 (but still not shipped)
+- osemgrep test infra with mocking (network, login, output, logs, etc.)
+- split e2e/ tests in semgrep vs (futur) semgrep-pro in e2e-pro/ 
+  => 53% passing e2e/ tests (from 33%) :)
+- osemgrep test v0 (started by Hannes but failed so I took over),
+  and big cleanup Test_engine.ml
+- new osemgrep install-ci (hack-week:, zz)
+- support for --baseline-commit (Heejong)  
+- nosemgrep and autofix in semgrep-core, skipped in semgrep-core (Brandon)
+- hired Robur (Hannes) for #2, but failed to make progress on 'osemgrep test'
+  and on Sarif :(
+
+** ojsonnet
+- new ojsonnet tool with --yaml output (for gha-jsonnet)
+- improved ojsonnet enough to support std.format(), fixed many
+  scope bugs, so I can use it for GHA!
+  update: switch to regular jsonnet for GHA later because too many bugs
+- improved call trace with args/return value (a la Perl)
+  (helped to debug scoping issues)
+- refactored testsuite, separated with pass/, only_envir/, only_subst/
+
+** devops
+- new :canary intermediate docker image, and started owning full GHA workflows
+- compile osemgrep for windows POC (continued later by Tom)
+- jsonnet-gha, thx to ojsonnet tool, migrated most semgrep and semgrep-pro
+  GHA workflows to jsonnet and nice factorization (e.g., jwt token) in 
+  .github/workflows/libs/ .libsonnet files
+- start experimenting with setup-ocaml GHA action and github cache
+  as alternative to ocaml-layer
+- org rename (returntocorp > semgrep) in github, and troubles with
+  circleCI to reconnect account
+- abandon circleCI after some payment issue (not worth it; I also know
+  better GHA now)
+- OCaml 5.0 and 5.1 experiments, but back to 4.14 because of memory regressions,
+  but factorized more things compared to previous Brandon's experiment at
+  OCaml 5 thx to jsonnet and my refactoring of many workflows
+  update: still not switch in Q4 2024
+- new atddiff tool to check incompatilbity in semgrep-interfaces (Martin for Jonas)
+- check whether semgrep-pro broken by semgrep PR in GHA for each PR!
+  update: made irrelevant once the repo got merged
+
+** ecosystem
+- LSP.js (Austin/Brandon, mostly for windows user)
+- Windows support POC (on my surface book)
+
+** internals
+- big code reorg runner/Run_semgrep.ml -> core_scan/Core_scan.ml, 
+  Core_result.ml, 
+- libs/commons big cleanup part2 (motivated by capabilities)
+- use 'string wrap' in semgrep_output_v1.atd for better types in OCaml
+  via libs/commons/ATD_string_wrap.ml
+- start using capabilities for the semgrep codebase! TCB.ml, Cap.mli,
+  made even talk for PA/SR, with network/exit/random mostly
+  handled now via capabilities! (and some progress for exec too)
+  talk/slides:
+  and started using many forbid_xxx.jsonnet rules!
+  * Cap.network and forbid_network.jsonnet
+  * Cap.exit and forbid_exit.jsonnet
+- new testing library alcotest_ext (Martin), useful for osemgrep e2e tests
+- cleanup a lot extract mode code, new core/Extract.ml
+
+** semgrep-pro
+
+*** rules
+- secrets v2, better syntax
+- jsonnet used everywhere in SR (even Isaac surprised by it) in
+  semgrep-rules-proprietary; huge % of new rules are written in jsonnet,
+  and especially in secrets by Lewis
+
+*** static analysis
+- partly path-sensitive analysis for pointers for C++ (Iago)
+
+*** semgrep-pro
+- differential pro scan (Heejong, Iago)
+  update: project put on hold and disabled as buggy
+- reorg code, deep_scan/ and steps_scan/
+- scope doc for OSS/Pro repo merge
+  update: done in Q2 2024, postponed many times
+
+*** osemgrep-pro
+- sca in osemgrep POC (Matthew)
+   update: finished by me to real working POC e2e in Q4 2024
+- secrets in osemgrep (Andre)
+
+*** semgrep-server
+- move code of semgrep-grpc in semgrep-pro/server in its own repo
+  update: and then merged it back when OSS/Pro merge
+- use OCaml 5.1 there, and started to use eio! far cleaner than lwt
+- learn more eio, but blocked, failed to return incremental results
+- try switch to domain, but lots of concurrency bugs (e.g., in tree-sitter
+  not reentrant maybe)
+
+*** misc
+- OCaml port of semgrep-rpc v0 (Zach), but not shipped
+  update: finished by Brandon later who needed it for structured editing
+- r2c-repos/, we reached 1MLOC in all repos! 
+  used .codemapignore to ignore autogenerated code
+
+** HR
+- Brandon/Austin left for new PDX team led by Tom
+  update: Austin came back once PDX/CDX dismantled and Brandon went AI with Drew
+- Romain joined (and then SR was dismantled during EPD reorg)
+
+* 1.42 (Q3 2023) (multi-arch docker, osemgrep run by default, "Inspect rule", ojsonnet subst eval, Secrets POC)
+# Secrets launch, semgrep-grpc v0, 
+
+** rules
+- inline rules POC (with Sophia, hack week)
+
+** static analysis
+- progress on SPA book, interprocedural chapters (call-string vs functional approach),
+  but hard so went back to reread again past chapters
+  
+** languages
+- promql (Michael Hoffman)
+- start Protobuf/Makefile/Markdown but not fully pushed
+
+** osemgrep
+- new cli/bin/semgrep python entry point and new --experimental flag with
+  by default dispatch to osemgrep (and fallback to pysemgrep after CLI parsing),
+  and dogfood its use in precommit, Makefile
+  (few regressions because incomplete CLI parsing, but fixed easily)
+- real e2e tests infra, use_click_runner fallback option, not that much slower
+- pysemgrep reduction start and cleanup, remove shouldafound.py, dump_ast.py,
+  get rid of deprecated --enable-metrics, magic around .semgrep.yml and .semgrep/
+  get rid of command.py
+- __main__.py -> main.py, cleanup cli.py, semgrep_main.py -> run_scan.py
+  (with regressions reported)
+- osemgrep lsp e2e (Austin)
+- pysemgrep LOC tracking metrics
+
+
+** ojsonnet
+- try fix obj1+obj2 in presence of self/super by Sophia, but failed,
+  so started lambda-substitutions eval strategy (close to spec), but
+  failed because too slow
+- bigger testsuite
+
+** internals
+- start reduce distance between semgrep-core JSON output and semgrep JSON output,
+- stmts caching removal (Martin's code, not worth it)
+
+** ecosystem
+- debugger v1 finally shipped (a.k.a. matching explanations) with Austin
+  displayed by default in small window (as "Inspect Rule")
+
+** devops
+- start using github cache for .opam in GHA for semgrep-pro, 25min to 13min
+- cleanup GHA workflows in semgrep-pro, imitate semgrep
+- multi-arch docker images (Tom), so native ARM support on macos (m1)
+- nonroot docker image (and big regression, and first postmortem)
+
+** misc
+- move big sca test files out of e2e/targets, so make test does not take 4GB each time
+  in /tmp
+
+** semgrep-pro
+
+*** rules
+- secrets v1 (Yosef, Emma, Cooper, Andre, Lewis), and secrets launch! all in one quarter
+- multi-steps rules v0 (Emma)
+  update: still not shipped in Q4 2024, put on hold, nobody to finish it
+- more use of jsonnet by SR
+
+*** osemgrep-pro
+- osemgrep-pro started (Emma)
+- start plans with adam/matthew for ownership of ported SCA in osemgrep
+  update: still not done in Q4 2024 (just POC done)
+
+*** semgrep-server
+- semgrep-grpc proto with Austin and Tom and Zach, use protobuf
+- read more about ocaml-grpc, eio, threads vs eio vs lwt (even posted on
+  ocaml.discuss), and reported streaming bug
+
+** HR
+- new intern Yosef and Sophia
+- Amarin joined
+- Andre joined
+- Cooper is back, full-time
+
+* 1.30 (Q2 2023) (Turbo mode v1 and Vscode and LSP v1 launch!, osemgrep interactive POC, Cairo/Scala3, Semgrep Inc.)
+# Assistant beta launch! Deep and generics, Robur #1, 
+
+** rules
+- aliengrep and generic mode v2 (Martin)
+- named regexp patterns instead of using $1, $2 (Brandon)
+- metavariable-type generalized to more languages (Heejong first project)
+- more use of jsonnet for rule writing by SR
+
+** static analysis
+- book club on SPA book (until interprocedural analysis chapter)
+- datalog experiment for book club, live_variable.dl
+  
+** languages
+- Scala 3 (Brandon)
+- Cairo (Romain J external contributor)
+- Elixir resume, AST_elixir.ml and Elixir_to_elixir.ml v0
+- update to GA (C#, Kotlin, TS, ...)
+
+** osemgrep
+Robur:
+- osemgrep textual output (Hannes)
+- osemgrep ci v0 (Hannes), with start use of ATD for backend comm
+- osemgrep metrics v0 (Romain) with switch to Metrics.atd also for pysemgrep
+- osemgrep login/logout v0, and --config policy (Hannes)
+
+- make osemgrep-e2e  regression infra, and make osempass CI check
+- one binary for semgrep-core and osemgrep (argv0 trick)
+- readable paths, paths: include/exclude, get_targets v2 with fppath walk
+=> can dogfood osemgrep on semgrep! good enough to not report any findings
+  (thx to nosemgrep support by Romain, include/exclude, gitignore, etc.),
+  make check is using bin/osemgrep!
+- semgrep --experimental
+- osemgrep past/present/futur (history and pre-history) presentation
+  talk/slides:
+
+osemgrep-only features:
+- AST caching and registry caching
+  update: disabled once OSS-vs-Pro move #1
+- support -e without -l
+- incremental matches display (finally doable because of osemgrep)
+
+** internals
+- faster build thx to Robur and better knowledge of dune, do not call
+  'dune build' but 'dune build _build/.../semgrep-core', from 10s to 2s,
+- fixed 'make test', adjust dependencies and moved tests/Test.ml to src/tests/
+- cleanup gitignore and globbing code of Martin (add .mli, merge files),
+  moved code under libs/, new ppath/ library
+- Pos.ml/Loc.ml/Tok.ml refactoring, Parse_info.ml finally deleted
+- languages vs analyzers refactoring part 1 (Martin)
+- merged semgrep-langs/ repo in semgrep-interfaces
+
+** ecosystem
+- turbo mode v1! shipped in playground for real, fast/small enough
+- take over semgrep LSP server (Austin rewrite in OCaml)
+- semgrep support in emacs-lsp! (Austin)
+- Semgrep Assistant Beta launch (Bence, Vivek), lots
+  of activity around chatGPT and GPT4.0, really impressive at autofixing
+  and triaging report by Semgrep!
+  update: real launch in Q1 2025
+- new 'osemgrep interactive' TUI (Brandon), improved perf with caching,
+  fixed concurrency bugs, use Threads, but not shipped (segfault with 4.14.0)
+- license compliance check (Matthew)
+
+** devops
+- start cleaning up our release, move script to Makefile targets,
+  removed some useless scripts/ intermediate (e.g., osx-release-m1.sh,
+  factorize instead)
+
+** semgrep-pro
+
+*** semgrep-pro
+- support for Deep Go (Nat)
+- support for generics (Nat), not that hard actually :)
+
+Emma's post apr 2023:
+  https://semgrep.dev/blog/2023/the-birth-of-semgrep-pro-engine/
+
+** misc
+- Semgrep Inc rename from r2c officially :)
+- techcrunch article on series C. I'm mentioned a lot by Isaac!
+  https://techcrunch.com/2023/04/18/semgrep-formerly-r2c-lands-53m-investment-to-grow-code-security-platform/?guccounter=1
+- handle MISSING nodes in ocaml-tree-sitter finally (Martin)
+
+** HR
+- start split in 2 teams (Semgrep OSS team, Semgrep Pro team) after offsite
+- contracting Robur 2x 5 weeks (with Hannes and Romain, osemgrep work)
+- Austin joined the PA team, and joined full-time
+- Heejong joined
+
+* 1.16 (Q1 2023) (Turbo-mode POC, big code reorg, Julia/Clojure/Jsonnet/XML, Rust(Beta))
+# Semgrep Pro launch! 
+
+** rules
+- SR experimenting with jsonnet, mixing jsonnet and YAML (it's ok), defining some
+  wrappers (Either, And, Or, etc.) (Enno, Lewis, Claudio)
+- SR started jsonnet library of taint propagators/sinks/sources/ for Go and Kotlin
+  (Colleen, Enno)
+
+** static analysis
+- started book club on SPA book by Moller, and started implement it in TIP-ocaml
+  (lexing, parsing, CFG, typing)
+- started look more at Souffle, Formulog, FLix, read more papers
+
+** languages
+- Julia (Alpha, Brandon mostly)
+- Jsonnet (Alpha)
+- XML (Alpha)
+- Clojure/Lisp/Scheme (Alpha, via Raw_tree.ml)
+- Rust promoted to Beta (with Matt)
+  https://semgrep.dev/blog/2023/announcing-semgrep-s-beta-support-for-rust
+
+** osemgrep
+- gitignore, include/exclude, globbing v1 (Martin)
+- git-ls-files v1
+
+** performance
+- Parsing_helpers.input source, so no need /tmp to parse patterns, parse from string (Emma)
+- lazy parsing of patterns => big speedup on running p/default on non-ruby repo
+  (ruby patterns are slow to parse) (Emma + me)
+
+** internals
+- finish pfff integration, removed pfff/, moved lots of stuff in r2c/.../TRIMMED-pfff/,
+  moved remaining stuff in codemap/ or codegraph/
+- big code reorg: new libs/, tools/, src/, languages/, no more semgrep-core/
+  (useful so can start use tree-sitter languages/ in codemap/efuns)
+- Split Parse_info.ml, Parsing_stat.ml, Parsing_helpers.ml
+- consolidate libs, cleanup Common.ml
+- use of stdcompat so can compile semgrep on 4.12.0 (useful for codegraph)
+- use of atdts in semgrep-app (mostly Isaac, when adding support for taint traces)!
+- Fpath.t refactoring (Martin mostly)
+- Visitor_AST refactoring automated with deriving visitors (Nat)
+
+** devops
+- start release OPAM packages: commons.opam, lib_parsing.opam, profiling.opam,
+  process_limits.opam, ast_generic.opam (also release syncweb.opam thx to commons.opam)
+  update: resumed in 2026 after conf-tree-sitter.opam solved tree-sitter issue
+
+** ecosystem
+- start of Turbo mode (Tom Petr), PoC, and reduced size of engine.js
+  to 1MB compressed (new parsing_languages/ split)
+- start of port in OCaml of semgrep lsp (Austin), big perf gain with v0
+- taint traces in the playground (mostly Isaac)
+- start use tree-sitter in codemap and efuns! with Jsonnet/Rust/Bash/Dockerfile
+
+** semgrep-pro
+
+*** deep semgrep
+- Semgrep Pro launch (was deep-semgrep)! good support Java/JS/TS (Emma, Nat, Brandon)
+  blog post later by Emma and Colleen (apr 2023):
+  https://semgrep.dev/blog/2023/the-birth-of-semgrep-pro-engine
+  and also "Semgrep Code" launch (pro engine, and pro rules)
+  https://semgrep.dev/products/pro-engine/ (feb 14 2023)
+- ResolvedName -> GlobalName of string list, and Name.t big refactoring
+  with Name.path and Name.t with sid in it, useful for overloading (Brandon, Me)
+- deep-semgrep -> semgrep-proprietary rename
+
+** misc
+- Strumenta talk
+- first talk about ChatGPT, first demo by Raja to use AI for semgrep
+
+** Finance
+- raised series C! 50M, at 400M valuation
+
+** HR
+- first contact with Robur for osemgrep work, scope doc and contract agreement
+- first contact with Tarides
+- first contact with Romain
+  update: joined us in Q4 (but went in paternal leave quickly)
+
+* -----------------------------------------------------------
+
+* 1.0! (Q4 2022) (semgrep 1.0 post! osemgrep POC, ojsonnet POC, AST-based autofix)
+# SCA launch! metabase dashboard, Apex/Terraform(Deep)
+
+** rules
+- continue improving semgrep.jsonnet for dogfooding: override messages,
+  filter rules, customize rules by adding exclude, reuse rules from submodule,
+  etc.
+
+** static analysis
+- toplevel dataflow generalization (Brandon)
+- AST-based autofix v1 (Nat) and blog post
+- Raw_tree.ml (Martin) with better Boilerplate
+
+** languages
+- Apex (Martin)
+- Jsonnet (partial, but paved the way for ojsonnet)
+
+** internals
+- released semgrep 1.0! cleaned up specs (atd and jsonschema for
+  rule format, output format, AST generic format), blog post
+  https://semgrep.dev/blog/2022/semgrep-release-v1-announcement
+- merged pfff in semgrep, one less submodule
+- resume and cleanup extract-mode code from Cooper
+- cleaned up semgrep-core/tests, new semgrep-core/tests/patterns
+- autofix-parsing-stats
+
+** osemgrep/ojsonnet
+- Python -> OCaml rewrite v0 (osemgrep), semgrep scan part (Martin and me),
+  with --json, p/ocaml support, many flags (very long)
+- ojsonnet jsonnet interpreter (needed for osemgrep, but also improve
+  error reporting compared to the jsonnet Python binding in semgrep-python) (long)
+  enough for semgrep.jsonnet dogfooding!
+
+** devops
+- 1 click release (Spencer)
+- metabase dashboards and alerts, nice parsing stats with all GA languages in one graph,
+  thx to switch from sqlite to postgres (with Chris)
+- continue cleaning our GHA and circleCI workflow, add comments
+- dogfood semgrep.jsonnet by plugging it in CI and in pre-commit
+- crons to update submodules in semgrep and semgrep-proprietary (GHA and circleCI)
+- check submodule points to develop (Nat)
+  
+** tooling
+- new tool: otarzan, based on generic AST instead of camlp4 or ppx,
+  useful for boilerplate for Apex and also for ojsonnet
+- atd: support parametrized type (e.g., 'a wrap for AST_generic_v1.atd) for Python/TS
+- atd: support modules (e.g., to split semgrep_output_v1.atd in multiple files)
+  update: but not finished
+
+** semgrep-pro
+
+*** deep semgrep
+- many bugfixes on Java, JS/TS deep naming (Emma, Nat, Iago, Brandon)
+- deep-semgrep for terraform (Brandon)
+  update: but kinda abandonned; also too complex implem by Brandon
+- deep-semgrep lite (interprocedural but still intrafile) (Iago)
+  update: became --pro-intrafile
+- semgrep-proprietary (Apex parser) + deep-semgrep merge, one repo, one binary
+
+*** ecosystem
+- SSC/SCA launch
+
+** misc
+- take over officially devops duty from devops team
+- take over officially maintenance of CLI (hence the birth of osemgrep
+  a few weeks after by Martin)
+
+
+* 0.115 (Q3 2022) (jsonnet v1, extract-mode POC, AST-based autofix POC, VScode semgrep extension, Elixir/Swift)
+# deep naming stats, taint labels, 
+
+** rules
+- jsonnet v1 (registry-aware jsonnet integration in the CLI thx to jsonnet Python binding)
+  and dogfooding with semgrep.jsonnet!
+- new syntax v1 (Brandon/Cooper)
+  similar to the one I introduced in weekly-demo in 2020?, but more complete because
+  of semgrep rules more complex now
+- extract mode v1 (Cooper), was originally called "semgrep as a preprocessor"
+
+** languages
+- Elixir: experimental support
+- Swift (Nat)
+
+** static analysis
+- taint traces in the CLI output and in PR comments (Iago/Nat)
+- AST-based autofix v0 (Nat)
+
+** ecosystem
+- really ship VScode semgrep extension (using LSP protocol internally) (Austin)
+- debugger v0 (a.k.a. matching explanations) with Zach
+
+** misc
+- match-based id (better than syntactic id?, Austin)
+- Semgrep 1.0 presentation to Luke/drew and SR
+  update: now referenced as Semgrep 2.0
+
+** devops
+- dockerfile cleanup
+- GHA, circle CI cleanup and commenting
+
+** semgrep-pro
+
+*** deep-semgrep
+- taint labels (Iago)
+- naming stats dashboard
+- Terraform beta support (Brandon)
+- example annotation and TP/FP benchmark (Emma/Colleen)
+
+*** static analysis
+- field-sensitive tainting analysis (Matthew/Iago)
+
+** HR
+new hire: Brandon Wu
+
+* 0.102 (Q2 2022) (metavariable-focus:, semgrep-interfaces shared repo, semgrep ci, R/PHP(GA))
+# deep semgrep v2,
+
+** rules
+- start preprocessor mode (Cooper)
+  update: called extract mode later
+- metavariable-focus (Iago)
+
+** languages
+- R: 99.9% via tree-sitter-r, finish work started a long time ago,
+  R to AST generic and alpha tests
+- PHP: switch to tree-sitter-php, so get 99.9% parsing (for LSEG),
+  (mostly work of Sjord)
+- Java/TS/JS/Go: update to latest tree-sitter-xxx (For Go support new generics,
+  for Java support Text Block, for TS support lots of new stuff)
+- started Swift (Nat)
+
+** performance
+- restore -use_parsing_cache, and new -generate_ast_binary for snowflake's own
+  semgrep query console hack
+- lots of opti on Python CLI side to optimize semgrep --config=auto (Bence)
+
+** ecosystem
+- new taint traces in semgrep-core text output, far easier to debug
+  regressions between deep-semgrep and semgrep (Iago)
+
+** internals
+
+- new semgrep-interfaces/ shared repo, with new atdpy/atdts/atdcat -jsonschema
+  and Semgrep_output_v0.atd, used for core<->cli<->app-backend<->app-frontend!
+  with Martin (and before Emma) and Nathan. Lots of work on refactoring
+  core_output.py and output.py, but mypy+tests made this possible
+- semgrep-rules/ as submodule, so easier to test (and quite fast)
+- got rid of semgrep agent, and new semgrep ci command (Bence, Brendon)
+  update: but semgrep-action still remained for a long time
+- rename semgrep/semgrep/semgrep to semgrep/cli/src (Bence)
+- new Exception.ml and 'raise e' semgrep rule (Martin)
+- switch to OCaml 4.14 and ocamldebug works again! (Cooper and Emma)
+- ocaml-tree-sitter fix for aliasing and Regex, so fixed PHP and C++ generated code
+  (had pbs parsing #include in C++ and echo in PHP because of wrapper functions in grammar.js
+  that was generating some unnamed rule with regexes) (Martin)
+
+** semgrep-pro
+
+*** deep languages
+- Deep v2: Java, Ruby, JS/TS
+
+*** pro rules
+- taint propagators (Iago)
+
+*** deep semgrep
+- deep semgrep v2 with SIG.ml, SAST.ml, Type.ml, Name.ml, Naming_SAST.ml,
+  Deps.ml, Topo_deps.ml
+- deep tainting v2, using big graph of dependencies between functions (Iago)
+- test infra to check for regressions with semgrep on semgrep-rules,
+  on semgrep-core regression tests, on semgrep-core other tests
+- improvements to Java, Ruby, JS/TS (mostly Nat)
+
+isaac's blog post may 2022 (very good):
+  https://semgrep.dev/blog/2022/introducing-deepsemgrep/
+
+*** static analysis
+- new constant propagation using Iago's deep tainting v2 (Emma)
+
+*** performance
+- new deep semgrep core infra, SIG.ml, SAST.ml, etc., more parallelization,
+  SAST caching
+
+** misc  
+- return partial parsing info
+- switched to LGPL for every files in semgrep and pfff
+- Semgrep presentation for Gilles's workshop (but got sick so
+  didn't go to Rennes, but still manage to do record and send my presentation)  
+
+** HR
+- new intern: Cooper
+- new contractor/employee: Nat
+- Iago back to spain!
+- seceng hired Lewis Arden?
+
+lots of conflicts around semgrep-interfaces
+
+start of market tightening
+
+* 0.86 (Q1 2022) (pass-all-rules-to-ocaml, Dockerfile, Deep Semgrep POC)
+#deep-semgrep POC/v1, pattern-depends-on:/sca POC, !covid continue but still did offsite!
+
+** rules
+
+** performance
+- pass all rules to semgrep-core at once (Emma)
+
+** languages
+- Docker (Martin)
+- Scala GA? (matthew)  
+- Rust/Go: update to latest tree-sitter-xxx
+
+** internals (precursor work of osemgrep)
+- finished Python/OCaml split, pass all rules to semgrep-core at once and new
+  semgrep -xxx to dump commands and files passed to semgrep-core
+- start work on semgrep interfaces, document ATD vs alternatives
+- Input_to_core.atd, typed JSON for targets, Output_from_core.atd typed JSON output
+  from core to CLI and atdpy start!
+- new interfaces/ directory
+  update: moved later some of its content in semgrep-interfaces shared repo
+
+** semgrep-pro
+
+*** deep semgrep initiative!
+- POC implement with Iago (during hack week in february) mostly for Java
+  * interfile constant propagation
+  * interfile typing (for typed metevariables and deep inheritance subtyping)
+  * interfile tainting (Iago)
+- basic devops, docker image, new --deep flag to semgrep
+  update: became part of official semgrep docker image later
+- started X.ml for naming v2 (will become SAST.ml)
+- basic support for Java, Python, Ruby
+
+*** deep languages
+- Deep v1: Java, Ruby, Python
+
+*** static analysis  
+- interprocedural tainting, context-sensitive analysis
+  thx to kinda polymorphic taint signatures (Iago)
+  update: still quite complicated in Q4 2024
+- codegraph for Python via AST generic (pre deep-semgrep)
+- pycheck with _.pyi files, but failed to convince CLI team, but managed
+  to remove some deadcode (after fixing all the deadcode FPs because of naming bugs)
+  update: solved it later by getting rid of python code :)
+  update: abandonned later
+
+*** pro rules
+- continue pattern-depends-on: Isaac's idea, new team-sca (matthew, adam)
+
+** HR
+- seceng hired Kurt?
+- seceng hired Claudio?
+
+  
+* -----------------------------------------------------------
+
+* 0.77 (Q4 2021) (C++/Solidity/Bash, Kotlin(GA), SCA POC)
+# SCA start, Deep semgrep start, 
+
+** languages
+- C++: big effort to improve cst_cpp.ml, and Parse_cpp_tree_sitter.ml,
+  manage to get 94.5% parsing rate
+  update: actually got used in Q4 2023 when we got many customers asking for C++
+- Solidity
+- Bash? (Martin)
+- Kotlin GA (Colleen+me)
+- Scala to 99% (matthew)  
+
+** semgrep
+- method chaining (. ... .) for all GA languages  
+- tested ocaml multicore
+  update: no need for multicore in the end
+  update: still no multicore in Q4 2024
+  
+** internals
+- start semgrep-cli/semgrep-core cleaner separation initiative v2 (with Emma)
+  (plans for pass all rules, one place file targeting, and get rid of semgrep agent)
+
+** semgrep-pro
+#update: will be called semgrep-pro only far later
+
+*** rules
+- start of project-depends-on:, prototype by Isaac!!
+  (and retro on failure-to-invent-project-depends-on)
+
+*** deep-semgrep
+- start deep-semgrep initiative, new deep-semgrep repo, semgrep as a library refactoring,
+- symbolic propagation? (Iago)
+
+*** ecosystem
+- new Dev sentiment (Adam) in semgrep-app! game changer
+  update: abandonned?
+
+** misc
+- new thinkstation machine! had all christmas time to set it up.
+
+* 0.67 (Q3 2021) (tainting v2 with formula, metachecker v2, x2 speedup, Terraform/Vue/HTML/OCaml(GA),C#(GA))
+
+** rules
+- tainting 2.0: formula for source/sink/sanitizer (Iago)
+  which can remain OSS, and first discussions on interfile DeepSemgrep
+- metachecker resume: parse rules with positions (with Emma)
+  update: still not really used in Q4 2024
+  
+** languages
+- Terraform
+- Vue
+- HTML (needed for vue)
+- OCaml: finished Parse_ocaml_tree_sitter.ml, improved module aliasing and
+  continue LSP experiment (mostly for OCaml workshop), GA parsing rate probably
+- C++: start Parse_cpp_tree_sitter.ml
+- Bash: start (Martin)
+- C# GA (Grayson and Sjord)
+
+** performance
+- switch to native compilation (hmm), and x2 speedup! and also
+  bit reduction in binary size (/3)
+  
+** misc
+- OCaml workshop (online, because of covid)
+- switch to OCaml 4.12 and fixed backtrace problems (was because we were using
+  a weird bytecode format, and that's when I found we were not using ocamlopt!)
+- improved semgrep-docs with recent features ("$XXX", $...ARGS, . ... ., partials,
+  metavariable-pattern:, options:)
+  
+** HR
+- hired Matthew McQuaid
+  
+* 0.57 (Q2 2021) (metavariable-pattern:, switch to full-rule-in-ocaml, use .atd, Scala)
+#!covid continue!
+
+** rules
+- new metavariable-pattern: and language:! (by Iago)
+  semgrep inside semgrep! inspired a bit by pattern-where: of Brendon
+- new pattern-comby:
+  update: removed later
+- "$XXX", /$XXX/, :$XXX literal metavariables
+- new options:
+
+** languages
+- Scala: implemented by me from scratch by imitating Odersky's original Scala parser
+  with recursive descent parser (to deal with Ethan's failure of using
+  tree-sitter-scala) and defined new AST_Scala.ml (took over later by matthew)
+- update to latest tree-sitter-xxx for Java (support for Record, unicode)
+- improved C#   
+
+** static analysis
+- associative/commutative (AC) matching for b && c (Iago)
+- poor's man interprocedural tainting (Iago)  
+
+** performance
+- switched to full-rule-in-ocaml (was semgrep --experimental), after
+  fixing lots of matching and performance regressions (with Emma)
+- parsing stats for pfff and tree-sitter (Martin)  
+
+** internals
+- new Semgrep.atd, to specify JSON output of semgrep-core
+  update: got renamed later to Output_from_core.atd and later to Semgrep_output_v0.atd
+  and later Semgrep_output_v1.atd and used also for pysemgrep JSON output and more
+- new ast_v1.atd to expose generic AST to other languages (via untyped JSON for now)
+  update: got renamed later to ast_generic_v0.atd
+  update: removed after OSS vs Pro #2
+- new Config_semgrep.atd
+- use ocamlformat! (Martin)
+
+** misc
+- gitlab tech talk roadmap presentation (2020 review and 2021 roadmap)
+- got merge rights from github/max for many tree-sitter-xxx repositories!
+  update: got it removed somewhere in 2024
+- cleanup my fork of patchparse for Julia's intern
+  
+** HR
+- Iago effectively started from May
+
+* 0.45 (Q1 2021) (full-rule-in-ocaml, new syntax POC, jsonnet POC, dataflow-based const propagation, Lua/Rust/YAML)
+# semgrep.dev launch II! 
+
+** rules
+- study 10000 LOC of rules to get new ideas (leading to jsonnet experiment)
+- jsonnet experiment, call external jsonnet program from semgrep-core
+  update: never shipped fully, but used by SR internally as preprocessor
+- full-rule-in-ocaml, so can use jsonnet directly! with simpler
+  API like nathan/Brendon/me wanted: generalized or/and/not.
+  Easier with Eval_generic.ml instead of pattern-where-python.
+- new syntax for boolean formula v0 ?
+
+** patterns
+- partial single field for YAML (and later Go)
+
+** equivalences
+- semantic numbers
+
+** languages
+- Lua: by Ruin0x11
+- Rust: by Ruin0x11 hired by clouddefense,ai
+- C#: Continue work by Sjord
+- R: start work by Ross (very slow)
+- YAML: reuse ocaml-yaml binding, streaming API, and preprocess phase
+  to handle ellipsis (Emma)
+- Scala: started work by contractor (Ethan)
+  update: ethan failed, so I took over later
+
+** static analysis
+- !!dataflow-based constant propagation!! (Iago) id_constness field
+  (after push by me to Iago to finish that during vacation to get an offer)
+- semgrep metachecker PoC (which led to full-rule-in-ocaml)
+  update: resumed by emma with Yaml support in Q2
+  update: never really used/advertised/shipped as of Q4 2024
+
+** performance
+- benchmarks (martin)
+- caching ... opti (martin), but not as good as planned
+- bloom filter opti (emma), but not as good as planned
+- started full-rule-in-ocaml, remove IPC, cached AST, 
+  ported many constructs
+  (started work on it partially because of annoying 'pattern: $PROP')
+- started regexpizer: -filter_irrelevant_rules (-fast) with lazy parsing,
+  skipping entire files, normal form conversion, extract strings
+  after figma slow big-js investigation
+  update: this led to the removal of the other optimizations by Martin
+  and Emma as they were making the code more complicated for no clear
+  benefit once you have -fast
+- optimize { ... } for function body
+
+** ecosystem
+- semgrep-app/manage launch (launch II), manage policy, rulesets, 
+  repositories, ignore paths, CI, PR comments
+
+** internals (precursor of osemgrep)
+- started port of rules related semgrep python wrapper features to OCaml,
+  lots of stuff (metavariable-regexp, pattern-inside, pattern-regexp,
+  integrate spacegrep, ...)
+  update: kinda osemgrep prehistory
+- move AST_generic out of pfff in semgrep-core, big refactoring
+- reorged ocaml-tree-sitter, no more semgrep-grammars/ repo, put all
+  in ocaml-tree-sitter, and split ocaml-tree-sitter-lang/ in multiple 
+  semgrep-xxx, so less conflicts and easier to merge
+- semgrep-core/src/ (martin) reorg
+
+** misc
+- add pfff in managed project in web UI, dogfood!
+
+** HR  
+- hired Iago
+- Emma joined us full-time!
+
+* -----------------------------------------------------------
+# Also I think lots of meetups in 2020 during covid by Clint/Isaac/Drew/Me/...
+
+* 0.35 (Q4 2020) (generic mode, partial patterns, method chaining, $...ARGS)
+# R2C launch I! 
+
+autofix?
+
+** rules/patterns
+- spacegrep patterns
+- generic mode with spacegrep (Martin and Grayson)
+- partial patterns for function signature (Go), class and method header
+  for Java/JS, attributes, ifs, try, catch, finally, etc.
+- $...ARGS (after $ARGS... ambiguity in JS)
+- method chaining . ... .foo()
+- ... in switch for Go (but forgot select?)
+
+- fixed many import/aliasing inconsistency, and Id vs Name bugs
+
+** languages
+- PHP, fixed many parsing/matching bugs, alpha level
+- Kotlin start with Colleen
+- C# first external contributor! Sjord
+- C via ocaml-tree-sitter
+
+- leverage error recovery in tree-sitter! far better parsing stats
+- removed cst_js.ml, visitor_js.ml, map_ast_js.ml, ast_js_build.ml, ...
+  remove tedious intermediates.
+
+** dogfood
+- new ocaml rules! dogfood! ported ocamllint rules
+
+** static analysis
+- resume work on IL/CFG (Iago)
+
+** performance
+- new -max_match_per_file
+
+** ecosystem
+- resume patchparse, fork julia, reorg code, cleanup a lot
+  update: abandonned as of Q4 2024
+- experiment semgrep-core to nodejs!
+  update: resumed by Tom later for Turbo mode v1
+
+** internals
+- use easy_logging
+  update: got rid of it after osemgrep use of Logs
+  and the big simplification of logs in 2024
+- try ppx_bisect for coverage
+- use ocp-indent in pre-commit
+- trimmed down lang_php/
+- parsing stats for pfff parsers
+
+** misc
+- blog post history semgrep, but refused by LWN as-is
+- signup semgrep.dev! finally :) to load save snippets!
+- r2c launch (but actually just talk about financing
+  that was done 2 years ago)
+
+* 0.26 (Q3 2020) (metavariable-comparison, LSP POC, pattern-from-code POC, TS/PHP, Ruby, Java/Go/JS tree-sitter switch)
+
+semgrep-app/manage policy start?
+
+** patterns
+- metavars for JSX tags and attributes
+- switch to PCRE style regexp via ocaml-re, handle /i modifier
+  update: later switch to PCRE2 by Cooper
+- new metavariable-comparision via -eval_generic
+
+** languages
+- Typescript, via ocaml-tree-sitter (martin for TS part), alpha support!
+- Ruby, finalized and "launch" support for Ruby
+- Java parsing via ocaml-tree-sitter (me), closed 10 parsing issues at once!
+- Go parsing via ocaml-tree-sitter (me)
+- Javascript, via ocaml0tree-sitter (me for JS part)
+- PHP, finalize work (after a twitter comment)
+- C#, started work by generating skeleton
+
+quick look again at tree-sitter-c and tree-sitter-cpp. Actually not bad,
+with partial support for macros.
+
+** static analysis
+- experiment with souffle/DOOP Datalog (Emma)
+  update: still no use of Datalog as of Q4 2024
+- experiment with LSP, PoC demo for OCaml LSP server, real
+  typed metavariables!
+  update: resumed a bit with LSIF/SCIP by Brandon in 2024 but
+  still not really used in Q4 2024 (SMS could maybe unlock it)
+
+** ecosystem
+- finalized !!pattern-from-code!! in playground (emma), with blog posts
+  update: but then disabled; never shipped
+
+** performance
+- optimize ..., filter them and match in any order
+- new -filter_irrelevant_patterns
+  update: better now with -filter_irrelevant_rules!
+- new --maxout for memory
+
+** internals
+- many submodules for ocaml-tree-sitter, and ocaml-tree-sitter-lang autogen
+  update: simplified later
+- switch to dune for pfff, so can move pfff under semgrep-core!
+- new [@@profiling] ppx extension (using ocaml-migrate-parsetree driver)
+  and use new let*
+- use semgrep in CI, dogfood!
+
+** misc
+- PlTalk with Jean Yang
+- Emma dropping out to join us in 2021!
+
+* 0.13 (Q2 2020) (new semgrep name, IL + tainting POC, ocaml-tree-sitter, typed metavar v0, Ruby/OCaml/JSON)
+
+semgrep-agent? semgrep in CI with diff analysis? in 2020?
+
+** rules/patterns
+
+- experimental tainting mode
+  update: stayed experimental for a year, not much requested
+
+- deep expression operator <... ...> like in Coccinelle,
+  and remove some implicit deep expr matching 
+- really deep statement matching, with '...' going really deep
+  but safe thanks to unique_id
+  update: a bit abused for fake taint rules
+- regexp on fieldnames in JS
+- metavariables on types in Go
+- return correct ranges for stmts matching
+- !!typed metavariables for Java/Go by propagating decls!! (Emma)
+- toplevel object pattern for JS
+
+** equivalences
+
+- finalized constant propagation (easy way, no dataflow yet)
+- var vs const/let in JS
+- !! user-defined equivalences!! <=>, ==>, like in Coccinelle, just expr
+  update: not really used in a year, still "experimental" label
+  update: still not used as of Q4 2024
+- alias resolution for decorators
+- vardef to assign equivalence
+
+** languages
+- Ruby, via ocaml-tree-sitter (Martin + me), not finished but almost
+- OCaml, dogfood!
+- JSON (via JS :)
+
+** static analysis
+- switch to generic name resolver
+- use unique_id, and really deep stmt matching
+- started work on IL, and CFG
+- !!tainting!! basic intraprocedural dataflow-based tainting!!
+- "const analysis" for Python, use Final for Java
+
+** performance
+
+- -j <n> parallel (using Parmap)
+  update: easy :) got discussed many times to be removed from semgrep OSS
+  but I fought it each time as it was just 10 lines of code
+  update: introduced Parmap_.ml and more tricky than anticipated to
+  make it work; Austin and Nat hate Parmap (OCaml 5 domains should be better)
+- optimize deep stmt matching, go deep only after first match
+- new --timeout
+
+** internals
+
+- switch to menhir for many of my grammars, nice %inline which fan
+  fix some s/r conflicts, macros to factorize a la EBNF, better parsing
+  conflict messages
+- started Semgrep.nw
+  update: abandonned quickly, no time to get it up to date
+  and the people we hired understood OCaml (Emma, Martin, Iago, Nat, etc.)
+- split lib/ in parsing/ matching/ etc. and renamed files capitalized 
+  like Martin did in his ocaml-tree-sitter
+- !!ocaml-tree-sitter by martin!! sharon and ulzii and I started a bit the
+  work, but Martin implemented it, with Ruby as first target (martin)
+- SEMGREP_CORE_DEBUG env variable trick
+- switch to ppx_deriving, removed lots of boilerplate code
+
+** ecosystem
+- sgrep.live/learn (Clara?)
+- semgrep docs via gitbook!
+- started pattern-from-code (emma), idea from isaac, scope doc by me
+  and implemented in a week or two by Emma
+
+** misc
+- experiment with using jinja template to factorize rules, which prompted
+  me to finish user-defined equivalences
+  update: work resumed by me later with jsonnet
+- experiment with new syntax, pretty cool stuff actually:
+  https://r2c.quip.com/4vr9AvBjLete/WIP-Sgrep-New-Syntax-Proposals
+  update: maybe more doable with full-rule-in-ocaml
+- rename to semgrep! (Russel Cohen's idea mostly), semantic grep
+  which was the meaning of sgrep too, but there was already such a tool
+  (not mine)
+- experiment tree-sitter-to-menhir with scala, but still too many conflicts
+- unicode parsing fix (martin)
+
+** HR  
+- hired Martin!
+  
+* 0.4 (Q1 2020) (sgrep 2.0 boolean formula, sgrep.live playground, sgrep-rules, first external use, Go/Java)
+# covid start
+
+** rules/patterns
+
+- !!Boolean logic!! composition of patterns! (no more 'Ok' hack for negation)
+  pattern-either:, pattern-not:,  YAML syntax (isaac)
+  and my idea of intersection of ranges_with_metavars (hence the
+  output of metavars in semgrep-core JSON output)
+- pattern-where-python:?
+  update: I removed it later and replaced with Eval_generic.ml
+
+src: archive.org 2020-01-27
+   * think about sgrep python wrapper feasibility, and got idea of boolean
+     logic on position ranges and AND/OR/NOT {{{ }}} and WHERE features,
+     great for combinations of function pattern with expression pattern
+update: in the end isaac opted for the YAML pattern-xxx: fields
+ and adhoc/restricted boolean logic (that I cleaned-up a year after)
+history: mix of ideas from my 'Ok' hack, the Python hook we had in Coccinelle
+
+- function header and body
+- merged stmt and items
+- better pattern for parameters: metavars, ellipsis, match keyword parameter
+- decorators (a.k.a annotations, a.k.a attributes) in any order
+- '...' for fields, inheritance, optional expr
+- typed metavariables for literals!
+- JSX patterns
+- match field in any order
+- deep stmt matching for ..., flatten the blocks
+
+** languages
+- Python parsing at 99.95% of 2M LOC
+- Go at 99.5%, and Go to AST generic
+- Java at 97%
+
+- Ruby: added druby Ruby parser in pfff, cleaned up, adapted to pfff,
+  experiment with GLR via dypgen
+- PHP to AST generic part2
+- C++ resume pfff parser for mozilla, but still not great, and
+  dypgen C++ trial but failed
+- Swift: quick look at grammar and NEAL swift parser
+  update: actually added back later via tree-sitter by Nat long time after
+
+Started work by Sharon on tree-sitter vs babelfish vs javaparser for Java.
+But failed finish tree-sitter JSON to typed CST (ulzii after her also failed).
+
+** equivalences
+
+- idea for pattern-when: $X == null, based on Mark W. discussions,
+  but never implemented it
+  update: Kat intern in 2024 implemented it, but not fully satisfying
+- deep expr matching for ExprStmt by default
+- import equivalences hack (drew/isaac)
+- started constant propagation: require const keyword
+
+** static analysis
+
+- Started naming_ast.ml, generic name resolving (needed for
+  deep stmt matching to make sure the scope of metavar is right)
+  update: superseded by Naming_SAST.ml with deep-semgrep but still
+  not fully replaced as of Q4 2024
+
+** ecosystem
+- integrate with registry of rules online (done in python wrapper, may
+  have been the original motivation for the split ocaml-core/python-wrapper)
+- !!sgrep.live!! by drew (and a bit isaac), 2020-03-02
+- semgrep-rules!
+
+** internals
+- semgrep-core/semgrep-python split, with JSON for ranges, removed Ok
+  hack
+- stared ocaml-tree-sitter, put basic examples of grammars, basic
+  ast_grammar.ml, ast_grammar_normalized, etc. work with Sharon, then Ulzii
+- started project-reason-tree-sitter to interview people, good programming
+  exercise with actual futur project if hired :)
+- fixed lots of NoTokenLocation, wrong Block wrapper (recurring pbs),
+  add more tokens in the generic AST
+- Fixed a few Name vs Id, a recurring pb too
+  update: fixed later by introducing a cleaner Metabariable.value.Id 
+  with id_info in it
+
+** misc
+- sgrep meetup #2
+
+* -----------------------------------------------------------
+
+* 0.1 (Dec 2019) (sgrep for C resume)
+# sgrep meetup! 
+
+** rules/patterns
+
+- multiple stmts patterns
+- '...' between stmts
+
+** languages
+- C: good enough for goto $FAIL; goto $FAIL example
+  of my slides
+- Go: started Go parser
+
+look tree-sitter a bit already for Java, and some doubts (lots of Todos, weak C++ grammar)
+update: turn out C++ was pretty good because defined as extension of C (which
+ had a pretty big grammar.js) and turn out we switched to tree-sitter
+ (and many other followed us after too)
+
+** equivalences
+- builtin '!=' normalization
+
+** internals
+- move pfff to https://github.com/returntocorp/pfff
+  big split, extract sgrep/spatch, codemap, ... and split in multiple repos
+- new home https://github.com/returntocorp/sgrep
+- switch to dune
+- test infra, basic test examples of semgrep presentation (will become cheatsheet)
+  for Python, JS, C, Java
+- think about converting sgrep codebase to Reason for grayson, but never did
+
+** first sgrep launch!
+- travel to SF for work week at R2C! intense thanksgiving
+ => first sgrep talk! meetup at R2C HQ, a few appsec people invited and
+ academics (clint was there, dropbox/... where there)
+- http://sgrep.dev with nice documentation, how to install
+
+** misc
+- lots of parsing bugfixes
+
+* beta (Nov 2019) (semantic keyword matching, aliasing, YAML rules)
+
+** rules
+
+- sgrep_lint, via YAML
+- Note that there was no boolean logic yet. Just a flat list of patterns
+  with the Ok hack of facebook sgrep_lint for negation.
+  The semgrep-core/semgrep-python was also done later in January.
+
+** languages
+
+- PHP to AST generic (but unfinished integration in semgrep)
+- OCaml to AST generic (but unfinished integration in semgrep)
+- Java to AST generic
+
+The integration in Semgrep was not finished, but at least it stress-tested
+the AST generic to try to cover more than just Python and JS.
+
+** equivalences 
+
+- flexible keyword argument matching (ievans idea)
+- aliasing and naming (ievans idea) via id_info
+  so subprocess.open match aliased open
+
+** static analysis
+
+- resume dataflow from facebook and port to AST generic, for check_ast_generic
+  (useless assign)
+
+** misc
+
+- new -json output
+
+** internal
+
+simplified code, remove functors, and transforming, so simpler monad
+(people were making fun of the ugly code in Generic_vs_generic.ml)
+
+* alpha (Oct 2019) (generic AST, sgrep for Python/JS)
+
+sgrep and sgrep_lint for generic AST
+
+** rules/patterns
+- add metavar for Python/JS grammars, toplevel exprs, ..., 
+- stmt patterns
+
+** languages
+- Python to AST generic
+- JS to AST generic
+- C: started C to AST generic
+
+** misc
+- sgrep for Python/JS hackathon demo (but didn't win, lol, and got bad feeling)
+  with metavars, ..., regexp on strings, lots of the fundamental features were there
+  update: the fact that I didn't win led to the idea of "the semgrep award"
+  during hackathon for retrospective on actually more impactul project
+  at the previous hackathon :)
+
+* pre-alpha (Q2/Q3 2019) (sgrep for JS)
+
+2019-05: resume work on pfff/lang_js/ (asked to work on tainting for JS by Cam and R2C)
+2019-06: coded in one night sgrep/JS, $X == $X, shown sgrep lint rule facebook
+         => sgrep for JS demo at R2C for my one week interview (it was there! already!) 
+2019-07: better pfff for JS, better JS parser
+2019-08?: Python parser, for dogfooding our own code checked_return
+2019-10: AST generic for python and JS (for checked_return factorization)
+
+* -----------------------------------------------------------
+
+* pause to work on principia softwarica 2014-2019
+
+* -----------------------------------------------------------
+
+* pre-history (2005-2014) (sgrep for C/PHP/fuzzy, C/C++/Java/PHP/OCaml/JS yacc/menhir parsers, pfff/yacfe/coccinelle)
+
+** sgrep at facebook (2010-2014) (sgrep for PHP/fuzzy(C++/Java/ML), sgrep_lint, cmf -only-new-errors, PHP/OCaml/Java/JS parsers, pfff/codemap/codegraph/codecheck/)
+
+not in list:
+ - negation in sgrep_lint? Ok hack
+ - pfff/lang_js/ start?
+ - pfff/lang_java/ start?
+ - pfff/lang_cpp/ resume?
+ - pfff/lang_ml/
+ - cmf -only-new-errors
+
+2009-10? started pfff/, PHP frontend for fun (later pfff/lang_php/)
+
+2010-02: first proto sgrep for PHP, just expressions, basic metavars, basic ...
+2010-04: metavariable equality $X & $X for erling, -pvar for scott
+2010-10: wiki page
+
+2011-01: statement pattern for heise
+2011-02: sgrep_lint! and integration in arc lint, with configurable rules!
+         and also negation????
+2011-04: ... in array for erling, parameters, toplevel patterns (funcdef) for heise, 
+         string metavar for ola/ahupp, basic autofix
+2011-06: rules for zrait, ben, arman, erling, alok, ptarjan, bhiller, ...
+2011-07: regexp matching on strings in semgrep for arice and other
+2011-09: better stmt patterns for eugene, isomorphisms for XHP
+
+2012-01: metavar for reference argument for alok, keyword arg iso
+2012-02: jsgrep from another person inside facebook (but not same engine)
+2012-03: xhp metavariables for erling
+2012-09: discussions on many args X...? MANY_XS?
+
+2013-01: iso on "..." matching also concatenated string for ben
+2013-04: sgrep -lang c++ using AST_fuzzy
+2013-05: ast fuzzy for ocaml, and basic metavar, linear patterns, etc for fuzzy sgrep
+2013-06: sgrep_lint for c++ (and objective C), kbeck "a very cool tool [sgrep]"
+2013-07: fuzzy mode also for PHP (sometimes simpler)
+2013-07: support JS and Java via fuzzy mode
+
+2014-01: trailing comma iso
+2014-02: sgrep fuzzy use for objective C
+2014-04: help someone with sgrep and negation
+2014-07: use of sgrep by kbeck :)
+
+left facebook 2014-10
+
+** acomment (2007-2009) (C++ parser and a bit Java)
+
+2008?: lang_cpp, yacfe
+
+** coccinelle (2005-2007) (spatch and sgrep for C)
+
+2005: collateral evolution study
+2006?: christmas: eureka! semantic patches! reuse patch syntax!
+2006?: coccinelle, spatch
+2007: sgrep-c (rene rydhof hansen), with '*' in first column instead
+ of '-' and '+' for matching instead of transforming.
+ Also idea was suggested to me at an OLS conf "this is the futur, spatch, sgrep"
+
 
 * ----------------------------------------------------------------------------
 
