@@ -332,6 +332,10 @@ find_lsp_server "TypeScript/JavaScript LSP" typescript-language-server \
 # installed via 'apt install jdtls', Homebrew, or manual download
 find_lsp_server "Java LSP" jdtls
 
+# OmniSharp: Roslyn-based C# language server
+# download from https://github.com/OmniSharp/omnisharp-roslyn/releases
+find_lsp_server "C# LSP" OmniSharp "$HOME/.local/share/omnisharp" "$HOME/.dotnet/tools"
+
 echo ''
 echo 'Everything looks fine. You can now run: '
 echo ''

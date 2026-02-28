@@ -32,6 +32,7 @@
    parser_java.ast
    parser_java.menhir
    parser_java.ast_generic
+   parser_csharp.ast_generic
  )
  (preprocess (pps ppx_deriving.show ppx_profiling))
 )

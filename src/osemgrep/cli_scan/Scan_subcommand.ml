@@ -659,7 +659,7 @@ let run_scan_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
     let roots =
       List_.map Scanning_root.to_string conf.target_roots
     in
-    LSP_client.init (caps :> < Cap.exec >) ~lang ~expr:conf.lsp_expr ~roots ()
+    LSP_client.init (caps :> < Cap.exec ; Cap.readdir >) ~lang ~expr:conf.lsp_expr ~roots ()
   end;
 
   (* imitate pysemgrep for backward compatible profiling metrics ? *)

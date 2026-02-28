@@ -110,7 +110,7 @@ let parse_type s =
   | _ -> raise Impossible
 
 let lsp_lang : LSP_lang.t = {
-  server_cmd = (fun caps -> server_cmd caps);
+  server_cmd = (fun caps ~root:_ -> server_cmd caps);
   language_id;
   project_root_marker;
   clean_hover;

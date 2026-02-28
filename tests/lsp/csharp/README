@@ -1,0 +1,29 @@
+Test data for --lsp with OmniSharp (C# language server).
+
+The typed metavar pattern (int $X) should match expressions whose type
+is 'int' even when the type can only be determined by looking at the
+definition in another file (Lib.cs).
+
+Prerequisites:
+  - OmniSharp: download from https://github.com/OmniSharp/omnisharp-roslyn/releases
+               extract to ~/.local/share/omnisharp/
+  - dotnet:    apt install dotnet-sdk-8.0
+
+Setup:
+  Nothing to build — OmniSharp loads the project from test.csproj automatically.
+
+Without --lsp (matches only literals and declared-type identifiers):
+  osemgrep scan -e '(int $X)' --lang csharp tests/lsp/csharp/Main.cs
+
+With --lsp (OmniSharp resolves interfile types):
+  osemgrep scan --lsp --lsp-expr -e '(int $X)' --lang csharp tests/lsp/csharp/Main.cs
+
+The extra findings with --lsp come from OmniSharp knowing:
+  - Lib.Add(a, b) has return type int (defined in Lib.cs)
+  - sum has type int (from the declaration)
+Without --lsp, osemgrep cannot resolve Lib.Add's return type because
+it is defined in Lib.cs, not in Main.cs.
+
+Note: osemgrep automatically finds the project root (directory containing
+*.csproj) by walking upward from the target file. This is needed because
+OmniSharp requires the workspace root to find the project configuration.

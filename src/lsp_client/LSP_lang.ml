@@ -27,8 +27,10 @@
 type t = {
   (* Command to start the language server, e.g. "ocamllsp", "clangd", "gopls".
    * Takes an exec capability because some implementations (e.g. LSP_ocaml)
-   * need to run shell commands to locate the server binary. *)
-  server_cmd : < Cap.exec > -> string;
+   * need to run shell commands to locate the server binary.
+   * The second argument is the project root directory, needed by some
+   * servers (e.g. OmniSharp uses -s to scope project scanning). *)
+  server_cmd : < Cap.exec > -> root:string -> string;
   (* LSP languageId for didOpen notifications, e.g. "ocaml", "c", "go" *)
   language_id : string;
   (* File whose presence marks the project root, e.g. "dune-project", "go.mod" *)

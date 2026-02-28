@@ -35,6 +35,7 @@
  *  - TypeScript: typescript-language-server (needs tsconfig.json; project root auto-detected)
  *  - JavaScript: typescript-language-server (same as TypeScript; needs tsconfig.json)
  *  - Java: jdtls (Eclipse JDT Language Server; needs pom.xml or build.gradle)
+ *  - C#: OmniSharp (needs *.csproj; project root auto-detected)
  *
  * To use: run osemgrep from the project directory you want to analyze.
  *)
@@ -107,6 +108,7 @@ let lsp_lang_of_lang lang =
   | Lang.Python -> LSP_python.lsp_lang
   | Lang.Ts | Lang.Js -> LSP_typescript.lsp_lang lang
   | Lang.Java -> LSP_java.lsp_lang
+  | Lang.Csharp -> LSP_csharp.lsp_lang
   | lang ->
       failwith (spf "LSP_client: unsupported language: %s" (Lang.show lang))
 
@@ -123,15 +125,42 @@ let debug = ref false
 (* Helpers *)
 (*****************************************************************************)
 
-(* Walk up from [dir] looking for a file matching [marker].
- * Returns the first directory containing it, or None. *)
-let rec find_marker_upward marker dir =
-  let candidate = Filename.concat dir marker in
-  if Sys.file_exists candidate then Some dir
+(* Check whether [name] matches a simple glob [pattern] (only '*' supported).
+ * e.g. "*.csproj" matches "MyApp.csproj". *)
+let glob_match pattern name =
+  if not (String.contains pattern '*') then pattern = name
   else
-    let parent = Filename.dirname dir in
-    if parent = dir then None (* reached filesystem root *)
-    else find_marker_upward marker parent
+    let re =
+      pattern
+      |> Str.global_replace (Str.regexp "\\.") "\\."
+      |> Str.global_replace (Str.regexp "\\*") ".*"
+    in
+    Str.string_match (Str.regexp ("^" ^ re ^ "$")) name 0
+
+(* Walk up from [dir] looking for a file matching [marker].
+ * [marker] can be a literal filename (e.g. "go.mod") or a glob
+ * pattern containing '*' (e.g. "*.csproj").
+ * Returns the first directory containing it, or None. *)
+let rec find_marker_upward (caps : < Cap.readdir ; .. >) marker dir =
+  if String.contains marker '*' then begin
+    (* Glob marker: scan directory entries *)
+    let entries =
+      CapFS.read_dir_entries (caps :> < Cap.readdir >) (Fpath.v dir)
+    in
+    let found = List.exists (fun entry -> glob_match marker entry) entries in
+    if found then Some dir
+    else
+      let parent = Filename.dirname dir in
+      if parent = dir then None
+      else find_marker_upward caps marker parent
+  end else begin
+    let candidate = Filename.concat dir marker in
+    if Sys.file_exists candidate then Some dir
+    else
+      let parent = Filename.dirname dir in
+      if parent = dir then None (* reached filesystem root *)
+      else find_marker_upward caps marker parent
+  end
 
 (* Given a set of scanning roots, find the project root directory
  * for the language server.  Each language has its own marker file:
@@ -141,7 +170,7 @@ let rec find_marker_upward marker dir =
  *
  * We start from the first scanning root and walk upward.
  * Falls back to CWD if no marker is found. *)
-let find_project_root (lsp_lang : LSP_lang.t) (roots : string list) =
+let find_project_root (caps : < Cap.readdir ; .. >) (lsp_lang : LSP_lang.t) (roots : string list) =
   let marker = lsp_lang.project_root_marker in
   if marker = "" then Sys.getcwd ()
   else
@@ -159,7 +188,7 @@ let find_project_root (lsp_lang : LSP_lang.t) (roots : string list) =
       else dir
     in
     let root =
-      match find_marker_upward marker start_dir with
+      match find_marker_upward caps marker start_dir with
       | Some dir -> dir
       | None -> start_dir
     in
@@ -365,7 +394,23 @@ let wait_for_open_ready conn =
         | Some (Jsonrpc.Packet.Request { Jsonrpc.Request.id = srv_id; _ }) ->
             let resp = Jsonrpc.Response.ok srv_id `Null in
             Io.write conn.oc (Jsonrpc.Packet.Response resp)
-        | Some (Jsonrpc.Packet.Notification _) -> ()
+        | Some (Jsonrpc.Packet.Notification
+                  { Jsonrpc.Notification.method_ = "o#/backgrounddiagnosticstatus";
+                    params = Some params }) ->
+            (* OmniSharp: treat Status=2 (finished) as ready signal *)
+            (try
+              let json = Jsonrpc.Structured.yojson_of_t params in
+              let open Yojson.Safe.Util in
+              let status = json |> member "Status" |> to_int in
+              if !debug then
+                UCommon.pr2 (spf "LSP_client: didOpen o#/backgrounddiagnosticstatus Status=%d" status);
+              if status =|= 2 then
+                finished := true
+            with _exn -> ())
+        | Some (Jsonrpc.Packet.Notification n) ->
+            if !debug then
+              UCommon.pr2 (spf "LSP_client: didOpen notif: %s"
+                             n.Jsonrpc.Notification.method_)
         | Some _ -> ()
       end
     end
@@ -458,7 +503,28 @@ let wait_for_server_ready conn =
               end else if type_ = "Starting" || type_ = "Started" then
                 seen_any_begin := true
             with _exn -> ())
-        | Some (Jsonrpc.Packet.Notification _) -> ()
+        | Some (Jsonrpc.Packet.Notification
+                  { Jsonrpc.Notification.method_ = "o#/backgrounddiagnosticstatus";
+                    params = Some params }) ->
+            (* OmniSharp sends o#/backgrounddiagnosticstatus with Status:
+             *   0 = in progress, 1 = partial, 2 = finished.
+             * Treat Status=2 as the ready signal. *)
+            (try
+              let json = Jsonrpc.Structured.yojson_of_t params in
+              let open Yojson.Safe.Util in
+              let status = json |> member "Status" |> to_int in
+              if !debug then
+                UCommon.pr2 (spf "LSP_client: o#/backgrounddiagnosticstatus Status=%d" status);
+              if status =|= 2 then begin
+                seen_any_begin := true;
+                finished := true
+              end else
+                seen_any_begin := true
+            with _exn -> ())
+        | Some (Jsonrpc.Packet.Notification n) ->
+            if !debug then
+              UCommon.pr2 (spf "LSP_client: warmup notif: %s"
+                             n.Jsonrpc.Notification.method_)
         | Some _ -> ()
       end
     end
@@ -474,13 +540,15 @@ let wait_for_server_ready conn =
 let connect_server (caps : < Cap.exec ; .. >) ~root (lsp_lang : LSP_lang.t) =
   (* the PWD of the server process is used to look for the .cmt so
    * run this program from the project you want to analyze *)
-  let cmd = lsp_lang.server_cmd (caps :> < Cap.exec >) in
+  let cmd = lsp_lang.server_cmd (caps :> < Cap.exec >) ~root in
   let ic, oc = CapExec.open_process caps#exec cmd in
   let conn = { ic; oc } in
 
   if !debug then UCommon.pr2 (spf "LSP_client: rootUri=%s" root);
   let root_uri = DocumentUri.of_path root in
-  let capabilities = ClientCapabilities.create () in
+  let window = WindowClientCapabilities.create
+      ~workDoneProgress:true () in
+  let capabilities = ClientCapabilities.create ~window () in
   let params = InitializeParams.create
       ~capabilities
       ~rootUri:root_uri
@@ -577,11 +645,11 @@ let get_type_of_expr (e : G.expr) =
   | tok :: _ -> with_file_open tok type_at_tok
   | [] -> None
 
-let init (caps : < Cap.exec ; .. >) ?(lang = Lang.Ocaml) ?(expr = false) ?(roots = []) () =
+let init (caps : < Cap.exec ; Cap.readdir ; .. >) ?(lang = Lang.Ocaml) ?(expr = false) ?(roots = []) () =
   if !debug then UCommon.pr2
     (spf "LSP_client: INIT (lang=%s)" (Lang.show lang));
   let lsp_lang = lsp_lang_of_lang lang in
-  let root = find_project_root lsp_lang roots in
+  let root = find_project_root (caps :> < Cap.readdir >) lsp_lang roots in
   let conn = connect_server caps ~root lsp_lang in
   global := { conn = Some conn; last_uri = ""; lang; lsp_lang };
   Core_hooks.get_type := get_type;

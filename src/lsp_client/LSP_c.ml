@@ -119,7 +119,7 @@ let parse_type s =
           failwith (spf "LSP_client: cannot parse C type from: %s" s))
 
 let lsp_lang lang : LSP_lang.t = {
-  server_cmd = (fun caps -> server_cmd caps);
+  server_cmd = (fun caps ~root:_ -> server_cmd caps);
   language_id = language_id lang;
   project_root_marker;
   clean_hover;
