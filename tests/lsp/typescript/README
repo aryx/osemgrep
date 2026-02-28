@@ -1,0 +1,33 @@
+Test data for --lsp with typescript-language-server (TypeScript/JavaScript).
+
+The typed metavar pattern ($X : number) should match expressions whose
+type is 'number', even when the type can only be determined by looking at
+the definition in another file (lib.ts).
+
+Note: TypeScript typed metavars use ($X : TYPE) syntax (like Java), not
+$X as TYPE. The menhir JS parser has a special rule for this pattern.
+
+Prerequisites:
+  npm install -g typescript-language-server typescript
+
+Setup:
+  Nothing to build — typescript-language-server analyses TypeScript source directly.
+
+Without --lsp (5 findings — only variables with explicit annotation):
+  osemgrep scan -e '($X : number)' --lang ts tests/lsp/typescript/main.ts
+
+With --lsp (9 findings — typescript-language-server resolves interfile types):
+  osemgrep scan --lsp --lsp-expr -e '($X : number)' --lang ts tests/lsp/typescript/main.ts
+
+The 4 extra findings come from the type checker knowing:
+  - result_num has type number (from add's return type defined in lib.ts)
+  - x and result_num are number in additional expression contexts
+Without --lsp, osemgrep cannot resolve add's return type because it
+is defined in lib.ts, not in main.ts.
+
+result_str correctly does NOT match because concat returns string,
+not number.
+
+Note: osemgrep automatically finds the project root (directory containing
+tsconfig.json) by walking upward from the target file. typescript-language-server
+needs this to resolve imports correctly.

@@ -324,6 +324,10 @@ else
     warn "Python LSP (ty or pyright-langserver) not found — --lsp for Python will not work"
 fi
 
+# typescript-language-server: installed via 'npm install -g typescript-language-server typescript'
+find_lsp_server "TypeScript/JavaScript LSP" typescript-language-server \
+    "$HOME/.local/share/npm/bin" "$HOME/.npm-global/bin"
+
 echo ''
 echo 'Everything looks fine. You can now run: '
 echo ''

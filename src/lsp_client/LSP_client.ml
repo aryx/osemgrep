@@ -32,6 +32,8 @@
  *  - Go: gopls (needs go.mod; project root auto-detected)
  *  - Rust: rust-analyzer (needs Cargo.toml; project root auto-detected)
  *  - Python: ty or pyright (needs pyproject.toml; project root auto-detected)
+ *  - TypeScript: typescript-language-server (needs tsconfig.json; project root auto-detected)
+ *  - JavaScript: typescript-language-server (same as TypeScript; needs tsconfig.json)
  *
  * To use: run osemgrep from the project directory you want to analyze.
  *)
@@ -102,6 +104,7 @@ let lsp_lang_of_lang lang =
   | Lang.Go -> LSP_go.lsp_lang
   | Lang.Rust -> LSP_rust.lsp_lang
   | Lang.Python -> LSP_python.lsp_lang
+  | Lang.Ts | Lang.Js -> LSP_typescript.lsp_lang lang
   | lang ->
       failwith (spf "LSP_client: unsupported language: %s" (Lang.show lang))
 
@@ -293,8 +296,46 @@ let type_at_tok tk (uri : DocumentUri.t) conn =
       )
 
 (*****************************************************************************)
-(* Server warmup (progress tracking) *)
+(* Server warmup *)
 (*****************************************************************************)
+
+(* Drain notifications after didOpen until the server goes idle.
+ * Some servers (e.g. typescript-language-server) send diagnostics
+ * notifications while they load imported modules; we wait until
+ * no more data arrives for [idle_timeout] seconds.
+ * This is lighter than wait_for_server_ready (no progress tracking). *)
+let wait_for_open_ready conn =
+  if !debug then UCommon.pr2 "LSP_client: waiting after didOpen...";
+  let start = Unix.gettimeofday () in
+  let max_seconds = 10.0 in
+  let idle_timeout = 2.0 in
+  let finished = ref false in
+  while not !finished do
+    let elapsed = Unix.gettimeofday () -. start in
+    if elapsed > max_seconds then
+      finished := true
+    else begin
+      let ready, _, _ =
+        Unix.select [Unix.descr_of_in_channel conn.ic] [] [] idle_timeout
+      in
+      if List.length ready =|= 0 then
+        (* Server went quiet — ready for hover queries *)
+        finished := true
+      else begin
+        let packet = Io.read conn.ic in
+        match packet with
+        | None -> finished := true
+        | Some (Jsonrpc.Packet.Request { Jsonrpc.Request.id = srv_id; _ }) ->
+            let resp = Jsonrpc.Response.ok srv_id `Null in
+            Io.write conn.oc (Jsonrpc.Packet.Response resp)
+        | Some (Jsonrpc.Packet.Notification _) -> ()
+        | Some _ -> ()
+      end
+    end
+  done;
+  if !debug then
+    UCommon.pr2 (spf "LSP_client: didOpen ready (%.1fs)"
+                   (Unix.gettimeofday () -. start))
 
 (* Drain LSP messages until all work-done-progress tokens have ended.
  * rust-analyzer sends window/workDoneProgress/create requests followed
@@ -453,6 +494,12 @@ let rec with_file_open tok f =
         )
       in
       send_notif notif conn;
+      (* Some servers (e.g. typescript-language-server) need time to
+       * load imported modules after didOpen before hover works.
+       * We drain incoming notifications (diagnostics, etc.) with a
+       * short idle timeout so the server can finish processing. *)
+      if !global.lsp_lang.needs_warmup then
+        wait_for_open_ready conn;
       global := { !global with last_uri = uri_s };
       (* try again *)
       with_file_open tok f
