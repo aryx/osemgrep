@@ -328,6 +328,10 @@ fi
 find_lsp_server "TypeScript/JavaScript LSP" typescript-language-server \
     "$HOME/.local/share/npm/bin" "$HOME/.npm-global/bin"
 
+# jdtls: Eclipse JDT Language Server for Java
+# installed via 'apt install jdtls', Homebrew, or manual download
+find_lsp_server "Java LSP" jdtls
+
 echo ''
 echo 'Everything looks fine. You can now run: '
 echo ''

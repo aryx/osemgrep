@@ -1,6 +1,6 @@
 # -*- org -*-
 
-* 2.0! (Q1 2026) (restored --lsp for OCaml(using ocamllsp) and added C(clangd)/C++(clangd)/Go(gopls)/Rust(rust-analyzer)/Python(ty or pyright)/TypeScript+JavaScript(typescript-language-server), keep just osemgrep (remove Python cli/), conf-tree-sitter.opam, Haskell/)
+* 2.0! (Q1 2026) (restored --lsp for OCaml(using ocamllsp) and added C(clangd)/C++(clangd)/Go(gopls)/Rust(rust-analyzer)/Python(ty or pyright)/TypeScript+JavaScript(typescript-language-server)/Java(jdtls), keep just osemgrep (remove Python cli/), conf-tree-sitter.opam, Haskell/)
 # started to use Claude Code
 
 ** semantic
@@ -60,10 +60,14 @@
 - LSP_client now drains notifications after didOpen for servers that need
   warmup, giving the server time to load imported modules before hover
   queries. This fixes interfile type resolution for typescript-language-server.
+- --lsp now supports Java via jdtls (Eclipse JDT Language Server).
+  The project root (directory containing pom.xml) is auto-detected.
+  jdtls resolves interfile types, e.g. matching (int $X) on variables
+  whose type comes from a method defined in another file (Lib.java).
 - added test data in tests/lsp/ocaml/, tests/lsp/c/, tests/lsp/cpp/,
-  tests/lsp/go/, tests/lsp/rust/, tests/lsp/python/, and
-  tests/lsp/typescript/ demonstrating interfile type resolution with
-  --lsp for each language.
+  tests/lsp/go/, tests/lsp/rust/, tests/lsp/python/,
+  tests/lsp/typescript/, and tests/lsp/java/ demonstrating interfile
+  type resolution with --lsp for each language.
 
 ** languages
 - add Haskell language support (alpha): tree-sitter parser via semgrep-haskell

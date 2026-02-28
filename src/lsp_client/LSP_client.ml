@@ -34,6 +34,7 @@
  *  - Python: ty or pyright (needs pyproject.toml; project root auto-detected)
  *  - TypeScript: typescript-language-server (needs tsconfig.json; project root auto-detected)
  *  - JavaScript: typescript-language-server (same as TypeScript; needs tsconfig.json)
+ *  - Java: jdtls (Eclipse JDT Language Server; needs pom.xml or build.gradle)
  *
  * To use: run osemgrep from the project directory you want to analyze.
  *)
@@ -105,6 +106,7 @@ let lsp_lang_of_lang lang =
   | Lang.Rust -> LSP_rust.lsp_lang
   | Lang.Python -> LSP_python.lsp_lang
   | Lang.Ts | Lang.Js -> LSP_typescript.lsp_lang lang
+  | Lang.Java -> LSP_java.lsp_lang
   | lang ->
       failwith (spf "LSP_client: unsupported language: %s" (Lang.show lang))
 
@@ -291,8 +293,43 @@ let type_at_tok tk (uri : DocumentUri.t) conn =
             in
             if !debug then UCommon.pr2_gen ty;
             Some ty
-      | _ ->
-            failwith "LSP_client: hover response not a MarkupContent"
+      | `MarkedString { MarkedString.value = s; _ } ->
+            if !debug then UCommon.pr2 (spf "RAW hover (MarkedString): [%s]" s);
+            let s = lsp_lang.clean_hover s in
+            if !debug then UCommon.pr2 (spf "CLEANED hover: [%s]" s);
+            let ty =
+              try lsp_lang.parse_type s
+              with exn ->
+                  if !debug then
+                    UCommon.pr2_gen ("Exn parse_type_string", s, exn);
+                  Exception.catch_and_reraise exn
+            in
+            if !debug then UCommon.pr2_gen ty;
+            Some ty
+      | `List ms ->
+            (* Some servers (e.g. jdtls) return a list of MarkedStrings.
+             * Use the first non-empty one. *)
+            let s =
+              ms |> List.find_map (fun (m : MarkedString.t) ->
+                if m.value <> "" then Some m.value else None)
+            in
+            (match s with
+            | Some s ->
+                if !debug then UCommon.pr2 (spf "RAW hover (List): [%s]" s);
+                let s = lsp_lang.clean_hover s in
+                if !debug then UCommon.pr2 (spf "CLEANED hover: [%s]" s);
+                let ty =
+                  try lsp_lang.parse_type s
+                  with exn ->
+                      if !debug then
+                        UCommon.pr2_gen ("Exn parse_type_string", s, exn);
+                      Exception.catch_and_reraise exn
+                in
+                if !debug then UCommon.pr2_gen ty;
+                Some ty
+            | None ->
+                if !debug then UCommon.pr2 "LSP_client: empty MarkedString list";
+                None)
       )
 
 (*****************************************************************************)
@@ -402,6 +439,24 @@ let wait_for_server_ready conn =
                    if !seen_any_begin && Hashtbl.length active_tokens =|= 0 then
                      finished := true
                | _other -> ())
+            with _exn -> ())
+        | Some (Jsonrpc.Packet.Notification
+                  { Jsonrpc.Notification.method_ = "language/status";
+                    params = Some params }) ->
+            (* jdtls sends language/status with type "ServiceReady" when
+             * it has finished loading the project. Treat this as a
+             * progress signal so we don't bail out too early. *)
+            (try
+              let json = Jsonrpc.Structured.yojson_of_t params in
+              let open Yojson.Safe.Util in
+              let type_ = json |> member "type" |> to_string in
+              if !debug then
+                UCommon.pr2 (spf "LSP_client: language/status type=%s" type_);
+              if type_ = "ServiceReady" then begin
+                seen_any_begin := true;
+                finished := true
+              end else if type_ = "Starting" || type_ = "Started" then
+                seen_any_begin := true
             with _exn -> ())
         | Some (Jsonrpc.Packet.Notification _) -> ()
         | Some _ -> ()

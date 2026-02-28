@@ -1,0 +1,28 @@
+Test data for --lsp with jdtls (Eclipse JDT Language Server for Java).
+
+The typed metavar pattern (int $X) should match expressions whose type
+is 'int' even when the type can only be determined by looking at the
+definition in another file (Lib.java).
+
+Prerequisites:
+  - jdtls:  apt install jdtls  (or download from https://eclipse.dev/jdtls/)
+  - java:   apt install default-jdk
+
+Setup:
+  Nothing to build — jdtls loads the project from pom.xml automatically.
+
+Without --lsp (matches only literals and declared-type identifiers):
+  osemgrep scan -e '(int $X)' --lang java tests/lsp/java/Main.java
+
+With --lsp (jdtls resolves interfile types):
+  osemgrep scan --lsp --lsp-expr -e '(int $X)' --lang java tests/lsp/java/Main.java
+
+The extra findings with --lsp come from jdtls knowing:
+  - Lib.add(a, b) has return type int (defined in Lib.java)
+  - sum has type int (from the declaration)
+Without --lsp, osemgrep cannot resolve Lib.add's return type because
+it is defined in Lib.java, not in Main.java.
+
+Note: osemgrep automatically finds the project root (directory containing
+pom.xml) by walking upward from the target file. This is needed because
+jdtls requires the workspace root to find the project configuration.
