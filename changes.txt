@@ -22,52 +22,45 @@
 - --lsp now supports C++ via clangd (same server as C). clangd resolves
   class method return types, template instantiation types, and 'auto'
   deduction across files (7 findings without LSP → 18 with LSP).
-- --lsp now supports Go via gopls. The project root (directory
-  containing go.mod) is auto-detected by walking upward from the target
-  file. gopls resolves interfile types, e.g. matching ($X: int) on
-  variables whose type comes from a function defined in another file
-  (6 findings without LSP → 10 with LSP in the test case).
-- auto-detection of the project root for LSP servers: find_project_root
-  walks upward from the scanning root looking for a marker file
-  (go.mod for Go, dune-project for OCaml, compile_commands.json for C).
-  This also fixes workspace URI handling for gopls which requires
-  absolute file:// URIs matching the workspace root.
-- --lsp now supports Rust via rust-analyzer. The project root (directory
-  containing Cargo.toml) is auto-detected. rust-analyzer resolves interfile
-  types, e.g. matching ($X: i32) on variables whose type comes from a
-  function defined in another file (2 findings without LSP → 8 with LSP).
-  Hover responses are parsed both with and without code fences, handling
-  rust-analyzer's variable ("let x: i32") and function signature
-  ("pub fn add(a: i32, b: i32) -> i32") formats.
-- LSP_client now responds to server-initiated requests (e.g.
-  window/workDoneProgress/create) instead of silently ignoring them.
-  Added warmup support for servers that need time to index after
-  initialization (rust-analyzer loads cargo metadata asynchronously).
+- --lsp now supports Go via gopls. gopls resolves interfile types,
+  e.g. matching ($X: int) on variables whose type comes from a function
+  defined in another file (6 findings without LSP → 10 with LSP).
+- --lsp now supports Rust via rust-analyzer. rust-analyzer resolves
+  interfile types including trait impls and generic instantiations
+  (2 findings without LSP → 8 with LSP).
 - --lsp now supports Python via ty (Astral's fast Rust type checker)
-  or pyright (Microsoft). The server is auto-detected: ty is tried first,
-  then pyright-langserver. The project root (directory containing
-  pyproject.toml) is auto-detected. Both servers resolve interfile types
-  via type inference, e.g. matching ($X: int) on variables whose type
-  comes from a function defined in another file.
+  or pyright (Microsoft). Both servers resolve interfile types via
+  type inference.
 - --lsp now supports TypeScript and JavaScript via typescript-language-server.
-  Both languages use the same server (like C/C++ share clangd). The project
-  root (directory containing tsconfig.json) is auto-detected. The server
-  resolves interfile types, e.g. matching ($X : number) on variables whose
-  type comes from a function defined in another file
-  (5 findings without LSP → 9 with LSP in the test case).
+  Both languages use the same server (like C/C++ share clangd). The server
+  resolves interfile types including cross-module imports
+  (5 findings without LSP → 9 with LSP).
   Note: typed metavar matching requires --lang ts (Lang.Js has no typed
   metavar support in Parse_metavariable_type.ml).
-- LSP_client now drains notifications after didOpen for servers that need
-  warmup, giving the server time to load imported modules before hover
-  queries. This fixes interfile type resolution for typescript-language-server.
 - --lsp now supports Java via jdtls (Eclipse JDT Language Server).
-  The project root (directory containing pom.xml) is auto-detected.
-  jdtls resolves interfile types, e.g. matching (int $X) on variables
-  whose type comes from a method defined in another file (Lib.java).
-- added test data in tests/lsp/ocaml/, tests/lsp/c/, tests/lsp/cpp/,
-  tests/lsp/go/, tests/lsp/rust/, tests/lsp/python/,
-  tests/lsp/typescript/, and tests/lsp/java/ demonstrating interfile
-  type resolution with --lsp for each language.
+  jdtls resolves variable types across files via classpath/Maven project
+  configuration. Note: jdtls hover only returns types for identifiers,
+  not for method call expressions.
+- added test data in tests/lsp/{ocaml,c,cpp,go,rust,python,typescript,java}/
+  demonstrating interfile type resolution with --lsp for each language.
+
+** LSP infrastructure
+- auto-detection of the project root for LSP servers: find_project_root
+  walks upward from the scanning root looking for a marker file
+  (go.mod for Go, dune-project for OCaml, compile_commands.json for C,
+  Cargo.toml for Rust, pyproject.toml for Python, tsconfig.json for TS,
+  pom.xml for Java). This also fixes workspace URI handling for gopls
+  which requires absolute file:// URIs matching the workspace root.
+- LSP_client now responds to server-initiated requests (e.g.
+  window/workDoneProgress/create) instead of silently ignoring them.
+- warmup support for servers that need time to index after initialization:
+  drain $/progress tokens (rust-analyzer), language/status ServiceReady
+  (jdtls), and idle-timeout after didOpen (typescript-language-server).
+- hover response handling for all three LSP formats: MarkupContent
+  (most servers), MarkedString (single), and MarkedString list (jdtls).
+- per-language hover parsing: each LSP_<lang>.ml module extracts the type
+  string from the server's hover format (code fences, prefixes, signatures)
+  and parses it into AST_generic.type_ via the language's menhir parser.
 
 ** languages
 - add Haskell language support (alpha): tree-sitter parser via semgrep-haskell
