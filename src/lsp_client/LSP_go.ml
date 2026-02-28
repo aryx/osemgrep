@@ -31,7 +31,7 @@ module G = AST_generic
 
 let project_root_marker = "go.mod"
 let language_id = "go"
-let server_cmd () = "gopls"
+let server_cmd (_caps : < Cap.exec ; .. >) = "gopls"
 
 let clean_hover s =
   (* Step 1: strip ```go ... ``` code fences.
@@ -91,7 +91,7 @@ let parse_type s =
       failwith (spf "LSP_client: cannot parse Go type from: %s" s)
 
 let lsp_lang : LSP_lang.t = {
-  server_cmd;
+  server_cmd = (fun caps -> server_cmd caps);
   language_id;
   project_root_marker;
   clean_hover;

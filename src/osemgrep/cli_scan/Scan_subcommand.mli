@@ -17,7 +17,8 @@ type caps =
   ; Cap.readdir
   ; Cap.fork
   ; Cap.time_limit
-  ; Cap.memory_limit >
+  ; Cap.memory_limit
+  ; Cap.exec >
 
 val main : < caps ; .. > -> string array -> Exit_code.t
 

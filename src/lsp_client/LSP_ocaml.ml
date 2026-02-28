@@ -31,9 +31,9 @@ let project_root_marker = "dune-project"
 let language_id = "ocaml"
 
 (* Look for ocamllsp in the current opam switch *)
-let server_cmd () =
+let server_cmd (caps : < Cap.exec ; .. >) =
   let opam_bin =
-    try String.trim (UCmd.cmd_to_list "opam var bin"
+    try String.trim (CapExec.cmd_to_list caps#exec "opam var bin"
          |> List_.hd_exn "opam var bin returned empty output")
     with _exn -> "/usr/bin"
   in
@@ -95,7 +95,7 @@ let parse_type s =
   | _ -> raise Impossible
 
 let lsp_lang : LSP_lang.t = {
-  server_cmd;
+  server_cmd = (fun caps -> server_cmd caps);
   language_id;
   project_root_marker;
   clean_hover;

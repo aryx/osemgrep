@@ -48,7 +48,9 @@ type caps =
   ; (* for Check_rules timeout *)
     Cap.time_limit
   ; (* for iter_targets memory limit *)
-    Cap.memory_limit >
+    Cap.memory_limit
+  ; (* for spawning LSP server processes (LSP_client) *)
+    Cap.exec >
 
 (*****************************************************************************)
 (* Metrics *)
@@ -657,7 +659,7 @@ let run_scan_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
     let roots =
       List_.map Scanning_root.to_string conf.target_roots
     in
-    LSP_client.init ~lang ~expr:conf.lsp_expr ~roots ()
+    LSP_client.init (caps :> < Cap.exec >) ~lang ~expr:conf.lsp_expr ~roots ()
   end;
 
   (* imitate pysemgrep for backward compatible profiling metrics ? *)

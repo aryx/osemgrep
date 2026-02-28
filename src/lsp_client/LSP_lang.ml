@@ -10,8 +10,10 @@
  *)
 
 type t = {
-  (* Command to start the language server, e.g. "ocamllsp", "clangd", "gopls" *)
-  server_cmd : unit -> string;
+  (* Command to start the language server, e.g. "ocamllsp", "clangd", "gopls".
+   * Takes an exec capability because some implementations (e.g. LSP_ocaml)
+   * need to run shell commands to locate the server binary. *)
+  server_cmd : < Cap.exec > -> string;
   (* LSP languageId for didOpen notifications, e.g. "ocaml", "c", "go" *)
   language_id : string;
   (* File whose presence marks the project root, e.g. "dune-project", "go.mod" *)

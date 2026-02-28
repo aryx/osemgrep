@@ -11,7 +11,7 @@
 val debug : bool ref
 (** Enable debug output to stderr. *)
 
-val init : ?lang:Lang.t -> ?expr:bool -> ?roots:string list -> unit -> unit
+val init : < Cap.exec ; .. > -> ?lang:Lang.t -> ?expr:bool -> ?roots:string list -> unit -> unit
 (** Connect to the LSP server for [lang] and register the
     {!Core_hooks.get_type} hook.
     [lang] defaults to [Lang.Ocaml].

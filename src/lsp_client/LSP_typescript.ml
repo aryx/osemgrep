@@ -43,7 +43,7 @@ let language_id lang =
   | Lang.Js -> "javascript"
   | _ -> failwith "LSP_typescript: unsupported language"
 
-let server_cmd () =
+let server_cmd (_caps : < Cap.exec ; .. >) =
   let home = Sys.getenv "HOME" in
   let npm_local = Filename.concat home ".local/share/npm/bin/typescript-language-server" in
   let npm_global = Filename.concat home ".npm-global/bin/typescript-language-server" in
@@ -168,7 +168,7 @@ let parse_type s =
           failwith (spf "LSP_client: cannot parse TypeScript type from: %s" s))
 
 let lsp_lang lang : LSP_lang.t = {
-  server_cmd;
+  server_cmd = (fun caps -> server_cmd caps);
   language_id = language_id lang;
   project_root_marker;
   clean_hover;

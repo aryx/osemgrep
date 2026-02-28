@@ -42,7 +42,7 @@ local unix_funcs = [
       languages: ['ocaml'],
       paths: {
 	// TODO: fix Git_wrapper.ml
-	exclude: common.exclude_paths + ["CapExec.ml", "Git_wrapper.ml", "lsp_client/"]
+	exclude: common.exclude_paths + ["CapExec.ml", "Git_wrapper.ml"]
       },
       severity: 'ERROR',
       message: |||

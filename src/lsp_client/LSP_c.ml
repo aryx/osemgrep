@@ -44,7 +44,7 @@ let language_id lang =
 
 (* clangd is typically in PATH; uses compile_commands.json for
  * project-specific flags. Handles both C and C++. *)
-let server_cmd () = "clangd"
+let server_cmd (_caps : < Cap.exec ; .. >) = "clangd"
 
 let clean_hover s =
   let lines = String.split_on_char '\n' s in
@@ -104,7 +104,7 @@ let parse_type s =
           failwith (spf "LSP_client: cannot parse C type from: %s" s))
 
 let lsp_lang lang : LSP_lang.t = {
-  server_cmd;
+  server_cmd = (fun caps -> server_cmd caps);
   language_id = language_id lang;
   project_root_marker;
   clean_hover;

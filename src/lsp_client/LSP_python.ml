@@ -44,7 +44,7 @@ module G = AST_generic
 let project_root_marker = "pyproject.toml"
 let language_id = "python"
 
-let server_cmd () =
+let server_cmd (_caps : < Cap.exec ; .. >) =
   (* Prefer ty (Astral's fast Rust type checker / language server) *)
   let home = Sys.getenv "HOME" in
   let ty_local = Filename.concat home ".local/bin/ty" in
@@ -162,7 +162,7 @@ let parse_type s =
       failwith (spf "LSP_client: cannot parse Python type from: %s" s)
 
 let lsp_lang : LSP_lang.t = {
-  server_cmd;
+  server_cmd = (fun caps -> server_cmd caps);
   language_id;
   project_root_marker;
   clean_hover;

@@ -24,7 +24,7 @@ module G = AST_generic
 let project_root_marker = "Cargo.toml"
 let language_id = "rust"
 
-let server_cmd () =
+let server_cmd (_caps : < Cap.exec ; .. >) =
   let cargo_path = Filename.concat (Sys.getenv "HOME") ".cargo/bin/rust-analyzer" in
   if Sys.file_exists cargo_path then cargo_path
   else "rust-analyzer"
@@ -124,7 +124,7 @@ let parse_type s =
       failwith (spf "LSP_client: cannot parse Rust type from: %s" s)
 
 let lsp_lang : LSP_lang.t = {
-  server_cmd;
+  server_cmd = (fun caps -> server_cmd caps);
   language_id;
   project_root_marker;
   clean_hover;

@@ -416,11 +416,11 @@ let wait_for_server_ready conn =
 (* Entry points *)
 (*****************************************************************************)
 
-let connect_server ~root (lsp_lang : LSP_lang.t) =
+let connect_server (caps : < Cap.exec ; .. >) ~root (lsp_lang : LSP_lang.t) =
   (* the PWD of the server process is used to look for the .cmt so
    * run this program from the project you want to analyze *)
-  let cmd = lsp_lang.server_cmd () in
-  let ic, oc = Unix.open_process cmd in
+  let cmd = lsp_lang.server_cmd (caps :> < Cap.exec >) in
+  let ic, oc = CapExec.open_process caps#exec cmd in
   let conn = { ic; oc } in
 
   if !debug then UCommon.pr2 (spf "LSP_client: rootUri=%s" root);
@@ -522,18 +522,18 @@ let get_type_of_expr (e : G.expr) =
   | tok :: _ -> with_file_open tok type_at_tok
   | [] -> None
 
-let init ?(lang = Lang.Ocaml) ?(expr = false) ?(roots = []) () =
+let init (caps : < Cap.exec ; .. >) ?(lang = Lang.Ocaml) ?(expr = false) ?(roots = []) () =
   if !debug then UCommon.pr2
     (spf "LSP_client: INIT (lang=%s)" (Lang.show lang));
   let lsp_lang = lsp_lang_of_lang lang in
   let root = find_project_root lsp_lang roots in
-  let conn = connect_server ~root lsp_lang in
+  let conn = connect_server caps ~root lsp_lang in
   global := { conn = Some conn; last_uri = ""; lang; lsp_lang };
   Core_hooks.get_type := get_type;
   if expr then Core_hooks.get_type_of_expr := get_type_of_expr;
   Stack_.push (fun () ->
       if !debug then UCommon.pr2 "LSP_client: CLOSING";
       send_request Lsp.Client_request.Shutdown conn |> ignore;
-      ignore (Unix.close_process (conn.ic, conn.oc))
+      ignore (CapExec.close_process caps#exec (conn.ic, conn.oc))
   ) Core_hooks.exit;
   ()
