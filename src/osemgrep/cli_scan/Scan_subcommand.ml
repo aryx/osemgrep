@@ -655,7 +655,7 @@ let run_scan_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
       | _ -> Lang.Ocaml
     in
     let roots =
-      List.map Scanning_root.to_string conf.target_roots
+      List_.map Scanning_root.to_string conf.target_roots
     in
     LSP_client.init ~lang ~expr:conf.lsp_expr ~roots ()
   end;

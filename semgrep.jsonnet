@@ -172,7 +172,8 @@ local semgrep_rules = [
        //    with code under src/experiments
        //  - test (tests/*)
        'osemgrep/',
-       'lsp/',
+       'lsp_server/',
+       'lsp_client/',
        'metachecking/',
        'core_cli/',
        'core_scan/',
@@ -212,6 +213,7 @@ local semgrep_rules = [
        'Unit_*',
        'tools/',
        'scripts/',
+       'lsp_client/',
        ]
     },
   },
