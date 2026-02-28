@@ -1,6 +1,6 @@
 # -*- org -*-
 
-* 2.0! (Q1 2026) (restored --lsp for OCaml(using ocamllsp) and added C(clangd)/C++(clangd)/Go(gopls)/Rust(rust-analyzer)/Python(ty or pyright)/TypeScript+JavaScript(typescript-language-server)/Java(jdtls), keep just osemgrep (remove Python cli/), conf-tree-sitter.opam, Haskell/)
+* 2.0! (Q1 2026) (restored --lsp for OCaml(using ocamllsp) and added C/C++(clangd)/Go(gopls)/Rust(rust-analyzer)/Python(ty or pyright)/Typescript/JavaScript(typescript-language-server)/Java(jdtls), keep just osemgrep (remove Python cli/), conf-tree-sitter.opam, Haskell/)
 # started to use Claude Code
 
 ** semantic
