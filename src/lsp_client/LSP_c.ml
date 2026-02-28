@@ -125,4 +125,5 @@ let lsp_lang lang : LSP_lang.t = {
   clean_hover;
   parse_type;
   needs_warmup = false;
+  init_options = None;
 }

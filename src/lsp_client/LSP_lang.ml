@@ -46,4 +46,8 @@ type t = {
    * didOpen before sending hover requests.  Needed for rust-analyzer
    * which loads cargo metadata asynchronously. *)
   needs_warmup : bool;
+  (* Optional JSON to pass as initializationOptions in the Initialize
+   * request.  Used by Metals to suppress browser opens (doctorProvider)
+   * and other server-specific settings.  Default: None. *)
+  init_options : Yojson.Safe.t option;
 }

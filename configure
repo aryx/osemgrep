@@ -336,6 +336,10 @@ find_lsp_server "Java LSP" jdtls
 # download from https://github.com/OmniSharp/omnisharp-roslyn/releases
 find_lsp_server "C# LSP" OmniSharp "$HOME/.local/share/omnisharp" "$HOME/.dotnet/tools"
 
+# Metals: Scala language server
+# install via coursier: cs install metals
+find_lsp_server "Scala LSP" metals "$HOME/.local/share/coursier/bin"
+
 echo ''
 echo 'Everything looks fine. You can now run: '
 echo ''

@@ -36,6 +36,7 @@
  *  - JavaScript: typescript-language-server (same as TypeScript; needs tsconfig.json)
  *  - Java: jdtls (Eclipse JDT Language Server; needs pom.xml or build.gradle)
  *  - C#: OmniSharp (needs *.csproj; project root auto-detected)
+ *  - Scala: Metals (needs build.sbt; project root auto-detected)
  *
  * To use: run osemgrep from the project directory you want to analyze.
  *)
@@ -109,6 +110,7 @@ let lsp_lang_of_lang lang =
   | Lang.Ts | Lang.Js -> LSP_typescript.lsp_lang lang
   | Lang.Java -> LSP_java.lsp_lang
   | Lang.Csharp -> LSP_csharp.lsp_lang
+  | Lang.Scala -> LSP_scala.lsp_lang
   | lang ->
       failwith (spf "LSP_client: unsupported language: %s" (Lang.show lang))
 
@@ -213,6 +215,32 @@ let send_notif notif conn =
   let packet = Jsonrpc.Packet.Notification json_rpc in
   Io.write conn.oc packet
 
+(* Compute the right JSON response for a server-initiated request.
+ * - window/showMessageRequest: accept the first action (e.g. "Import build")
+ * - window/showDocument: decline to prevent browser opens
+ * - everything else: null *)
+let respond_to_server_request method_ params =
+  if method_ = "window/showMessageRequest" then
+    match params with
+    | Some params ->
+        (try
+          let json = Jsonrpc.Structured.yojson_of_t params in
+          let open Yojson.Safe.Util in
+          let actions = json |> member "actions" |> to_list in
+          (match actions with
+           | first :: _ ->
+               if !debug then
+                 UCommon.pr2 (spf "LSP_client: accepting message request: %s"
+                                (Yojson.Safe.to_string first));
+               first
+           | [] -> `Null)
+        with _exn -> `Null)
+    | None -> `Null
+  else if method_ = "window/showDocument" then
+    (* Decline to open URLs (e.g. Metals release notes) *)
+    `Assoc [("success", `Bool false)]
+  else `Null
+
 (* Read a response by ID, returning the raw JSON without typed deserialization.
  * Used for Initialize where we don't need the result and some servers
  * return capabilities the ocaml-lsp library can't parse. *)
@@ -235,8 +263,10 @@ let rec read_response_raw id conn =
              let s = Yojson.Safe.pretty_to_string json in
              failwith (spf "LSP_client: server error: %s" s)
          )
-     | Jsonrpc.Packet.Request { Jsonrpc.Request.id = srv_id; _ } ->
-            let resp = Jsonrpc.Response.ok srv_id `Null in
+     | Jsonrpc.Packet.Request { Jsonrpc.Request.id = srv_id;
+                                method_; params; _ } ->
+            let response_json = respond_to_server_request method_ params in
+            let resp = Jsonrpc.Response.ok srv_id response_json in
             Io.write conn.oc (Jsonrpc.Packet.Response resp);
             read_response_raw id conn
      | Jsonrpc.Packet.Batch_response _
@@ -270,10 +300,12 @@ let rec read_response : type a. Jsonrpc.Id.t * a Lsp.Client_request.t -> conn ->
              let s = Yojson.Safe.pretty_to_string json in
              failwith (spf "LSP_client: server error: %s" s)
          )
-     | Jsonrpc.Packet.Request { Jsonrpc.Request.id = srv_id; _ } ->
+     | Jsonrpc.Packet.Request { Jsonrpc.Request.id = srv_id;
+                                method_; params; _ } ->
             (* Server-initiated request (e.g. window/workDoneProgress/create).
-             * Respond with null so the server can proceed, then keep reading. *)
-            let resp = Jsonrpc.Response.ok srv_id `Null in
+             * Respond appropriately, then keep reading. *)
+            let response_json = respond_to_server_request method_ params in
+            let resp = Jsonrpc.Response.ok srv_id response_json in
             Io.write conn.oc (Jsonrpc.Packet.Response resp);
             read_response (id, req) conn
      | Jsonrpc.Packet.Batch_response _
@@ -373,9 +405,10 @@ let type_at_tok tk (uri : DocumentUri.t) conn =
 let wait_for_open_ready conn =
   if !debug then UCommon.pr2 "LSP_client: waiting after didOpen...";
   let start = Unix.gettimeofday () in
-  let max_seconds = 10.0 in
+  let max_seconds = 30.0 in
   let idle_timeout = 2.0 in
   let finished = ref false in
+  let metals_busy = ref false in
   while not !finished do
     let elapsed = Unix.gettimeofday () -. start in
     if elapsed > max_seconds then
@@ -384,15 +417,21 @@ let wait_for_open_ready conn =
       let ready, _, _ =
         Unix.select [Unix.descr_of_in_channel conn.ic] [] [] idle_timeout
       in
-      if List.length ready =|= 0 then
+      if List.length ready =|= 0 then begin
         (* Server went quiet — ready for hover queries *)
-        finished := true
-      else begin
+        if not !metals_busy then
+          finished := true
+        (* else: Metals said it's busy, keep waiting *)
+      end else begin
         let packet = Io.read conn.ic in
         match packet with
         | None -> finished := true
-        | Some (Jsonrpc.Packet.Request { Jsonrpc.Request.id = srv_id; _ }) ->
-            let resp = Jsonrpc.Response.ok srv_id `Null in
+        | Some (Jsonrpc.Packet.Request { Jsonrpc.Request.id = srv_id;
+                                         method_; params; _ }) ->
+            if !debug then
+              UCommon.pr2 (spf "LSP_client: didOpen request: %s" method_);
+            let response_json = respond_to_server_request method_ params in
+            let resp = Jsonrpc.Response.ok srv_id response_json in
             Io.write conn.oc (Jsonrpc.Packet.Response resp)
         | Some (Jsonrpc.Packet.Notification
                   { Jsonrpc.Notification.method_ = "o#/backgrounddiagnosticstatus";
@@ -406,6 +445,25 @@ let wait_for_open_ready conn =
                 UCommon.pr2 (spf "LSP_client: didOpen o#/backgrounddiagnosticstatus Status=%d" status);
               if status =|= 2 then
                 finished := true
+            with _exn -> ())
+        | Some (Jsonrpc.Packet.Notification
+                  { Jsonrpc.Notification.method_ = "metals/status";
+                    params = Some params }) ->
+            (* Metals: show=true means busy, show=false means idle *)
+            (try
+              let json = Jsonrpc.Structured.yojson_of_t params in
+              let open Yojson.Safe.Util in
+              let show = json |> member "show" |> to_bool in
+              let text = try json |> member "text" |> to_string with _ -> "" in
+              if !debug then
+                UCommon.pr2 (spf "LSP_client: didOpen metals/status show=%b text=%s" show text);
+              if show then
+                metals_busy := true
+              else if !metals_busy then begin
+                (* Was busy, now idle — ready *)
+                metals_busy := false;
+                finished := true
+              end
             with _exn -> ())
         | Some (Jsonrpc.Packet.Notification n) ->
             if !debug then
@@ -459,9 +517,12 @@ let wait_for_server_ready conn =
         let packet = Io.read conn.ic in
         match packet with
         | None -> finished := true
-        | Some (Jsonrpc.Packet.Request { Jsonrpc.Request.id = srv_id; _ }) ->
-            (* Respond to server requests like window/workDoneProgress/create *)
-            let resp = Jsonrpc.Response.ok srv_id `Null in
+        | Some (Jsonrpc.Packet.Request { Jsonrpc.Request.id = srv_id;
+                                         method_; params; _ }) ->
+            if !debug then
+              UCommon.pr2 (spf "LSP_client: warmup request: %s" method_);
+            let response_json = respond_to_server_request method_ params in
+            let resp = Jsonrpc.Response.ok srv_id response_json in
             Io.write conn.oc (Jsonrpc.Packet.Response resp)
         | Some (Jsonrpc.Packet.Notification
                   { Jsonrpc.Notification.method_ = "$/progress"; params = Some params }) ->
@@ -521,6 +582,26 @@ let wait_for_server_ready conn =
               end else
                 seen_any_begin := true
             with _exn -> ())
+        | Some (Jsonrpc.Packet.Notification
+                  { Jsonrpc.Notification.method_ = "metals/status";
+                    params = Some params }) ->
+            (* Metals sends metals/status with {"text": "...", "show": true}
+             * when busy (indexing, compiling) and {"show": false} when done.
+             * Treat show=true as a progress signal, show=false as ready. *)
+            (try
+              let json = Jsonrpc.Structured.yojson_of_t params in
+              let open Yojson.Safe.Util in
+              let show = json |> member "show" |> to_bool in
+              let text = try json |> member "text" |> to_string with _ -> "" in
+              if !debug then
+                UCommon.pr2 (spf "LSP_client: metals/status show=%b text=%s" show text);
+              if show then
+                seen_any_begin := true
+              else if !seen_any_begin then begin
+                (* Metals went from busy to idle — ready *)
+                finished := true
+              end
+            with _exn -> ())
         | Some (Jsonrpc.Packet.Notification n) ->
             if !debug then
               UCommon.pr2 (spf "LSP_client: warmup notif: %s"
@@ -549,8 +630,14 @@ let connect_server (caps : < Cap.exec ; .. >) ~root (lsp_lang : LSP_lang.t) =
   let window = WindowClientCapabilities.create
       ~workDoneProgress:true () in
   let capabilities = ClientCapabilities.create ~window () in
+  let init_opts =
+    match lsp_lang.init_options with
+    | Some json -> Some json
+    | None -> None
+  in
   let params = InitializeParams.create
       ~capabilities
+      ?initializationOptions:init_opts
       ~rootUri:root_uri
       ~workspaceFolders:(Some [
         WorkspaceFolder.create ~uri:root_uri ~name:"root"

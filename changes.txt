@@ -1,6 +1,6 @@
 # -*- org -*-
 
-* 2.0! (Q1 2026) (restored --lsp for OCaml(using ocamllsp) and added C/C++(clangd)/Go(gopls)/Rust(rust-analyzer)/Python(ty or pyright)/Typescript/JavaScript(typescript-language-server)/Java(jdtls)/C#(OmniSharp), keep just osemgrep (remove Python cli/), conf-tree-sitter.opam, Haskell/)
+* 2.0! (Q1 2026) (restored --lsp for OCaml(using ocamllsp) and added C/C++(clangd)/Go(gopls)/Rust(rust-analyzer)/Python(ty or pyright)/Typescript/JavaScript(typescript-language-server)/Java(jdtls)/C#(OmniSharp)/Scala(Metals), keep just osemgrep (remove Python cli/), conf-tree-sitter.opam, Haskell/)
 # started to use Claude Code
 
 ** semantic
@@ -45,7 +45,11 @@
   OmniSharp resolves interfile types via Roslyn, enabling typed metavar
   matching like (int $X) on variables and expressions whose types
   are defined in other files.
-- added test data in tests/lsp/{ocaml,c,cpp,go,rust,python,typescript,java,csharp}/
+- --lsp now supports Scala via Metals. Metals resolves interfile types
+  via the Scala presentation compiler, enabling typed metavar matching
+  like ($X: Int) on variables and expressions whose types are defined
+  in other files.
+- added test data in tests/lsp/{ocaml,c,cpp,go,rust,python,typescript,java,csharp,scala}/
   demonstrating interfile type resolution with --lsp for each language.
 
 ** LSP infrastructure
@@ -53,7 +57,7 @@
   walks upward from the scanning root looking for a marker file
   (go.mod for Go, dune-project for OCaml, compile_commands.json for C,
   Cargo.toml for Rust, pyproject.toml for Python, tsconfig.json for TS,
-  pom.xml for Java, *.csproj for C#). Markers can now use glob patterns
+  pom.xml for Java, *.csproj for C#, build.sbt for Scala). Markers can now use glob patterns
   (e.g. "*.csproj") for languages with variable project file names.
   This also fixes workspace URI handling for gopls
   which requires absolute file:// URIs matching the workspace root.
