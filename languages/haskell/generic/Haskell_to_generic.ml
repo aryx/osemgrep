@@ -487,7 +487,7 @@ and decl_to_stmts decl : G.stmt list =
   match decl with
   | DeclEllipsis t -> [ G.exprstmt (G.Ellipsis t |> G.e) ]
   | FunBind fms ->
-      let first = List.hd fms in
+      let first = List_.hd_exn "FunBind should have at least one match" fms in
       let id = ident first.fm_name in
       let ent = G.basic_entity id in
       let fdef = fun_matches_to_funcdef fms in
@@ -564,7 +564,7 @@ and fun_matches_to_funcdef (fms : fun_match list) : G.function_definition =
       }
   | _ :: _ ->
       (* Multiple equations => convert to case expression over implicit params *)
-      let first = List.hd fms in
+      let first = List_.hd_exn "unexpected empty list" fms in
       let arity = List.length first.fm_pats in
       let param_ids =
         List.init arity (fun i ->

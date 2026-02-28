@@ -33,7 +33,8 @@ let language_id = "ocaml"
 (* Look for ocamllsp in the current opam switch *)
 let server_cmd () =
   let opam_bin =
-    try String.trim (UCmd.cmd_to_list "opam var bin" |> List.hd)
+    try String.trim (UCmd.cmd_to_list "opam var bin"
+         |> List_.hd_exn "opam var bin returned empty output")
     with _exn -> "/usr/bin"
   in
   Filename.concat opam_bin "ocamllsp"

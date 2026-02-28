@@ -72,7 +72,7 @@ module Chan = struct
     try
       let buf = Bytes.create n in
       Stdlib.really_input ic buf 0 n;
-      Some (Bytes.unsafe_to_string buf)
+      Some (Bytes.to_string buf)
     with End_of_file -> None
 
   let write oc strings =
@@ -287,7 +287,7 @@ let type_at_tok tk (uri : DocumentUri.t) conn =
               with exn ->
                   if !debug then
                     UCommon.pr2_gen ("Exn parse_type_string", s, exn);
-                  raise exn
+                  Exception.catch_and_reraise exn
             in
             if !debug then UCommon.pr2_gen ty;
             Some ty

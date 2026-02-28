@@ -675,7 +675,7 @@ and map_pat_fields (env : env) ((lb, opt, rb) : CST.pat_fields) :
         in
         let first = map_field first in
         let rest = List_.map (fun (_comma, f) -> map_field f) rest in
-        List.filter_map Fun.id (first :: rest)
+        List_.filter_map Fun.id (first :: rest)
   in
   (token env lb, fields, token env rb)
 
@@ -780,7 +780,7 @@ and map_exp_fields (env : env) (first : CST.exp_field)
   in
   let first = map_field first in
   let rest = List_.map (fun (_comma, f) -> map_field f) rest in
-  List.filter_map Fun.id (first :: rest)
+  List_.filter_map Fun.id (first :: rest)
 
 and map_exp_tuple (env : env) ((v1, v2) : CST.exp_tuple) : expr list =
   let first_part =
