@@ -8,7 +8,9 @@
       "Bash(make build-core-test:*)",
       "Bash(git add:*)",
       "Bash(git log:*)",
-      "Bash(git cherry-pick:*)"
+      "Bash(git cherry-pick:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(./bin/osemgrep scan:*)"
     ]
   }
 }
