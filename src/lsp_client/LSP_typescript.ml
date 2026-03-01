@@ -15,36 +15,11 @@
 
 (* TypeScript/JavaScript (typescript-language-server) helpers for the LSP client.
  *
- * Extract the type string from a typescript-language-server hover response
- * and parse it into AST_generic.type_.
- *
  * Both TypeScript and JavaScript use the same language server
  * (typescript-language-server --stdio), similar to how C/C++ share clangd.
- * The language_id ("typescript" vs "javascript") is set based on the
- * --lang flag.
  *
- * Note: typed metavars for TS use ($X : TYPE) syntax (parsed by the
- * menhir JS parser as TypedMetavar nodes). Lang.Js has no typed metavar
- * support in Parse_metavariable_type.ml, so typed metavar matching only
- * works with --lang ts.
- *
- * typescript-language-server hover format (markdown with code fences):
- *
- * For variables like 'const x: string = "hello"':
- *   "\n```typescript\nconst x: string\n```"
- *   We extract: "string"
- *
- * For properties like 'x.length':
- *   "\n```typescript\n(property) x: string\n```"
- *   We extract: "string"
- *
- * For functions like 'function add(a: number, b: number): number':
- *   "\n```typescript\nfunction add(a: number, b: number): number\n```"
- *   We extract the return type: "number"
- *
- * For consts like 'const bar = 42':
- *   "\n```typescript\nconst bar: number\n```"
- *   We extract: "number"
+ * Note: typed metavars use ($X : TYPE) syntax. Lang.Js has no typed metavar
+ * support in Parse_metavariable_type.ml, so matching only works with --lang ts.
  *)
 
 open Common
@@ -66,6 +41,16 @@ let server_cmd (_caps : < Cap.exec ; .. >) =
   else if Sys.file_exists npm_global then npm_global ^ " --stdio"
   else "typescript-language-server --stdio"
 
+(* Extract the type string from a typescript-language-server hover response.
+ *
+ * For variables like 'const x: string = "hello"':
+ *   "\n```typescript\nconst x: string\n```"  ->  "string"
+ * For properties like 'x.length':
+ *   "\n```typescript\n(property) x: string\n```"  ->  "string"
+ * For functions like 'function add(a: number, b: number): number':
+ *   "\n```typescript\nfunction add(a: number, b: number): number\n```"
+ *   ->  kept as-is for parse_type
+ *)
 let clean_hover s =
   (* Step 1: strip leading/trailing whitespace.
    * The hover response starts with \n before the code fence:

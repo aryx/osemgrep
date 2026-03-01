@@ -15,42 +15,10 @@
 
 (* Python (ty / pyright) helpers for the LSP client.
  *
- * Extract the type string from a Python LSP server hover response and
- * parse it into AST_generic.type_.
- *
  * Supported language servers (tried in order by server_cmd):
- *
- *  | Server              | Hover types? | Install                          | Notes                                      |
- *  |---------------------|-------------|----------------------------------|--------------------------------------------|
- *  | ty (Astral)         | yes         | uv tool install ty               | Extremely fast (Rust), beta since Dec 2025 |
- *  | pyright (Microsoft) | yes         | npm i -g pyright / pipx pyright  | Gold standard, written in TypeScript/Node   |
- *  | pylsp + jedi        | limited     | pip install python-lsp-server    | Less precise type inference                |
- *  | jedi-language-server | limited    | pip install jedi-language-server | Lightweight, static analysis only          |
- *
- * We prefer ty (fastest, Rust-native) and fall back to pyright.
- * pylsp/jedi are not tried because their hover responses lack the
- * "(variable) x: int" format needed for reliable type extraction.
- *
- * Hover format (both ty and pyright use markdown with code fences):
- *
- * For variables like 'x = 42':
- *   "```python\n(variable) x: int\n```"
- *   We extract: "int"  (strip "(variable) NAME: ")
- *
- * For functions like 'def add(a: int, b: int) -> int':
- *   "```python\n(function) def add(a: int, b: int) -> int\n```\n---\nDocstring..."
- *   We extract: "def add(a: int, b: int) -> int"  (the function signature)
- *
- * For classes:
- *   "```python\n(class) Foo\n```"
- *   We keep: "Foo"
- *
- * For methods:
- *   "```python\n(method) def bar(self, x: int) -> str\n```"
- *   We extract: "def bar(self, x: int) -> str"
- *
- * coupling: pyright hover format is defined in:
- *   https://github.com/microsoft/pyright/blob/main/packages/pyright-internal/src/analyzer/hoverProvider.ts
+ *  - ty (Astral): extremely fast (Rust), beta since Dec 2025
+ *  - pyright (Microsoft): gold standard, written in TypeScript/Node
+ * We prefer ty and fall back to pyright.
  *)
 
 open Common
@@ -59,6 +27,8 @@ module G = AST_generic
 let project_root_marker = "pyproject.toml"
 let language_id = "python"
 
+(* pylsp/jedi are not tried because their hover responses lack the
+ * "(variable) x: int" format needed for reliable type extraction. *)
 let server_cmd (_caps : < Cap.exec ; .. >) =
   (* Prefer ty (Astral's fast Rust type checker / language server) *)
   let home = Sys.getenv "HOME" in
@@ -78,6 +48,19 @@ let server_cmd (_caps : < Cap.exec ; .. >) =
       (* Last resort: hope it's on PATH *)
       "pyright-langserver --stdio"
 
+(* Extract the type string from a ty/pyright hover response.
+ *
+ * coupling: pyright hover format is defined in:
+ *   https://github.com/microsoft/pyright/blob/main/packages/pyright-internal/src/analyzer/hoverProvider.ts
+ *
+ * For variables like 'x = 42':
+ *   "```python\n(variable) x: int\n```"  ->  "int"
+ * For functions like 'def add(a: int, b: int) -> int':
+ *   "```python\n(function) def add(a: int, b: int) -> int\n```\n---\nDocstring..."
+ *   ->  "def add(a: int, b: int) -> int"
+ * For classes:
+ *   "```python\n(class) Foo\n```"  ->  "Foo"
+ *)
 let clean_hover s =
   (* Step 1: extract content from ```python ... ``` code fences.
    * Both ty and pyright wrap type info in code fences.

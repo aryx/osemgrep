@@ -13,31 +13,7 @@
  * license.txt for more details.
  *)
 
-(* Java (jdtls / Eclipse JDT Language Server) helpers for the LSP client.
- *
- * Extract the type string from a jdtls hover response and parse it
- * into AST_generic.type_.
- *
- * Java typed metavars use (TYPE $X) syntax — parsed by the menhir Java
- * parser as TypedMetavar nodes (see Parse_metavariable_type.ml).
- *
- * jdtls hover format: MarkedString list (not MarkupContent).
- * The first MarkedString has language="java" and value like:
- *
- * For variables like 'int a = 10':
- *   "int a - Main.main(String[])"
- *   We extract: "int"
- *
- * For method calls like 'Lib.add(a, b)' hovering on 'add':
- *   "int Lib.add(int a, int b)"
- *   We extract: "int"
- *
- * For static method references like 'Lib.add':
- *   "int Lib.add(int a, int b)"
- *   We extract: "int"
- *
- * Empty string for some expressions (e.g. hovering on 'Lib' in 'Lib.add').
- *)
+(* Java (jdtls / Eclipse JDT Language Server) helpers for the LSP client. *)
 
 open Common
 module G = AST_generic
@@ -47,6 +23,16 @@ let language_id = "java"
 
 let server_cmd (_caps : < Cap.exec ; .. >) = "jdtls"
 
+(* Extract the type string from a jdtls hover response.
+ *
+ * jdtls hover format: MarkedString list (not MarkupContent).
+ *
+ * For variables like 'int a = 10':
+ *   "int a - Main.main(String[])"  ->  "int"
+ * For method calls like 'Lib.add(a, b)' hovering on 'add':
+ *   "int Lib.add(int a, int b)"  ->  "int"
+ * Empty string for some expressions (e.g. hovering on 'Lib' in 'Lib.add').
+ *)
 let clean_hover s =
   (* Step 1: strip leading/trailing whitespace. *)
   let s = String.trim s in

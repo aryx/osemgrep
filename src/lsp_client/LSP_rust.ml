@@ -13,25 +13,7 @@
  * license.txt for more details.
  *)
 
-(* Rust (rust-analyzer) helpers for the LSP client.
- *
- * Extract the type string from a rust-analyzer hover response and parse it
- * into AST_generic.type_.
- *
- * rust-analyzer hover format (markdown with code fences):
- *
- * For variables like 'let x: i32 = 42':
- *   "*x*\n\n```rust\nlet x: i32\n```"
- *   We extract: "i32"  (strip "let NAME: ")
- *
- * For functions like 'fn foo() -> u32':
- *   "*foo*\n\n```rust\nmod_path\n```\n\n```rust\npub fn foo() -> u32\n```"
- *   We extract: "pub fn foo() -> u32"  (the last code block)
- *
- * For structs:
- *   "*Foo*\n\n```rust\nstruct Foo { field: u32 }\n```\n\n---\nsize = 4..."
- *   We extract: "struct Foo { field: u32 }"
- *)
+(* Rust (rust-analyzer) helpers for the LSP client. *)
 
 open Common
 module G = AST_generic
@@ -44,6 +26,19 @@ let server_cmd (_caps : < Cap.exec ; .. >) =
   if Sys.file_exists cargo_path then cargo_path
   else "rust-analyzer"
 
+(* Extract the type string from a rust-analyzer hover response.
+ *
+ * rust-analyzer hover format (markdown with code fences):
+ *
+ * For variables like 'let x: i32 = 42':
+ *   "*x*\n\n```rust\nlet x: i32\n```"  ->  "i32"
+ * For functions like 'fn foo() -> u32':
+ *   "*foo*\n\n```rust\nmod_path\n```\n\n```rust\npub fn foo() -> u32\n```"
+ *   ->  "pub fn foo() -> u32"  (the last code block)
+ * For structs:
+ *   "*Foo*\n\n```rust\nstruct Foo { field: u32 }\n```\n\n---\nsize = 4..."
+ *   ->  "struct Foo { field: u32 }"
+ *)
 let clean_hover s =
   (* Step 1: extract the last ```rust ... ``` code block.
    * rust-analyzer may emit multiple code blocks; the first is often the

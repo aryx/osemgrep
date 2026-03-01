@@ -13,38 +13,7 @@
  * license.txt for more details.
  *)
 
-(* C/C++ (clangd) helpers for the LSP client.
- *
- * Extract the type string from a clangd hover response and parse it
- * into AST_generic.type_.
- *
- * coupling: the HoverInfo struct is defined in:
- *   https://github.com/llvm/llvm-project/blob/main/clang-tools-extra/clangd/Hover.h
- * The text is rendered by HoverInfo::present() / presentDefault() in:
- *   https://github.com/llvm/llvm-project/blob/main/clang-tools-extra/clangd/Hover.cpp
- * presentDefault() formats the HoverInfo fields:
- * - "Type: TYPE" from the HoverInfo::Type field (for variables)
- * - "→ TYPE" from the HoverInfo::ReturnType field (for functions)
- * - "Parameters:" with bullet list from HoverInfo::Parameters
- *
- * clangd hover format (MarkupKind = plaintext, not markdown fences):
- *
- * For variables like 'int x = 42':
- *   "variable x\n\nType: int\nValue = 42 (0x2a)\n\n// In main\nint x = 42"
- *   We extract: "int"  (from the "Type: " line)
- *
- * For pointers like 'char *p':
- *   "variable p\n\nType: char *\n\n// In main\nchar *p"
- *   We extract: "char *"
- *
- * For functions like 'int add(int a, int b)':
- *   "function add\n\n→ int\nParameters:\n- int a\n- int b\n..."
- *   We extract: "int"  (from the "→ " line = return type)
- *
- * For macros or other symbols without type info:
- *   "macro FOO\n\n#define FOO 42"
- *   We return: the first line as fallback
- *)
+(* C/C++ (clangd) helpers for the LSP client. *)
 
 open Common
 module G = AST_generic
@@ -61,6 +30,28 @@ let language_id lang =
  * project-specific flags. Handles both C and C++. *)
 let server_cmd (_caps : < Cap.exec ; .. >) = "clangd"
 
+(* Extract the type string from a clangd hover response.
+ *
+ * coupling: the HoverInfo struct is defined in:
+ *   https://github.com/llvm/llvm-project/blob/main/clang-tools-extra/clangd/Hover.h
+ * The text is rendered by HoverInfo::present() / presentDefault() in:
+ *   https://github.com/llvm/llvm-project/blob/main/clang-tools-extra/clangd/Hover.cpp
+ * presentDefault() formats: "Type: TYPE" (variables), "→ TYPE" (functions).
+ *
+ * clangd hover format (MarkupKind = plaintext, not markdown fences):
+ *
+ * For variables like 'int x = 42':
+ *   "variable x\n\nType: int\nValue = 42 (0x2a)\n\n// In main\nint x = 42"
+ *   We extract: "int"  (from the "Type: " line)
+ *
+ * For functions like 'int add(int a, int b)':
+ *   "function add\n\n→ int\nParameters:\n- int a\n- int b\n..."
+ *   We extract: "int"  (from the "→ " line = return type)
+ *
+ * For macros or other symbols without type info:
+ *   "macro FOO\n\n#define FOO 42"
+ *   We return: the first line as fallback
+ *)
 let clean_hover s =
   let lines = String.split_on_char '\n' s in
   (* Look for "Type: TYPE" (variables) or "→ TYPE" (functions) *)
