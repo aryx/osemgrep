@@ -212,6 +212,7 @@ type expr =
   (* sgrep-ext: *)
   | Ellipsis of tok
   | DeepEllipsis of expr bracket
+  | TypedMetavar of ident * hint_type
 
 and match_ = MCase of expr list * expr | MDefault of tok * expr
 

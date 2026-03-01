@@ -523,6 +523,8 @@ and expr env = function
       A.Call
         (A.Id [ (A.builtin "await", wrap tok) ], fb tok [ A.Arg (expr env e) ])
   | Ellipsis t -> A.Ellipsis t
+  | TypedMetavar (_, dn, ht, _) ->
+      A.TypedMetavar (dname dn, hint_type env ht)
   | ParenExpr (_, e, _) -> expr env e
 
 and arith_op = function

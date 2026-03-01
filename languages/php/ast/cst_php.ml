@@ -283,6 +283,7 @@ and expr =
   (* semgrep-ext:  *)
   | Ellipsis of tok
   | DeepEllipsis of expr bracket
+  | TypedMetavar of tok (* ( *) * dname * hint_type * tok (* ) *)
   (* unparser: *)
   | ParenExpr of expr paren
 

@@ -209,7 +209,6 @@ let language_exceptions =
       [
         "equivalence_naming_import";
         "metavar_key_value";
-        "metavar_typed";
         "dots_params";
       ] );
     (* good boy, metavar_typed is working just for constants though *)

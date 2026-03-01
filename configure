@@ -340,6 +340,10 @@ find_lsp_server "C# LSP" OmniSharp "$HOME/.local/share/omnisharp" "$HOME/.dotnet
 # install via coursier: cs install metals
 find_lsp_server "Scala LSP" metals "$HOME/.local/share/coursier/bin"
 
+# Intelephense: PHP language server
+# install via: npm install -g intelephense
+find_lsp_server "PHP LSP" intelephense "$HOME/.local/share/npm/bin" "$HOME/.npm-global/bin"
+
 echo ''
 echo 'Everything looks fine. You can now run: '
 echo ''

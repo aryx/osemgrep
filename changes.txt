@@ -1,6 +1,6 @@
 # -*- org -*-
 
-* 2.0! (Q1 2026) (restored --lsp for OCaml(using ocamllsp) and added C/C++(clangd)/Go(gopls)/Rust(rust-analyzer)/Python(ty or pyright)/Typescript/JavaScript(typescript-language-server)/Java(jdtls)/C#(OmniSharp)/Scala(Metals), keep just osemgrep (remove Python cli/), conf-tree-sitter.opam, Haskell/)
+* 2.0! (Q1 2026) (restored --lsp for OCaml(using ocamllsp) and added C/C++(clangd)/Go(gopls)/Rust(rust-analyzer)/Python(ty or pyright)/Typescript/JavaScript(typescript-language-server)/Java(jdtls)/C#(OmniSharp)/Scala(Metals)/PHP(Intelephense), keep just osemgrep (remove Python cli/), conf-tree-sitter.opam, Haskell/)
 # started to use Claude Code
 
 ** semantic
@@ -49,7 +49,11 @@
   via the Scala presentation compiler, enabling typed metavar matching
   like ($X: Int) on variables and expressions whose types are defined
   in other files.
-- added test data in tests/lsp/{ocaml,c,cpp,go,rust,python,typescript,java,csharp,scala}/
+- --lsp now supports PHP via Intelephense. Intelephense resolves interfile
+  types including class method return types and variable type inference.
+  PHP typed metavars use ($X : int) syntax (colon-separated, like TypeScript)
+  to avoid ambiguity with PHP cast expressions like (int) $x.
+- added test data in tests/lsp/{ocaml,c,cpp,go,rust,python,typescript,java,csharp,scala,php}/
   demonstrating interfile type resolution with --lsp for each language.
 
 ** LSP infrastructure
@@ -57,7 +61,7 @@
   walks upward from the scanning root looking for a marker file
   (go.mod for Go, dune-project for OCaml, compile_commands.json for C,
   Cargo.toml for Rust, pyproject.toml for Python, tsconfig.json for TS,
-  pom.xml for Java, *.csproj for C#, build.sbt for Scala). Markers can now use glob patterns
+  pom.xml for Java, *.csproj for C#, build.sbt for Scala, composer.json for PHP). Markers can now use glob patterns
   (e.g. "*.csproj") for languages with variable project file names.
   This also fixes workspace URI handling for gopls
   which requires absolute file:// URIs matching the workspace root.

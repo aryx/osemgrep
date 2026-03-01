@@ -1134,6 +1134,8 @@ primary_expr:
  | "(" expr_or_dots ")" { ParenExpr($1,$2,$3) }
  (* semgrep-ext: *)
  | "<..." expr "...>" { Flag_parsing.sgrep_guard (DeepEllipsis ($1, $2, $3)) }
+ | "(" T_METAVAR ":" type_php ")"
+     { Flag_parsing.sgrep_guard (TypedMetavar($1, DName $2, $4, $5)) }
 
 
 constant:

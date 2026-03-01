@@ -1,0 +1,28 @@
+Test data for --lsp with Intelephense (PHP language server).
+
+The typed metavar pattern ($X: int) should match expressions whose type
+is 'int' even when the type can only be determined by looking at the
+definition in another file (Lib.php).
+
+Prerequisites:
+  - Node.js:       apt install nodejs npm
+  - Intelephense:  npm install -g intelephense
+
+Without --lsp (matches only literals and declared-type identifiers):
+  osemgrep scan -e '($X: int)' --lang php tests/lsp/php/Main.php
+
+With --lsp (Intelephense resolves interfile types):
+  osemgrep scan --lsp --lsp-expr --debug -e '($X: int)' --lang php tests/lsp/php/Main.php
+
+The extra findings with --lsp come from Intelephense knowing:
+  - Lib::add($a, $b) has return type int (defined in Lib.php)
+  - $sum has type int (inferred from Lib::add's return type)
+Without --lsp, osemgrep cannot resolve Lib::add's return type because
+it is defined in Lib.php, not in Main.php.
+
+Note: osemgrep automatically finds the project root (directory containing
+composer.json) by walking upward from the target file. This is needed
+because Intelephense requires the workspace root.
+
+Note: Intelephense needs warm-up time on first run. Use --timeout 30
+(or higher) to avoid the default 5-second per-file timeout.

@@ -35,6 +35,8 @@
    parser_csharp.ast_generic
    parser_scala.recursive_descent
    parser_scala.ast_generic
+   parser_php.menhir
+   parser_php.ast_generic
  )
  (preprocess (pps ppx_deriving.show ppx_profiling))
 )

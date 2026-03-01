@@ -253,6 +253,10 @@ and expr e : G.expr =
   match e with
   | DeepEllipsis x -> G.DeepEllipsis (bracket expr x) |> G.e
   | Ellipsis t -> G.Ellipsis t |> G.e
+  | TypedMetavar (v1, v2) ->
+      let v1 = var v1 in
+      let v2 = hint_type v2 in
+      G.TypedMetavar (v1, Tok.fake_tok (snd v1) " ", v2) |> G.e
   | Bool v1 ->
       let v1 = wrap id v1 in
       G.L (G.Bool v1) |> G.e

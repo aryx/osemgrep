@@ -37,6 +37,7 @@
  *  - Java: jdtls (Eclipse JDT Language Server; needs pom.xml or build.gradle)
  *  - C#: OmniSharp (needs *.csproj; project root auto-detected)
  *  - Scala: Metals (needs build.sbt; project root auto-detected)
+ *  - PHP: Intelephense (needs composer.json; project root auto-detected)
  *
  * To use: run osemgrep from the project directory you want to analyze.
  *)
@@ -111,6 +112,7 @@ let lsp_lang_of_lang lang =
   | Lang.Java -> LSP_java.lsp_lang
   | Lang.Csharp -> LSP_csharp.lsp_lang
   | Lang.Scala -> LSP_scala.lsp_lang
+  | Lang.Php -> LSP_php.lsp_lang
   | lang ->
       failwith (spf "LSP_client: unsupported language: %s" (Lang.show lang))
 
