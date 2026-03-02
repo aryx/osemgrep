@@ -3,6 +3,7 @@
  (name parser_hava_menhir)
  (wrapped false)
  (libraries
+   menhirLib
    commons
    lib_parsing
    parser_java.ast
@@ -10,5 +11,10 @@
  (preprocess (pps ppx_deriving.show))
 )
 (ocamllex lexer_java)
-(menhir (modules parser_java)
-        (flags --unused-tokens --explain --fixed-exception))
+; Use menhir-wrapper instead of (menhir ...) to suppress known conflicts
+; and catch regressions. See menhir-wrapper at project root for details.
+; Was: (menhir (modules parser_java) (flags --unused-tokens --explain --fixed-exception))
+(rule
+ (targets parser_java.ml parser_java.mli)
+ (deps parser_java.mly)
+ (action (run %{project_root}/menhir-wrapper parser_java.mly)))

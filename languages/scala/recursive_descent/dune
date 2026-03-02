@@ -3,7 +3,7 @@
  (name parser_scala_recursive_descent)
  (wrapped false)
  (libraries
-
+   menhirLib
    commons
    lib_parsing
    ast_generic ; some use of is_metavar_name
@@ -13,5 +13,10 @@
 )
 (ocamllex Lexer_scala)
 ; TODO: we don't really use menhir, just to get a list of tokens, could be defined without menhir!
-(menhir (modules Parser_scala)
-        (flags --unused-tokens --explain --fixed-exception --external-tokens Token_scala))
+; Use menhir-wrapper instead of (menhir ...) to suppress known conflicts
+; and catch regressions. See menhir-wrapper at project root for details.
+; Was: (menhir (modules Parser_scala) (flags --unused-tokens --explain --fixed-exception --external-tokens Token_scala))
+(rule
+ (targets Parser_scala.ml Parser_scala.mli)
+ (deps Parser_scala.mly)
+ (action (run %{project_root}/menhir-wrapper --external-tokens Token_scala Parser_scala.mly)))

@@ -8,6 +8,10 @@
  (preprocess (pps ppx_deriving.show))
 )
 (ocamllex Lexer)
-; --table helps to generate a smaller engine.js file
-(menhir (modules Parser)
-        (flags --unused-tokens --explain --table --fixed-exception))
+; Use menhir-wrapper instead of (menhir ...) to suppress known conflicts
+; and catch regressions. See menhir-wrapper at project root for details.
+; Was: (menhir (modules Parser) (flags --unused-tokens --explain --table --fixed-exception))
+(rule
+ (targets Parser.ml Parser.mli)
+ (deps Parser.mly)
+ (action (run %{project_root}/menhir-wrapper Parser.mly)))

@@ -3,7 +3,7 @@
  (name parser_python_menhir)
  (wrapped false)
  (libraries
-
+   menhirLib
    commons
    lib_parsing
    parser_python.ast
@@ -11,5 +11,10 @@
  (preprocess (pps ppx_deriving.show ppx_profiling))
 )
 (ocamllex Lexer_python)
-(menhir (modules Parser_python)
-        (flags --unused-tokens --explain --fixed-exception))
+; Use menhir-wrapper instead of (menhir ...) to suppress known conflicts
+; and catch regressions. See menhir-wrapper at project root for details.
+; Was: (menhir (modules Parser_python) (flags --unused-tokens --explain --fixed-exception))
+(rule
+ (targets Parser_python.ml Parser_python.mli)
+ (deps Parser_python.mly expected_menhir_conflicts)
+ (action (run %{project_root}/menhir-wrapper Parser_python.mly)))

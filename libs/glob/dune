@@ -3,6 +3,7 @@
 (library
   (public_name glob)
   (libraries
+    menhirLib
     commons
     profiling
   )
@@ -13,5 +14,10 @@
 )
 
 (ocamllex Lexer)
-(menhir (modules Parser)
-        (flags --unused-tokens --explain --fixed-exception))
+; Use menhir-wrapper instead of (menhir ...) to suppress known conflicts
+; and catch regressions. See menhir-wrapper at project root for details.
+; Was: (menhir (modules Parser) (flags --unused-tokens --explain --fixed-exception))
+(rule
+ (targets Parser.ml Parser.mli)
+ (deps Parser.mly)
+ (action (run %{project_root}/menhir-wrapper Parser.mly)))
