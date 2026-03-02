@@ -93,9 +93,8 @@ let int_lit =
 
 let decimal_exponent = ['e' 'E'] ['+' '-']? decimal_digits
 let float_lit =
-   decimal_digits '.' decimal_digits? decimal_exponent?
+   decimal_digits '.' decimal_digits decimal_exponent?
  | decimal_digits decimal_exponent
- | '.' decimal_digits decimal_exponent?
 
 let escaped_char = '\\' ['n' 'r' 't' '\\' '\'' '"' '0']
 let hex_escape = '\\' 'x' hex_digit hex_digit
@@ -156,6 +155,7 @@ rule token = parse
   | '<'     { LT (tokinfo lexbuf) }
   | '>'     { GT (tokinfo lexbuf) }
 
+  | "=>"    { FATARROW (tokinfo lexbuf) }
   | '='     { EQ (tokinfo lexbuf) }
 
   | '!'     { BANG (tokinfo lexbuf) }
@@ -232,6 +232,10 @@ rule token = parse
         | "threadlocal" -> THREADLOCAL (tokinfo lexbuf)
         | "opaque"      -> OPAQUE (tokinfo lexbuf)
         | "anyerror"    -> ANYERROR (tokinfo lexbuf)
+        | "packed"      -> PACKED (tokinfo lexbuf)
+        | "anytype"     -> ANYTYPE (tokinfo lexbuf)
+        | "anyopaque"   -> IDENT ("anyopaque", tokinfo lexbuf)
+        | "type"        -> TYPE (tokinfo lexbuf)
         | _             -> IDENT (id, tokinfo lexbuf)
     }
 

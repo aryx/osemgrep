@@ -64,9 +64,13 @@ let mk_unary op tok e =
 %token <Tok.t> AND OR
 %token <Tok.t> ASYNC AWAIT RESUME SUSPEND NOSUSPEND
 %token <Tok.t> THREADLOCAL OPAQUE ANYERROR
+%token <Tok.t> PACKED ANYTYPE TYPE
 
 (* Tokens inserted by Parsing_hacks_zig *)
 %token <Tok.t> COMPTIME_MOD  (* COMPTIME used as declaration modifier *)
+%token <Tok.t> IF_EXPR SWITCH_EXPR  (* if/switch in expression context *)
+%token <Tok.t> LBRACE_INIT  (* { after type for typed init: [_]u8{ ... } *)
+%token <Tok.t> STRUCT_EXPR ENUM_EXPR UNION_EXPR ERROR_EXPR  (* in expr ctx *)
 
 (* Operators and punctuation *)
 %token <Tok.t> PLUS MINUS STAR SLASH PERCENT
@@ -80,7 +84,7 @@ let mk_unary op tok e =
 %token <Tok.t> PLUSPLUS
 %token <Tok.t> LPAREN RPAREN LBRACKET RBRACKET LBRACE RBRACE
 %token <Tok.t> COLON SEMICOLON DOT COMMA QUESTION
-%token <Tok.t> DOTDOT
+%token <Tok.t> DOTDOT FATARROW
 
 (* sgrep-ext *)
 %token <Tok.t> ELLIPSIS LDots RDots
@@ -167,6 +171,7 @@ pub_opt:
 extern_opt:
  | (* empty *) { None }
  | EXTERN      { Some $1 }
+ | EXTERN LSTR { Some $1 }
 
 comptime_opt:
  | (* empty *)     { None }
@@ -228,6 +233,7 @@ param:
 return_type:
  | (* empty *)  { None }
  | type_        { Some $1 }
+ | BANG type_   { Some (TAnyErrorUnion (Tok.fake_tok $1 "anyerror", $1, $2)) }
 
 fn_body:
  | block        { Some $1 }
@@ -240,15 +246,32 @@ fn_body:
 type_:
  | type_name             { $1 }
  | STAR type_            { TPointer (PtrSingle, $1, $2) }
+ | STAR CONST type_      { TPointer (PtrSingle, $1, $3) }
  | QUESTION type_        { TOptional ($1, $2) }
+ | LBRACKET RBRACKET CONST type_
+     { TSlice (($1, $2, $2), $4) }
  | LBRACKET RBRACKET type_
      { TSlice (($1, $2, $2), $3) }
+ | LBRACKET STAR RBRACKET type_
+     { TPointer (PtrMany, $1, $4) }
+ | LBRACKET STAR IDENT RBRACKET type_
+     { TPointer (PtrC, $1, $5) }
+ | LBRACKET COLON expr RBRACKET CONST type_
+     { TSlice (($1, $4, $4), $6) }
+ | LBRACKET COLON expr RBRACKET type_
+     { TSlice (($1, $4, $4), $5) }
+ | LBRACKET expr RBRACKET CONST type_
+     { TArray (($1, $2, $3), $5) }
  | LBRACKET expr RBRACKET type_
      { TArray (($1, $2, $3), $4) }
+ | type_name BANG type_
+     { TErrorUnion ($1, $2, $3) }
+ | ANYERROR BANG type_
+     { TAnyErrorUnion ($1, $2, $3) }
  | FN LPAREN type_params RPAREN type_
      { TFunc { ftok = $1; fparams = ($2, $3, $4); freturn = Some $5;
                fcalling_convention = None } }
- | STRUCT LBRACE container_fields RBRACE
+ | struct_or_packed LBRACE container_body RBRACE
      { TStruct ($1, ($2, $3, $4)) }
  | ENUM LBRACE enum_fields RBRACE
      { TEnum ($1, None, ($2, $3, $4)) }
@@ -256,6 +279,10 @@ type_:
      { TEnum ($1, Some $3, ($4, $6, $7)) }
  | UNION LBRACE container_fields RBRACE
      { TUnion ($1, None, ($2, $3, $4)) }
+ | UNION LPAREN union_tag RPAREN LBRACE container_fields RBRACE
+     { TUnion ($1, $3, ($5, $6, $7)) }
+ | ERROR LBRACE enum_fields RBRACE
+     { TEnum ($1, None, ($2, $3, $4)) }
  | OPAQUE LBRACE RBRACE
      { TOpaque ($1, ($2, $3, $3)) }
  | BUILTIN LPAREN expr_comma_list RPAREN
@@ -263,10 +290,21 @@ type_:
  | ELLIPSIS
      { TEllipsis $1 }
 
+struct_or_packed:
+ | STRUCT          { $1 }
+ | PACKED STRUCT   { $2 }
+ | EXTERN STRUCT   { $2 }
+
+union_tag:
+ | ENUM            { None }
+ | type_           { Some $1 }
+
 type_name:
  | IDENT       { TName $1 }
  | ANYERROR    { TName ("anyerror", $1) }
  | ERROR       { TName ("error", $1) }
+ | ANYTYPE     { TName ("anytype", $1) }
+ | TYPE        { TName ("type", $1) }
 
 type_params:
  | (* empty *)                   { [] }
@@ -278,6 +316,18 @@ type_param_list:
      { [Param { p_comptime = None; p_noalias = None; p_name = None; p_type = $1 }] }
  | type_param_list COMMA type_
      { $1 @ [Param { p_comptime = None; p_noalias = None; p_name = None; p_type = $3 }] }
+
+(* Container body: fields interleaved with embedded fn/var declarations.
+ * Embedded decls are skipped (returned as empty list) for now. *)
+container_body:
+ | (* empty *)                              { [] }
+ | container_body_item container_body       { $1 @ $2 }
+
+container_body_item:
+ | container_field COMMA                    { [$1] }
+ | pub_opt inline_opt FN IDENT LPAREN params RPAREN return_type fn_body
+     { ignore ($1,$2,$3,$4,$5,$6,$7,$8,$9); [] }
+ | var_decl_full SEMICOLON                  { [] }
 
 container_fields:
  | (* empty *)                              { [] }
@@ -293,6 +343,8 @@ container_field:
      { { cf_name = $1; cf_type = $3; cf_default = None; cf_align = None } }
  | IDENT COLON type_ EQ expr
      { { cf_name = $1; cf_type = $3; cf_default = Some $5; cf_align = None } }
+ | IDENT
+     { { cf_name = $1; cf_type = TName ("_", snd $1); cf_default = None; cf_align = None } }
 
 enum_fields:
  | (* empty *)                    { [] }
@@ -410,9 +462,19 @@ postfix_expr:
      { Call ($1, ($2, $3, $4)) }
  | postfix_expr LBRACKET expr RBRACKET
      { Index ($1, ($2, $3, $4)) }
- (* catch/orelse are postfix-ish: expr catch expr, expr orelse expr *)
+ (* slicing: expr[a..b], expr[a..], expr[..b] *)
+ | postfix_expr LBRACKET expr DOTDOT RBRACKET
+     { SliceExpr ($1, ($2, { sl_start = Some $3; sl_end = None; sl_sentinel = None }, $5)) }
+ | postfix_expr LBRACKET expr DOTDOT expr RBRACKET
+     { SliceExpr ($1, ($2, { sl_start = Some $3; sl_end = Some $5; sl_sentinel = None }, $6)) }
+ (* typed init: TypeExpr{ values } — LBRACE_INIT from parsing hacks *)
+ | postfix_expr LBRACE_INIT anon_init_body RBRACE
+     { $3 ($2, $4) }
+ (* catch/orelse with optional capture *)
  | postfix_expr CATCH prefix_expr
      { Catch ($1, $2, None, $3) }
+ | postfix_expr CATCH PIPE IDENT PIPE prefix_expr
+     { Catch ($1, $2, Some [$4], $6) }
  | postfix_expr ORELSE prefix_expr
      { Orelse ($1, $2, None, $3) }
  (* sgrep *)
@@ -438,12 +500,49 @@ atom_expr:
  (* anonymous init: .{ } or .{ .x = 1 } or .{ "world" } *)
  | DOT LBRACE anon_init_body RBRACE
      { $3 ($2, $4) }
- (* block expression *)
+ (* enum literal: .identifier *)
+ | DOT IDENT
+     { FieldAccess (Id ("_anon", Tok.fake_tok $1 ""), $1, $2) }
+ (* block expression, optionally labeled *)
  | LBRACE stmts RBRACE
      { BlockExpr (None, ($1, $2, $3)) }
+ | IDENT COLON LBRACE stmts RBRACE
+     { BlockExpr (Some $1, ($3, $4, $5)) }
  (* error.Name *)
  | ERROR DOT IDENT
      { ErrorValue ($1, $2, $3) }
+ (* type-as-expression: struct/enum/union/error after = — *_EXPR tokens *)
+ | STRUCT_EXPR LBRACE container_body RBRACE
+     { BlockExpr (None, ($2, [], $4)) }
+ | PACKED STRUCT_EXPR LBRACE container_body RBRACE
+     { BlockExpr (None, ($3, [], $5)) }
+ | ENUM_EXPR LBRACE enum_fields RBRACE
+     { BlockExpr (None, ($2, [], $4)) }
+ | ENUM_EXPR LPAREN type_ RPAREN LBRACE enum_fields RBRACE
+     { BlockExpr (None, ($5, [], $7)) }
+ | UNION_EXPR LPAREN union_tag RPAREN LBRACE container_fields RBRACE
+     { ignore $3; BlockExpr (None, ($5, [], $7)) }
+ | UNION_EXPR LBRACE container_fields RBRACE
+     { BlockExpr (None, ($2, [], $4)) }
+ | ERROR_EXPR LBRACE enum_fields RBRACE
+     { BlockExpr (None, ($2, [], $4)) }
+ (* if/switch/for/while as expressions — use *_EXPR tokens from parsing hacks *)
+ | IF_EXPR LPAREN expr RPAREN capture_opt prefix_expr ELSE capture_opt prefix_expr
+     { ignore $8; IfExpr ($1, $3, $5, $6, Some ($7, $9)) }
+ | IF_EXPR LPAREN expr RPAREN capture_opt prefix_expr
+     { IfExpr ($1, $3, $5, $6, None) }
+ | SWITCH_EXPR LPAREN expr RPAREN LBRACE switch_prongs RBRACE
+     { SwitchExpr ($1, $3, ($5, $6, $7)) }
+ (* suspend *)
+ | SUSPEND LBRACE stmts RBRACE
+     { Suspend ($1, Some (BlockExpr (None, ($2, $3, $4)))) }
+ | SUSPEND
+     { Suspend ($1, None) }
+ (* fn literal *)
+ | FN LPAREN params RPAREN return_type LBRACE stmts RBRACE
+     { let ft = { ftok = $1; fparams = ($2, $3, $4); freturn = $5;
+                  fcalling_convention = None } in
+       FuncLit (ft, ($6, $7, $8)) }
  (* sgrep-ext: *)
  | ELLIPSIS
      { Ellipsis $1 }
@@ -489,12 +588,60 @@ field_init:
  | DOT IDENT EQ expr
      { FieldInit ($2, $3, $4) }
 
-(* For array inits inside .{}, a non-empty list of expressions.
- * We can use regular expr here because field_init always starts
- * with DOT IDENT EQ, which is unambiguous. *)
 anon_expr_list:
  | expr                            { [$1] }
  | anon_expr_list COMMA expr       { $1 @ [$3] }
+
+(* Payload captures: |ident| or |ident, ident| *)
+capture_opt:
+ | (* empty *)                    { None }
+ | PIPE capture_idents PIPE       { Some $2 }
+
+capture_pipes:
+ | PIPE capture_idents PIPE       { $2 }
+
+capture_idents:
+ | IDENT                          { [$1] }
+ | capture_idents COMMA IDENT     { $1 @ [$3] }
+
+while_continue_opt:
+ | (* empty *)                    { None }
+ | COLON LPAREN expr RPAREN       { Some $3 }
+
+for_inputs:
+ | for_input_list                 { $1 }
+ | for_input_list COMMA           { $1 }
+
+for_input_list:
+ | for_input                      { [$1] }
+ | for_input_list COMMA for_input { $1 @ [$3] }
+
+for_input:
+ | expr                           { { fi_expr = $1; fi_sentinel = None } }
+ | expr DOTDOT                    { { fi_expr = Range (Some $1, $2, None); fi_sentinel = None } }
+
+(* Switch prongs *)
+switch_prongs:
+ | (* empty *)                          { [] }
+ | switch_prong_list                    { $1 }
+ | switch_prong_list COMMA              { $1 }
+
+switch_prong_list:
+ | switch_prong                            { [$1] }
+ | switch_prong_list COMMA switch_prong    { $1 @ [$3] }
+
+switch_prong:
+ | switch_cases FATARROW capture_opt expr
+     { { sp_cases = $1; sp_capture = $3; sp_body = $4 } }
+
+switch_cases:
+ | switch_case                          { [$1] }
+ | switch_cases COMMA switch_case       { $1 @ [$3] }
+
+switch_case:
+ | expr                               { SCExpr $1 }
+ | expr ELLIPSIS expr                  { SCRange ($1, $2, $3) }
+ | ELSE                               { SCDefault $1 }
 
 (*****************************************************************************)
 (* Statements *)
@@ -519,8 +666,14 @@ stmt_with_semi:
      { Return ($1, Some $2) }
  | BREAK SEMICOLON
      { Break ($1, None, None) }
+ | BREAK COLON IDENT SEMICOLON
+     { Break ($1, Some $3, None) }
+ | BREAK COLON IDENT expr SEMICOLON
+     { Break ($1, Some $3, Some $4) }
  | CONTINUE SEMICOLON
      { Continue ($1, None) }
+ | CONTINUE COLON IDENT SEMICOLON
+     { Continue ($1, Some $3) }
  | SEMICOLON
      { Empty $1 }
 
@@ -528,26 +681,42 @@ stmt_no_semi:
  | if_stmt            { $1 }
  | while_stmt         { $1 }
  | for_stmt           { $1 }
+ | switch_stmt        { $1 }
  | block_stmt         { $1 }
  | defer_stmt         { $1 }
  | errdefer_stmt      { $1 }
+ | SUSPEND block
+     { let (lb, ss, rb) = $2 in
+       ExprSt (Suspend ($1, Some (BlockExpr (None, (lb, ss, rb)))), rb) }
 
 if_stmt:
- | IF LPAREN expr RPAREN block_or_stmt
-     { If ($1, $3, None, $5, None) }
- | IF LPAREN expr RPAREN block_or_stmt ELSE block_or_stmt
-     { If ($1, $3, None, $5, Some $7) }
- | IF LPAREN expr RPAREN block_or_stmt ELSE if_stmt
-     { If ($1, $3, None, $5, Some $7) }
+ | IF LPAREN expr RPAREN capture_opt block_or_stmt
+     { If ($1, $3, $5, $6, None) }
+ | IF LPAREN expr RPAREN capture_opt block_or_stmt ELSE capture_opt block_or_stmt
+     { ignore $8; If ($1, $3, $5, $6, Some $9) }
+ | IF LPAREN expr RPAREN capture_opt block_or_stmt ELSE if_stmt
+     { If ($1, $3, $5, $6, Some $8) }
 
 while_stmt:
- | WHILE LPAREN expr RPAREN block_or_stmt
-     { While ($1, $3, None, None, $5, None) }
+ | WHILE LPAREN expr RPAREN capture_opt while_continue_opt block_or_stmt
+     { While ($1, $3, $5, $6, $7, None) }
+ | WHILE LPAREN expr RPAREN capture_opt while_continue_opt block_or_stmt
+   ELSE block_or_stmt
+     { While ($1, $3, $5, $6, $7, Some $9) }
 
 for_stmt:
- | FOR LPAREN expr_comma_list RPAREN block_or_stmt
-     { let inputs = List.map (fun e -> { fi_expr = e; fi_sentinel = None }) $3 in
-       For ($1, inputs, [], $5, None) }
+ | FOR LPAREN for_inputs RPAREN capture_pipes block_or_stmt
+     { For ($1, $3, [$5], $6, None) }
+ | FOR LPAREN for_inputs RPAREN capture_pipes block_or_stmt ELSE block_or_stmt
+     { For ($1, $3, [$5], $6, Some $8) }
+ | INLINE FOR LPAREN for_inputs RPAREN capture_pipes block_or_stmt
+     { For ($2, $4, [$6], $7, None) }
+ | INLINE WHILE LPAREN expr RPAREN capture_opt while_continue_opt block_or_stmt
+     { While ($2, $4, $6, $7, $8, None) }
+
+switch_stmt:
+ | SWITCH LPAREN expr RPAREN LBRACE switch_prongs RBRACE
+     { Switch ($1, $3, ($5, $6, $7)) }
 
 block_stmt:
  | block { Block $1 }
@@ -566,3 +735,5 @@ defer_stmt:
 errdefer_stmt:
  | ERRDEFER block_or_stmt
      { Errdefer ($1, None, $2) }
+ | ERRDEFER PIPE IDENT PIPE block_or_stmt
+     { Errdefer ($1, Some [$3], $5) }
