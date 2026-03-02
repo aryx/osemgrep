@@ -143,6 +143,11 @@
   ($X : string) to work without type annotations in the source code.
 - cherry picked my modifs from Feb 2025 to June 2025 that were after
   I forked at 1.109 until 1.123
+- reorganized languages/ directory: moved niche languages into subcategories
+  BLOCKCHAIN/ (cairo, circom, move_on_aptos, move_on_sui, solidity),
+  DATA/ (json, jsonnet, toml, yaml), and OTHER/ (dockerfile, hack, html,
+  promql, protobuf, ql, regexp, terraform, vue). Uppercase names distinguish
+  category folders from language folders.
 
 ** HR
 - Hired Claude
