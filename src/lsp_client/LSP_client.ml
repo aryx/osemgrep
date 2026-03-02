@@ -38,6 +38,7 @@
  *  - C#: OmniSharp (needs *.csproj; project root auto-detected)
  *  - Scala: Metals (needs build.sbt; project root auto-detected)
  *  - PHP: Intelephense (needs composer.json; project root auto-detected)
+ *  - Haskell: HLS (needs *.cabal; project root auto-detected)
  *
  * To use: run osemgrep from the project directory you want to analyze.
  *)
@@ -113,6 +114,7 @@ let lsp_lang_of_lang lang =
   | Lang.Csharp -> LSP_csharp.lsp_lang
   | Lang.Scala -> LSP_scala.lsp_lang
   | Lang.Php -> LSP_php.lsp_lang
+  | Lang.Haskell -> LSP_haskell.lsp_lang
   | lang ->
       failwith (spf "LSP_client: unsupported language: %s" (Lang.show lang))
 
@@ -638,6 +640,7 @@ let connect_server (caps : < Cap.exec ; .. >) ~root (lsp_lang : LSP_lang.t) =
     | None -> None
   in
   let params = InitializeParams.create
+      ~processId:(Unix.getpid ())
       ~capabilities
       ?initializationOptions:init_opts
       ~rootUri:root_uri

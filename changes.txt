@@ -1,6 +1,6 @@
 # -*- org -*-
 
-* 2.0! (Q1 2026) (restored --lsp for OCaml(using ocamllsp) and added C/C++(clangd)/Go(gopls)/Rust(rust-analyzer)/Python(ty or pyright)/Typescript/JavaScript(typescript-language-server)/Java(jdtls)/C#(OmniSharp)/Scala(Metals)/PHP(Intelephense), keep just osemgrep (remove Python cli/), conf-tree-sitter.opam, Haskell/)
+* 2.0! (Q1 2026) (restored --lsp for OCaml(using ocamllsp) and added C/C++(clangd)/Go(gopls)/Rust(rust-analyzer)/Python(ty or pyright)/Typescript/JavaScript(typescript-language-server)/Java(jdtls)/C#(OmniSharp)/Scala(Metals)/PHP(Intelephense)/Haskell(HLS), keep just osemgrep (remove Python cli/), conf-tree-sitter.opam, Haskell/)
 # started to use Claude Code
 
 ** semantic
@@ -53,7 +53,16 @@
   types including class method return types and variable type inference.
   PHP typed metavars use ($X : int) syntax (colon-separated, like TypeScript)
   to avoid ambiguity with PHP cast expressions like (int) $x.
-- added test data in tests/lsp/{ocaml,c,cpp,go,rust,python,typescript,java,csharp,scala,php}/
+- --lsp now supports Haskell via HLS (Haskell Language Server). HLS resolves
+  interfile types including type class instances and type inference.
+  Haskell typed metavars use ($X :: Int) syntax (double-colon, matching
+  Haskell's native type annotation operator).
+  Limitation: the tree-sitter grammar cannot parse ($X :: Int) patterns
+  because :: is ambiguous with the list cons operator when $X is a metavar.
+  The LSP hover parsing infrastructure is ready but TypedMetavar patterns
+  require a grammar fix. The metavariable-type: rule key works for static
+  type matching.
+- added test data in tests/lsp/{ocaml,c,cpp,go,rust,python,typescript,java,csharp,scala,php,haskell}/
   demonstrating interfile type resolution with --lsp for each language.
 
 ** LSP infrastructure

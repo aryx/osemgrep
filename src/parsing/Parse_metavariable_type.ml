@@ -29,6 +29,7 @@ let wrap_type_expr lang str =
   | Lang.Move_on_sui -> Some (spf "(x : %s)" str)
   | Lang.Move_on_aptos -> Some (spf "(x : %s)" str)
   | Lang.Julia -> Some (spf "x :: %s" str)
+  | Lang.Haskell -> Some (spf "x :: %s" str)
   | Lang.Cpp -> Some (spf "(%s) x" str)
   | Lang.C -> Some (spf "(%s) x" str)
   | _ -> None
@@ -59,6 +60,8 @@ let unwrap_type_expr lang expr =
   | Lang.Move_on_sui, G.E { e = G.Cast (t, _, _); _ } -> Some t
   | Lang.Move_on_aptos, G.E { e = G.Cast (t, _, _); _ } -> Some t
   | Lang.Julia, G.E { e = G.Cast (t, _, _); _ } -> Some t
+  | Lang.Haskell, G.S { s = G.DefStmt (_, Signature { sig_type = t; _ }); _ } ->
+      Some t
   | Lang.Cpp, G.E { e = G.Cast (t, _, _); _ } -> Some t
   | Lang.C, G.E { e = G.Cast (t, _, _); _ } -> Some t
   | _ -> None

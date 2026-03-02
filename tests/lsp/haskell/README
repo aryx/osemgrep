@@ -1,0 +1,38 @@
+Test data for --lsp with HLS (Haskell Language Server).
+
+Prerequisites:
+  - GHCup:  curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
+  - HLS:    ghcup install hls
+  - Build:  cd tests/lsp/haskell && cabal build
+
+Known limitation: the Haskell tree-sitter grammar cannot parse ($X :: Int)
+patterns because :: is ambiguous with the list cons operator when $X is a
+semgrep metavar. This means TypedMetavar patterns (which trigger LSP hover
+queries) don't work yet. The LSP hover parsing infrastructure (clean_hover,
+parse_type) is ready and will work once the grammar is fixed.
+
+The metavariable-type: rule key works for static type matching:
+
+  # /tmp/test.yaml
+  rules:
+    - id: test-int
+      patterns:
+        - pattern: $X
+        - metavariable-type:
+            metavariable: $X
+            type: Int
+      languages: [haskell]
+      message: "Found Int: $X"
+      severity: WARNING
+
+  osemgrep scan --config /tmp/test.yaml tests/lsp/haskell/Main.hs
+
+Note: osemgrep automatically finds the project root (directory containing
+*.cabal) by walking upward from the target file. This is needed
+because HLS requires the workspace root.
+
+Note: HLS needs warm-up time to load the GHC session. Use --timeout 30
+(or higher) to avoid the default 5-second per-file timeout.
+
+Note: HLS wrapper uses CWD to discover the project cradle, so the
+server_cmd uses "cd <root> && haskell-language-server-wrapper --lsp".

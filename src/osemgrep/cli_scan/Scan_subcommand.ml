@@ -646,22 +646,6 @@ let run_scan_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
 
   (* step0: more initializations *)
 
-  (* Connect to LSP server for type information if requested *)
-  if conf.lsp then begin
-    (match conf.common.logging_level with
-     | Some Logs.Debug -> LSP_client.debug := true
-     | _ -> ());
-    let lang =
-      match conf.rules_source with
-      | Rules_source.Pattern (_, Some (Analyzer.L (lang, _)), _) -> lang
-      | _ -> Lang.Ocaml
-    in
-    let roots =
-      List_.map Scanning_root.to_string conf.target_roots
-    in
-    LSP_client.init (caps :> < Cap.exec ; Cap.readdir >) ~lang ~expr:conf.lsp_expr ~roots ()
-  end;
-
   (* imitate pysemgrep for backward compatible profiling metrics ? *)
   let profiler = Profiler.make () in
   (* the corresponding stop is done in check_targets_with_rules () *)
@@ -719,6 +703,35 @@ let run_scan_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
         conf profiler core_errors
   (* but with no fatal rule errors, we can proceed with the scan! *)
   | [] -> (
+      (* Connect to LSP server for type information if requested.
+       * Done after rule loading so we can extract the language from
+       * the rules when using --config (not just -e --lang). *)
+      if conf.lsp then begin
+        (match conf.common.logging_level with
+         | Some Logs.Debug -> LSP_client.debug := true
+         | _ -> ());
+        let lang =
+          match conf.rules_source with
+          | Rules_source.Pattern (_, Some (Analyzer.L (lang, _)), _) -> lang
+          | _ ->
+              (* Extract language from the first loaded rule *)
+              let rules =
+                rules_and_origins
+                |> List.concat_map (fun (ro : Rule_fetching.rules_and_origin) -> ro.rules)
+              in
+              (match rules with
+               | rule :: _ ->
+                   (match rule.Rule.target_analyzer with
+                    | Analyzer.L (lang, _) -> lang
+                    | _ -> Lang.Ocaml)
+               | [] -> Lang.Ocaml)
+        in
+        let roots =
+          List_.map Scanning_root.to_string conf.target_roots
+        in
+        LSP_client.init (caps :> < Cap.exec ; Cap.readdir >) ~lang ~expr:conf.lsp_expr ~roots ()
+      end;
+
       (* step2: getting the targets *)
       Logs.info (fun m -> m "Computing the targets");
       let targets_and_skipped =

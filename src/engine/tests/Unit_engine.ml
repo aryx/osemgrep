@@ -246,6 +246,8 @@ let language_exceptions =
     (Lang.Jsonnet, [ "dots_stmts"; "deep_exprstmt"; "dots_nested_stmts" ]);
     (* TODO *)
     (Lang.Clojure, [ "deep_exprstmt"; "dots_nested_stmts" ]);
+    (* metavar_typed: tree-sitter grammar can't parse ($X :: Type) as pattern *)
+    (Lang.Haskell, [ "metavar_typed" ]);
   ]
 
 (* TODO: infer dir and ext from lang using Lang helper functions *)
