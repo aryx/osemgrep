@@ -308,6 +308,48 @@ let choose_output_format_and_match_hook (caps : < Cap.stdout >)
         Some (mk_file_match_hook conf rules (incremental_json_printer caps)) )
   | { output_conf; _ } -> (output_conf.output_format, None)
 
+(*****************************************************************************)
+(* LSP *)
+(*****************************************************************************)
+
+(* Extract the target language for the LSP server.
+ * With -e --lang, the language comes from the CLI.
+ * With --config, we extract it from the first loaded rule. *)
+let lsp_lang_of_conf (conf : Scan_CLI.conf)
+    (rules_and_origins : Rule_fetching.rules_and_origin list) : Lang.t =
+  match conf.rules_source with
+  | Rules_source.Pattern (_, Some (Analyzer.L (lang, _)), _) -> lang
+  | _ ->
+      let rules =
+        rules_and_origins
+        |> List.concat_map
+             (fun (ro : Rule_fetching.rules_and_origin) -> ro.rules)
+      in
+      (match rules with
+       | rule :: _ ->
+           (match rule.Rule.target_analyzer with
+            | Analyzer.L (lang, _) -> lang
+            | _ -> Lang.Ocaml)
+       | [] -> Lang.Ocaml)
+
+(* Connect to an LSP server for type information if --lsp was requested.
+ * Must be called after rule loading so --config rules can provide the
+ * target language. *)
+let init_lsp_if_needed (caps : < Cap.exec ; Cap.readdir ; .. >)
+    (conf : Scan_CLI.conf)
+    (rules_and_origins : Rule_fetching.rules_and_origin list) : unit =
+  if conf.lsp then begin
+    (match conf.common.logging_level with
+     | Some Logs.Debug -> LSP_client.debug := true
+     | _ -> ());
+    let lang = lsp_lang_of_conf conf rules_and_origins in
+    let roots =
+      List_.map Scanning_root.to_string conf.target_roots
+    in
+    LSP_client.init (caps :> < Cap.exec ; Cap.readdir >)
+      ~lang ~expr:conf.lsp_expr ~roots ()
+  end
+
 (*************************************************************************)
 (* Helpers *)
 (*************************************************************************)
@@ -703,34 +745,7 @@ let run_scan_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
         conf profiler core_errors
   (* but with no fatal rule errors, we can proceed with the scan! *)
   | [] -> (
-      (* Connect to LSP server for type information if requested.
-       * Done after rule loading so we can extract the language from
-       * the rules when using --config (not just -e --lang). *)
-      if conf.lsp then begin
-        (match conf.common.logging_level with
-         | Some Logs.Debug -> LSP_client.debug := true
-         | _ -> ());
-        let lang =
-          match conf.rules_source with
-          | Rules_source.Pattern (_, Some (Analyzer.L (lang, _)), _) -> lang
-          | _ ->
-              (* Extract language from the first loaded rule *)
-              let rules =
-                rules_and_origins
-                |> List.concat_map (fun (ro : Rule_fetching.rules_and_origin) -> ro.rules)
-              in
-              (match rules with
-               | rule :: _ ->
-                   (match rule.Rule.target_analyzer with
-                    | Analyzer.L (lang, _) -> lang
-                    | _ -> Lang.Ocaml)
-               | [] -> Lang.Ocaml)
-        in
-        let roots =
-          List_.map Scanning_root.to_string conf.target_roots
-        in
-        LSP_client.init (caps :> < Cap.exec ; Cap.readdir >) ~lang ~expr:conf.lsp_expr ~roots ()
-      end;
+      init_lsp_if_needed caps conf rules_and_origins;
 
       (* step2: getting the targets *)
       Logs.info (fun m -> m "Computing the targets");
