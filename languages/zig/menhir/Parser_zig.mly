@@ -301,6 +301,8 @@ union_tag:
 
 type_name:
  | IDENT       { TName $1 }
+ | type_name DOT IDENT
+     { TDotAccess ($1, $2, $3) }
  | ANYERROR    { TName ("anyerror", $1) }
  | ERROR       { TName ("error", $1) }
  | ANYTYPE     { TName ("anytype", $1) }
@@ -322,6 +324,7 @@ type_param_list:
 container_body:
  | (* empty *)                              { [] }
  | container_body_item container_body       { $1 @ $2 }
+ | container_field                          { [$1] }
 
 container_body_item:
  | container_field COMMA                    { [$1] }
@@ -469,7 +472,11 @@ postfix_expr:
      { SliceExpr ($1, ($2, { sl_start = Some $3; sl_end = Some $5; sl_sentinel = None }, $6)) }
  (* typed init: TypeExpr{ values } — LBRACE_INIT from parsing hacks *)
  | postfix_expr LBRACE_INIT anon_init_body RBRACE
-     { $3 ($2, $4) }
+     { let ty = match $1 with
+         | TypeExpr t -> Some t
+         | Id (s, ii) -> Some (TName (s, ii))
+         | _ -> None in
+       $3 ?ty ($2, $4) }
  (* catch/orelse with optional capture *)
  | postfix_expr CATCH prefix_expr
      { Catch ($1, $2, None, $3) }
@@ -508,6 +515,13 @@ atom_expr:
      { BlockExpr (None, ($1, $2, $3)) }
  | IDENT COLON LBRACE stmts RBRACE
      { BlockExpr (Some $1, ($3, $4, $5)) }
+ (* array type as expression for typed init: [_]u8{...}, [3]i32{...}
+  * This produces a type-as-expression; the LBRACE_INIT postfix rule
+  * then consumes the init body. *)
+ | LBRACKET expr RBRACKET IDENT
+     { TypeExpr (TArray (($1, $2, $3), TName $4)) }
+ | LBRACKET expr RBRACKET CONST IDENT
+     { TypeExpr (TArray (($1, $2, $3), TName $5)) }
  (* error.Name *)
  | ERROR DOT IDENT
      { ErrorValue ($1, $2, $3) }
@@ -567,18 +581,19 @@ expr_comma_list1:
  | expr                           { [$1] }
  | expr_comma_list1 COMMA expr    { $1 @ [$3] }
 
-(* Anonymous init body: disambiguates .{} vs .{field_inits} vs .{exprs} *)
+(* Anonymous init body: disambiguates .{} vs .{field_inits} vs .{exprs}
+ * Returns a function taking ?ty and (lb, rb) to produce an init expr. *)
 anon_init_body:
  | (* empty *)
-     { fun (lb, rb) -> ArrayInit (None, (lb, [], rb)) }
+     { fun ?ty (lb, rb) -> ArrayInit (ty, (lb, [], rb)) }
  | field_init_list
-     { fun (lb, rb) -> StructInit (None, (lb, $1, rb)) }
+     { fun ?ty (lb, rb) -> StructInit (ty, (lb, $1, rb)) }
  | field_init_list COMMA
-     { fun (lb, rb) -> StructInit (None, (lb, $1, rb)) }
+     { fun ?ty (lb, rb) -> StructInit (ty, (lb, $1, rb)) }
  | anon_expr_list
-     { fun (lb, rb) -> ArrayInit (None, (lb, $1, rb)) }
+     { fun ?ty (lb, rb) -> ArrayInit (ty, (lb, $1, rb)) }
  | anon_expr_list COMMA
-     { fun (lb, rb) -> ArrayInit (None, (lb, $1, rb)) }
+     { fun ?ty (lb, rb) -> ArrayInit (ty, (lb, $1, rb)) }
 
 field_init_list:
  | field_init                          { [$1] }

@@ -105,6 +105,10 @@ let top_func () =
     | TUnion (t, _tag_opt, v1) ->
         let v1 = bracket (list container_field_to_field) v1 in
         G.TyRecordAnon ((G.Class, t), v1)
+    | TDotAccess (v1, t, v2) ->
+        let v1 = type_ v1 in
+        let v2 = ident v2 in
+        G.OtherType (("DotAccess", t), [ G.T v1; G.I v2 ])
     | TOpaque (t, _v1) ->
         G.OtherType (("Opaque", t), [])
     | TBuiltinCall (name, args) ->
@@ -325,6 +329,9 @@ let top_func () =
             fbody = G.FBStmt (G.Block body |> G.s);
             fkind = (G.LambdaKind, ft.ftok);
           }
+    | TypeExpr t ->
+        let t = type_ t in
+        G.OtherExpr (("TypeExpr", G.fake "type"), [ G.T t ])
     | Ellipsis t -> G.Ellipsis t
     | DeepEllipsis v1 ->
         let v1 = bracket expr v1 in

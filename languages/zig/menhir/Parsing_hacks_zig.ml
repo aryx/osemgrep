@@ -41,7 +41,9 @@ let is_expr_context = function
   -> true
   | _ -> false
 
-(* not needed — LBRACE_INIT detected by multi-token patterns below *)
+let is_lbracket = function
+  | Some (LBRACKET _) -> true
+  | _ -> false
 
 (*****************************************************************************)
 (* Fix tokens *)
@@ -66,10 +68,19 @@ let fix_tokens (toks : Parser_zig.token list) : Parser_zig.token list =
         UNION_EXPR ii :: aux (Some tok) rest
     | (ERROR ii as tok) :: rest when is_expr_ctx prev ->
         ERROR_EXPR ii :: aux (Some tok) rest
-    (* Hack 3: ]type{ → LBRACE_INIT for typed array init like [_]u8{ ... } *)
-    | (RBRACKET _ as rb) :: (IDENT _ as t1) :: (LBRACE ii) :: rest ->
+    (* Hack 2b: packed/extern before struct in expr context *)
+    | (PACKED _ as p) :: (STRUCT ii as tok) :: rest when is_expr_ctx prev ->
+        p :: STRUCT_EXPR ii :: aux (Some tok) rest
+    | (EXTERN _ as e) :: (STRUCT ii as tok) :: rest when is_expr_ctx prev ->
+        e :: STRUCT_EXPR ii :: aux (Some tok) rest
+    (* Hack 3: ]type{ → LBRACE_INIT for typed array init like [_]u8{ ... }
+     * Only when brackets are non-empty (prev != LBRACKET), so []u8{ is NOT
+     * retagged (it's a slice type followed by a block, not a typed init). *)
+    | (RBRACKET _ as rb) :: (IDENT _ as t1) :: (LBRACE ii) :: rest
+      when not (is_lbracket prev) ->
         rb :: t1 :: LBRACE_INIT ii :: aux (Some (LBRACE_INIT ii)) rest
-    | (RBRACKET _ as rb) :: (CONST _ as c) :: (IDENT _ as t1) :: (LBRACE ii) :: rest ->
+    | (RBRACKET _ as rb) :: (CONST _ as c) :: (IDENT _ as t1) :: (LBRACE ii) :: rest
+      when not (is_lbracket prev) ->
         rb :: c :: t1 :: LBRACE_INIT ii :: aux (Some (LBRACE_INIT ii)) rest
     | tok :: rest ->
         tok :: aux (Some tok) rest

@@ -1,4 +1,4 @@
 Warning: 7 states have shift/reduce conflicts.
 Warning: 4 states have reduce/reduce conflicts.
 Warning: 13 shift/reduce conflicts were arbitrarily resolved.
-Warning: 15 reduce/reduce conflicts were arbitrarily resolved.
+Warning: 17 reduce/reduce conflicts were arbitrarily resolved.

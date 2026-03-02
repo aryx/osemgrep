@@ -72,6 +72,8 @@ type type_ =
   | TUnion of tok * type_ option * container_field list bracket
   (* opaque {} *)
   | TOpaque of tok * tok bracket
+  (* std.fs.File — qualified type access *)
+  | TDotAccess of type_ * tok (* . *) * ident
   (* @Type("name") — builtin type functions *)
   | TBuiltinCall of ident (* @-prefixed *) * expr list bracket
   (* sgrep-ext: *)
@@ -177,6 +179,8 @@ and expr =
   | ErrorValue of tok (* error *) * tok (* . *) * ident
   (* anonymous function / closure: fn(params) type { body } *)
   | FuncLit of func_type * stmt list bracket
+  (* type used as expression, e.g., [_]u8 in [_]u8{ 1, 2, 3 } *)
+  | TypeExpr of type_
   (* sgrep-ext: *)
   | Ellipsis of tok
   | DeepEllipsis of expr bracket
