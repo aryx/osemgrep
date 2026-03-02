@@ -1,10 +1,10 @@
-# -*- org -*-
 
 * 2.0! (Q1 2026) (restored --lsp for OCaml(using ocamllsp) and added C/C++(clangd)/Go(gopls)/Rust(rust-analyzer)/Python(ty or pyright)/Typescript/JavaScript(typescript-language-server)/Java(jdtls)/C#(OmniSharp)/Scala(Metals)/PHP(Intelephense)/Haskell(HLS), keep just osemgrep (remove Python cli/), conf-tree-sitter.opam+configure, Haskell/)
 # started to use Claude Code
 
 ** semantic
-- restored --lsp flag (was --x-lsp) to connect to an LSP server (e.g. ocamllsp)
+- restored --lsp flag (was semgrep-core -lsp in 2020) to connect to
+  an LSP server (e.g. ocamllsp)
   and get inferred type information for identifiers during pattern matching,
   enabling typed metavariables like ($X : string) to work without
   type annotations in the source code. A similar feature was
