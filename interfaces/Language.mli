@@ -47,6 +47,7 @@ type t =
 | Vue
 | Xml
 | Yaml
+| Zig
 
 (*
    Maturity of the support for the programming language as shown to the

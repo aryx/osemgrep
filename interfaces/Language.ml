@@ -47,6 +47,7 @@ type t =
 | Vue
 | Xml
 | Yaml
+| Zig
 
 (*
    Maturity of the support for the programming language as shown to the
@@ -671,6 +672,19 @@ let list = [
   exts = [{|.yml|}; {|.yaml|}];
   maturity = Alpha;
   example_ext = Some {|.yaml|};
+  excluded_exts = [];
+  reverse_exts = None;
+  shebangs = [];
+  tags = [];
+};
+{
+  id = Zig;
+  id_string = "zig";
+  name = "Zig";
+  keys = [{|zig|}];
+  exts = [{|.zig|}];
+  maturity = Develop;
+  example_ext = None;
   excluded_exts = [];
   reverse_exts = None;
   shebangs = [];

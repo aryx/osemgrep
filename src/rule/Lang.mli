@@ -60,6 +60,7 @@ type t = Language.t =
   | Vue
   | Xml
   | Yaml
+  | Zig
 [@@deriving show, eq, hash, yojson]
 
 (* unsupported_language_message [lang] takes the language as a string and

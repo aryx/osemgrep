@@ -233,7 +233,8 @@ and if_stmt env (tok, e, s, sopt) =
     | Lang.Hack
     | Lang.Yaml
     | Lang.Html
-    | Lang.Terraform ->
+    | Lang.Terraform
+    | Lang.Zig ->
         raise Todo
     | Lang.Python
     | Lang.Python2
@@ -314,7 +315,8 @@ and while_stmt env (tok, e, s) =
     | Lang.Swift
     | Lang.Html
     | Lang.Terraform
-    | Lang.Ql ->
+    | Lang.Ql
+    | Lang.Zig ->
         raise Todo
     | Lang.Python
     | Lang.Python2
@@ -369,7 +371,8 @@ and do_while stmt env (s, e) =
     | Lang.Solidity
     | Lang.Swift
     | Lang.Html
-    | Lang.Terraform ->
+    | Lang.Terraform
+    | Lang.Zig ->
         raise Todo
     | Lang.Apex
     | Lang.Java
@@ -422,7 +425,8 @@ and for_stmt env (for_tok, hdr, s) =
     | Lang.Yaml
     | Lang.Scala
     | Lang.Solidity
-    | Lang.Terraform ->
+    | Lang.Terraform
+    | Lang.Zig ->
         raise Todo
     | Lang.Apex
     | Lang.Java
@@ -525,7 +529,8 @@ and def_stmt env (entity, def_kind) =
       | Lang.Solidity
       | Lang.Swift
       | Lang.Html
-      | Lang.Terraform ->
+      | Lang.Terraform
+      | Lang.Zig ->
           raise Todo
       | Lang.Apex
       | Lang.Java

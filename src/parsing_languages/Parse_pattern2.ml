@@ -225,6 +225,9 @@ let parse_pattern options lang str =
   | Lang.Circom ->
       let res = Parse_circom_tree_sitter.parse_pattern str in
       extract_pattern_from_tree_sitter_result res
+  | Lang.Zig ->
+      let any = Parse_zig.any_of_string str in
+      Zig_to_generic.any any
 (* TODO *)
 
 let dump_tree_sitter_pattern_cst (lang : Lang.t) (path : Fpath.t) : unit =

@@ -86,6 +86,7 @@ type t = Language.t =
   | Vue
   | Xml
   | Yaml
+  | Zig
 [@@deriving show { with_path = false }, eq, hash, yojson]
 
 let has_tag tag_name =

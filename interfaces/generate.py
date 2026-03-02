@@ -326,6 +326,16 @@ not ambiguous is welcome here.
     ),
     Language(
         comment="",
+        id_="haskell",
+        name="Haskell",
+        keys=["haskell", "hs"],
+        exts=[".hs"],
+        example_ext=".hs",
+        maturity=Maturity.ALPHA,
+        shebangs=["runhaskell", "runghc"]
+    ),
+    Language(
+        comment="",
         id_="html",
         name="HTML",
         keys=["html"],
@@ -620,6 +630,15 @@ not ambiguous is welcome here.
         exts=[".yml", ".yaml"],
         example_ext=".yaml",
         maturity=Maturity.ALPHA,
+        shebangs=[]
+    ),
+    Language(
+        comment="",
+        id_="zig",
+        name="Zig",
+        keys=["zig"],
+        exts=[".zig"],
+        maturity=Maturity.DEVELOP,
         shebangs=[]
     ),
     ########################################################################

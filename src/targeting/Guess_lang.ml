@@ -278,7 +278,8 @@ let inspect_file_p (lang : Lang.t) path =
     | Ts
     | Vue
     | Xml
-    | Yaml ->
+    | Yaml
+    | Zig ->
         matches_lang lang
   in
 

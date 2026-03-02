@@ -253,4 +253,6 @@ let just_parse_with_lang lang file : Parsing_result2.t =
         else Parse_csharp_tree_sitter.parse
       in
       run file [ TreeSitter parse_target ] (fun x -> x)
+  | Lang.Zig ->
+      run file [ Pfff (throw_tokens Parse_zig.parse) ] Zig_to_generic.program
 (* TODO *)

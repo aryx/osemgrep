@@ -1,0 +1,14 @@
+(library
+ (public_name parser_zig.menhir)
+ (name parser_zig_menhir)
+ (wrapped false)
+ (libraries
+   commons
+   lib_parsing
+   parser_zig.ast
+ )
+ (preprocess (pps ppx_deriving.show))
+)
+(ocamllex Lexer_zig)
+(menhir (modules Parser_zig)
+        (flags --unused-tokens --explain --fixed-exception))

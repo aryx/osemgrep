@@ -1,4 +1,4 @@
-* 2.0! (Q1 2026) (restored --lsp for OCaml(using ocamllsp) and added C/C++(clangd)/Go(gopls)/Rust(rust-analyzer)/Python(ty or pyright)/Typescript/JavaScript(typescript-language-server)/Java(jdtls)/C#(OmniSharp)/Scala(Metals)/PHP(Intelephense)/Haskell(HLS), keep just osemgrep (remove Python cli/), conf-tree-sitter.opam+configure, Haskell/)
+* 2.0! (Q1 2026) (restored --lsp for OCaml(using ocamllsp) and added C/C++(clangd)/Go(gopls)/Rust(rust-analyzer)/Python(ty or pyright)/Typescript/JavaScript(typescript-language-server)/Java(jdtls)/C#(OmniSharp)/Scala(Metals)/PHP(Intelephense)/Haskell(HLS), keep just osemgrep (remove Python cli/), conf-tree-sitter.opam+configure, Haskell/Zig/)
 # started to use Claude Code
 
 ** versioning
@@ -95,6 +95,10 @@
   submodule, intermediate AST_haskell.ml, Haskell_to_generic.ml converter,
   and full CST-to-AST mapping (~1700 lines). Working patterns include type
   signatures ($X :: $Y), data declarations, type aliases, and imports.
+- add Zig language support (alpha): menhir parser (ocamllex + menhir),
+  AST_zig.ml, Zig_to_generic.ml. Parses basic declarations (const/var),
+  functions, field access chains, builtins (@import), string literals,
+  anonymous struct/array init (.{...}). More features to be added iteratively.
 
 ** build infra
 - improved configure script with actual detection of required programs

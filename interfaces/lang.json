@@ -886,6 +886,23 @@
     "tags": []
   },
   {
+    "id": "zig",
+    "name": "Zig",
+    "keys": [
+      "zig"
+    ],
+    "maturity": "develop",
+    "exts": [
+      ".zig"
+    ],
+    "example_ext": null,
+    "excluded_exts": [],
+    "reverse_exts": null,
+    "shebangs": [],
+    "is_target_language": true,
+    "tags": []
+  },
+  {
     "comment": "This can be used in rules as a target selector that selects\nall the files regardless of their extension or contents.\nWhen no target analyzer is specified, the spacegrep engine shall\nbe used.\n",
     "id": "generic",
     "name": "Generic",
