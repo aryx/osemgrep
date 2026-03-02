@@ -10,7 +10,8 @@
       "Bash(git log:*)",
       "Bash(git cherry-pick:*)",
       "WebFetch(domain:github.com)",
-      "Bash(./bin/osemgrep scan:*)"
+      "Bash(./bin/osemgrep scan:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }
