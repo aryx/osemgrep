@@ -34,8 +34,6 @@ set -eu
 OS="$1"
 TREE_SITTER_LANGS="$2"
 
->&2 echo "Generating linking flags for OS ${OS} (!!!in case of linking errors, adjust src/main/flags.sh!!!)"
-
 # Force the use of static linking in these scenarios:
 #
 # - the name of the opam switch refers to musl,
@@ -53,6 +51,7 @@ if [[ -n "${SEMGREP_NIX_BUILD-}" ]]; then
     CCLIB=()
     CCOPT=()
 elif [[ "$(opam switch show)" == *+static* ]]; then
+    >&2 echo "Generating static linking flags (in case of linking errors, adjust src/main/flags.sh)"
     FLAGS=()
     CCLIB=("-lssl" "-lcrypto" "-lz")
     CCOPT=("-static" "-no-pie")
@@ -60,6 +59,7 @@ else
     case "$OS" in
     linux)
         if [[ -e /etc/alpine-release ]]; then
+            >&2 echo "Generating static linking flags for Alpine (in case of linking errors, adjust src/main/flags.sh)"
             # The CCLIB flags statically (since we have CCOPT include -static)
             # link in libcurl's dependencies.
             # This can be removed when we transition away from the ocurl otel
@@ -114,6 +114,7 @@ else
     # below (see, e.g., gmp). If we expect it to always be installed via brew,
     # then use `brew --prefix <BREW PACKAGE NAME>`.
     macosx)
+        >&2 echo "Generating static linking flags for macOS (in case of linking errors, adjust src/main/flags.sh)"
         langs=$(cat "${TREE_SITTER_LANGS}")
         FLAGS=("-noautolink")
         CCOPT=()
