@@ -95,7 +95,20 @@ need_command opam
 # Core build toolchain
 need_command make
 need_command git
-need_command gcc
+# C compiler: needed for C stubs (tree-sitter grammars, PCRE, GMP, libev, curl bindings).
+# Accept gcc, cc, or clang; honour $CC if set.
+_cc_found=false
+for _cc_candidate in ${CC:-} cc gcc clang; do
+    if command -v "$_cc_candidate" >/dev/null 2>&1; then
+        ok "C compiler ($_cc_candidate -> $(command -v "$_cc_candidate"))"
+        _cc_found=true
+        break
+    fi
+done
+if ! $_cc_found; then
+    err "No C compiler found (tried cc, gcc, clang). Install one or set \$CC."
+    errors=$((errors + 1))
+fi
 
 # curl: used by opam to download packages
 need_command curl
@@ -343,6 +356,10 @@ find_lsp_server "Scala LSP" metals "$HOME/.local/share/coursier/bin"
 # Intelephense: PHP language server
 # install via: npm install -g intelephense
 find_lsp_server "PHP LSP" intelephense "$HOME/.local/share/npm/bin" "$HOME/.npm-global/bin"
+
+# HLS: Haskell Language Server
+# install via: ghcup install hls
+find_lsp_server "Haskell LSP" haskell-language-server-wrapper "$HOME/.ghcup/bin"
 
 echo ''
 echo 'Everything looks fine. You can now run: '
