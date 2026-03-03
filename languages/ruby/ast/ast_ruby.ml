@@ -49,6 +49,30 @@
  *    like method_name, method_kind, rescue_clause, scope_resolution instead
  *    of the very broad 'expr'. This will help also when converting to
  *    the generic AST.
+ *
+ * Three distinctive Ruby features reflected in this AST:
+ *
+ * 1. Blocks, procs, and lambdas: code blocks ({} or do/end) are passed
+ *    to methods as implicit closures; & converts to/from Proc objects.
+ *    AST: CodeBlock (bool bracket * formal_param list option * stmts), Lambda.
+ *
+ * 2. Open classes and method_missing: classes can be reopened to add
+ *    or redefine methods; missing methods are dispatched dynamically.
+ *    AST: ClassDef (class_kind), MethodDef (method_kind), DotAccess.
+ *
+ * 3. Symbols and ranges: :name atoms serve as lightweight identifiers;
+ *    (1..10) ranges are first-class objects used in iteration and slicing.
+ *    AST: Atom (tok * atom_kind), Binop with Op_DOT2/Op_DOT3.
+ *
+ * Example combining all three:
+ *   class Array
+ *     def summary
+ *       self[0..2].map { |x| x.to_s.to_sym }
+ *     end
+ *     def method_missing(name, *args, &blk)
+ *       respond_to?(name) ? send(name, *args, &blk) : super
+ *     end
+ *   end
  *)
 
 (*****************************************************************************)

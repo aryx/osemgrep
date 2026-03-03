@@ -16,6 +16,29 @@
 (*****************************************************************************)
 (* Prelude *)
 (*****************************************************************************)
+(* Abstract Syntax Tree for Lisp (Scheme/Common Lisp).
+ *
+ * Three distinctive Lisp features reflected in this AST:
+ *
+ * 1. S-expressions (code is data): the entire syntax is uniform
+ *    nested lists—there is no separate "statement" or "type" grammar.
+ *    AST: sexp (Sexp of sexp list paren, Atom).
+ *
+ * 2. Quote and quasiquote: ' (quote), ` (backquote), , (comma), and
+ *    @ (splice) control evaluation, enabling code-as-data manipulation.
+ *    AST: Special (Quote | BackQuote | Comma | At) wrapping an sexp.
+ *
+ * 3. Atoms as a universal leaf: numbers, strings, and identifiers are
+ *    all atoms; the distinction is purely in their content.
+ *    AST: atom (Number, String, Id).
+ *
+ * Example combining all three:
+ *   (defmacro when (test &body body)
+ *     `(if ,test (progn ,@body)))
+ *   (when (> x 0)
+ *     (print x)
+ *     (decf x))
+ *)
 
 (*****************************************************************************)
 (* The AST types *)

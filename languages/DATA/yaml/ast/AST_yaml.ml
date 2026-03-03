@@ -64,6 +64,31 @@
  *         [`Any |`Plain |`Single_quoted |`Double_quoted |`Literal |`Folded ]
  *
  *  - camlyaml https://github.com/Kakadu/camlyaml
+ *
+ * Three distinctive YAML features reflected in this AST:
+ *
+ * 1. Anchors and aliases: &anchor defines a reusable node, *alias
+ *    references it, enabling DRY configuration without duplication.
+ *    AST: Alias of string wrap * value.
+ *
+ * 2. Multi-line string styles: literal (|), folded (>), and various
+ *    quoting styles give fine control over whitespace and newlines.
+ *    AST: S of string wrap (all styles normalized to a single form).
+ *
+ * 3. Tags for typing: !tag annotates values with a type hint,
+ *    enabling custom constructors beyond the basic scalar types.
+ *    AST: Tag of string wrap * value.
+ *
+ * Example combining all three:
+ *   defaults: &defaults
+ *     adapter: postgres
+ *     host: localhost
+ *   production:
+ *     <<: *defaults
+ *     database: !env DB_NAME
+ *     query: |
+ *       SELECT *
+ *       FROM users
  *)
 
 (*****************************************************************************)

@@ -71,6 +71,31 @@ open Common.Operators
  *  - we could also use the AST used by cc in plan9 :)
  *
  * See also lang_cpp/parsing/cst_cpp.ml.
+ *
+ * Three distinctive C features reflected in this AST:
+ *
+ * 1. Pointer arithmetic and manual memory: pointer types, dereference,
+ *    address-of, and array decay are core to the language.
+ *    AST: TPointer, RecordPtAccess, Unary (GetRef, DeRef).
+ *
+ * 2. Preprocessor directives (#define, #include): macros and includes
+ *    are part of the source-level AST, not erased by preprocessing.
+ *    AST: directive (Include, Define, Macro), DirStmt.
+ *
+ * 3. Structs with bitfields and unions: tagged struct/union types with
+ *    field-level layout control are C's primary data abstraction.
+ *    AST: struct_def (s_kind: Struct | Union), field_def, TStructName.
+ *
+ * Example combining all three:
+ *   #define ALIGN(x) (((x) + 7) & ~7)
+ *   struct packet {
+ *     uint8_t tag;
+ *     union { int32_t val; float fval; } data;
+ *   };
+ *   void process(struct packet *pkt) {
+ *     int32_t *vp = &pkt->data.val;
+ *     *vp = ALIGN( *vp );
+ *   }
  *)
 
 (*****************************************************************************)

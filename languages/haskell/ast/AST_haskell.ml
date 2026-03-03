@@ -26,6 +26,33 @@
  *  - Type families
  *  - Pattern synonyms
  *  - More extensions
+ *
+ * Three distinctive Haskell features reflected in this AST:
+ *
+ * 1. Type classes and instances: type classes declare overloaded
+ *    operations; instances provide implementations per type.
+ *    AST: ClassDecl (class_decl), InstanceDecl (instance_decl), TyContext.
+ *
+ * 2. Monadic do-notation: do blocks sequence effectful computations
+ *    via desugaring into >>= (bind) and >> (then).
+ *    AST: Do, stmt (StmtBind with <- pattern, StmtExpr, StmtLet).
+ *
+ * 3. Algebraic data types with guards: data declarations define
+ *    sum types; equations use pattern matching with guard clauses.
+ *    AST: DataDecl (constr_decl), FunBind (fun_match), GuardedRhss.
+ *
+ * Example combining all three:
+ *   class Container f where
+ *     empty :: f a
+ *     insert :: a -> f a -> f a
+ *   instance Container [] where
+ *     empty = []
+ *     insert x xs = x : xs
+ *   collect :: Container f => Int -> IO (f String)
+ *   collect n = do
+ *     line <- getLine
+ *     if n <= 0 then pure empty
+ *     else insert line <$> collect (n - 1)
  *)
 
 (*****************************************************************************)

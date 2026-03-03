@@ -17,6 +17,28 @@
 (* Prelude *)
 (*****************************************************************************)
 (* Abstract Syntax Tree for QL.
+ *
+ * Three distinctive QL (CodeQL) features reflected in this AST:
+ *
+ * 1. Logic programming with predicates: programs are sets of predicates
+ *    defining relations; queries select from those relations.
+ *    AST: predicate_definition, Select (from/where/select), Quantified.
+ *
+ * 2. Aggregate expressions: count, min, max, sum, etc. fold over a
+ *    formula body with variable declarations and ordering.
+ *    AST: Aggregation (aggregation record with vardecls, formula, as_exprs).
+ *
+ * 3. Classes as logical properties: a class defines a subset of values
+ *    satisfying a characteristic predicate, with member predicates.
+ *    AST: ClassDef (class_definition with ClassBody of extends/instances/stmts).
+ *
+ * Example combining all three:
+ *   class SmallInt extends int {
+ *     SmallInt() { this in [1 .. 10] }
+ *     predicate isEven() { this % 2 = 0 }
+ *   }
+ *   from SmallInt x where x.isEven()
+ *   select x, count(SmallInt y | y < x)
  *)
 
 (*****************************************************************************)

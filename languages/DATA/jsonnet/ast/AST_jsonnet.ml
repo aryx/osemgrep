@@ -45,6 +45,28 @@
  *    reported on the resulting (also called "manifested") JSON.
  *    This could also enable at some point certain holistic optimizations or
  *    static checks.
+ *
+ * Three distinctive Jsonnet features reflected in this AST:
+ *
+ * 1. Everything is an expression: there are no statements—even local
+ *    bindings and assertions yield a value via trailing expressions.
+ *    AST: expr (Local, Assert, If all produce expr, never stmt).
+ *
+ * 2. Object composition (+) with self/super: objects are merged with
+ *    late-bound self references, enabling mixin-style inheritance.
+ *    AST: BinaryOp (Plus), IdSpecial (Self, Super), AdjustObj.
+ *
+ * 3. Lazy evaluation and late binding: all fields and locals are
+ *    evaluated only when accessed; self resolves at use site.
+ *    AST: bind (field_value), obj_inside, hidden_lbl (Visible, Hidden).
+ *
+ * Example combining all three:
+ *   local base = { name: "app", port: 8080 };
+ *   base + {
+ *     port: super.port + 1,
+ *     url: "http://localhost:" + self.port,
+ *     assert self.port > 0 : "port must be positive",
+ *   }
  *)
 
 (*****************************************************************************)

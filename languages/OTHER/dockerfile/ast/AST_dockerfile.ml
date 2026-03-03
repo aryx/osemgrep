@@ -23,6 +23,28 @@
    https://docs.docker.com/engine/reference/builder/
 
    Extends AST_bash!
+
+   Three distinctive Dockerfile features reflected in this AST:
+
+   1. Layered image builds (FROM..AS): each FROM starts a new build
+      stage; AS names it for cross-stage COPY.
+      AST: instruction (From with image_spec and optional alias).
+
+   2. Embedded shell in RUN: commands are either JSON argv arrays or
+      full Bash scripts parsed via AST_bash.blist.
+      AST: command (Sh_command, Argv), shell_fragment.
+
+   3. Build arguments and environment (ARG/ENV): parameterize builds
+      with string-template expansion including $VAR and ${VAR}.
+      AST: instruction (Arg, Env), docker_string_fragment (Dbl_expansion).
+
+   Example combining all three:
+     FROM golang:1.21 AS builder
+     ARG VERSION=dev
+     ENV APP_VERSION=${VERSION}
+     RUN go build -ldflags "-X main.version=${APP_VERSION}" -o /app
+     FROM alpine:3.18
+     COPY --from=builder /app /app
 *)
 
 (*****************************************************************************)

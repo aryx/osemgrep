@@ -60,6 +60,29 @@
  *    calling cpp and parsing the end result is expensive)
  *  - EDG
  *  - see the CC'09 paper
+ *
+ * Three distinctive C++ features reflected in this AST:
+ *
+ * 1. Templates: type and value parameterization enabling generic
+ *    programming; template arguments can be types or expressions.
+ *    AST: template_parameters, template_argument, IdTemplated, QTemplateId.
+ *
+ * 2. RAII and destructors: resource management tied to object lifetime;
+ *    constructors/destructors are special member functions.
+ *    AST: IdDestructor, ConstructedObject, New/Delete, class_definition.
+ *
+ * 3. Operator overloading and multiple inheritance: operators are
+ *    user-definable; classes can inherit from multiple bases.
+ *    AST: IdOperator (operator wrap), base_clause list in class_definition.
+ *
+ * Example combining all three:
+ *   template<typename T>
+ *   class Vec : public Container, public Printable {
+ *     T* data_;
+ *   public:
+ *     ~Vec() { delete[] data_; }
+ *     T& operator[](size_t i) { return data_[i]; }
+ *   };
  *)
 
 (*****************************************************************************)

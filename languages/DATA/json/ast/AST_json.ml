@@ -47,6 +47,27 @@ module JS = Ast_js
  *  - json-wheel Json_type.t, but does not have the location info either
  *
  * related: AST_yaml.ml, AST_xml.ml, AST_toml.ml, AST_sexp.ml
+ *
+ * Three distinctive JSON features reflected in this AST:
+ *
+ * 1. Minimal value types: only 6 forms—null, bool, number, string,
+ *    array, and object—make JSON trivially parseable.
+ *    AST: value (Null, Bool, Number, String, Array, Object).
+ *
+ * 2. Location-preserving tokens: unlike most JSON libraries, every
+ *    leaf carries a Tok.t for precise error reporting and Semgrep matching.
+ *    AST: 'a wrap = 'a * Tok.t, 'a bracket = Tok.t * 'a * Tok.t.
+ *
+ * 3. Dual AST: a precise value type for clean pattern matching alongside
+ *    an alias to AST_js.expr for reusing the JS parser.
+ *    AST: value (precise), program = Ast_js.expr (JS-reuse).
+ *
+ * Example combining all three:
+ *   {
+ *     "name": "semgrep",
+ *     "version": 2,
+ *     "features": ["scan", "test", null]
+ *   }
  *)
 
 (*****************************************************************************)

@@ -24,6 +24,31 @@
  * reference: https://golang.org/src/go/ast/ast.go
  *
  * This AST supports also generics (introduced in Go 1.18)
+ *
+ * Three distinctive Go features reflected in this AST:
+ *
+ * 1. Goroutines and channels: lightweight concurrency via go f() and
+ *    channel send/receive with typed channel directions.
+ *    AST: Go, Defer, Send, Receive, TChan (TSend | TRecv | TBidirectional).
+ *
+ * 2. Interfaces (implicit satisfaction): no "implements" keyword;
+ *    any type with the right method set satisfies the interface.
+ *    AST: TInterface (interface_field list), EmbeddedInterface, Constraints.
+ *
+ * 3. Multiple return values and named results: functions return tuples;
+ *    result names turn into local variables initialized to zero.
+ *    AST: func_type (parameter_binding list for results), DShortVars (:=).
+ *
+ * Example combining all three:
+ *   type Reader interface { Read([]byte) (int, error) }
+ *   func copy(dst chan<- []byte, src Reader) (n int, err error) {
+ *     go func() {
+ *       buf := make([]byte, 1024)
+ *       n, err = src.Read(buf)
+ *       dst <- buf[:n]
+ *     }()
+ *     return
+ *   }
  *)
 
 (*****************************************************************************)

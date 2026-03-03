@@ -35,6 +35,30 @@ open Common
  *   super precise either)
  * - use the Tasty format?
  *   https://github.com/lampepfl/dotty/blob/master/tasty/src/dotty/tools/tasty/TastyFormat.scala
+ *
+ * Three distinctive Scala features reflected in this AST:
+ *
+ * 1. Traits and mixin composition: traits define reusable behavior
+ *    that can be mixed into classes with linearized resolution.
+ *    AST: Template (template_definition), TyWith, modifier_kind.
+ *
+ * 2. Pattern matching with extractors: match expressions destructure
+ *    values including via user-defined unapply extractors.
+ *    AST: Match, case_clauses, PatApply, PatBind, PatTypedVarid.
+ *
+ * 3. Implicits: implicit parameters, conversions, and classes enable
+ *    type-class-style polymorphism and extension methods.
+ *    AST: modifier_kind (Implicit), ArgUsing in arguments.
+ *
+ * Example combining all three:
+ *   trait Showable { def show: String }
+ *   case class Point(x: Int, y: Int) extends Showable {
+ *     def show = s"($x, $y)"
+ *   }
+ *   implicit class ShowOps[A: Showable](a: A) {
+ *     def display(): Unit = println(a.show)
+ *   }
+ *   Point(1, 2) match { case Point(x, _) => x.display() }
  *)
 
 (*****************************************************************************)

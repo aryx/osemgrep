@@ -21,6 +21,29 @@
 
    References:
    - man page: https://man7.org/linux/man-pages/man1/bash.1.html#SHELL_GRAMMAR
+
+   Three distinctive Bash features reflected in this AST:
+
+   1. Everything is a command/pipeline: programs are lists of pipelines
+      chained with ;, &&, ||. Even tests ([[ ]]) are commands.
+      AST: command, pipeline, blist, Simple_command.
+
+   2. Here-documents: multi-line string literals redirected as stdin,
+      a distinctive shell I/O mechanism.
+      AST: redirect (Read_heredoc), heredoc (in expression).
+
+   3. Variable expansion modes: $x, ${x:-default}, ${x##pattern}, etc.
+      provide string manipulation without external tools.
+      AST: expansion, Complex_expansion, string_fragment (Expansion).
+
+   Example combining all three:
+     names=$(cat <<'EOF' | sort -u
+     alice
+     bob
+     EOF
+     )
+     greeting="${names:+Hello, ${names}}"
+     echo "$greeting" | tr ',' '\n' && echo "done"
 *)
 
 (*

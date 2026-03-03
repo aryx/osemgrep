@@ -26,6 +26,31 @@
  *
  * Design draws from AST_go.ml (modern systems language, reuses
  * AST_generic.operator) and AST_c.ml (C-like systems language).
+ *
+ * Three distinctive Zig features reflected in this AST:
+ *
+ * 1. Error unions (E!T): a value is either an error from set E or a
+ *    success of type T. This replaces exceptions with explicit types.
+ *    AST: TErrorUnion, Try, Catch, Orelse.
+ *
+ * 2. Comptime: any expression or block can be forced to evaluate at
+ *    compile time; types are first-class comptime values enabling
+ *    generics without a separate type system.
+ *    AST: Comptime (expr), DComptime (toplevel), comptime modifier on
+ *    var_decl and param.
+ *
+ * 3. Payload captures (|val|): if, while, for, catch, and orelse all
+ *    bind their "payload" into a scoped variable via |name| syntax,
+ *    unifying optional unwrapping, error handling, and iteration.
+ *    AST: capture = ident list, threaded through If, While, For, Catch,
+ *    Orelse, Errdefer.
+ *
+ * Example combining all three:
+ *   fn read(buf: []u8) ReadError!?usize {
+ *       const header = comptime blk: { break :blk parseHeader(); };
+ *       if (try file.read(buf)) |n| return n + header
+ *       else |_| return error.EndOfStream;
+ *   }
  *)
 
 (*****************************************************************************)

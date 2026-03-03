@@ -67,6 +67,30 @@
  * and type hints.
  * See "-short-paths incorrectly picks arbitrary type alias" for details:
  * https://github.com/ocaml/ocaml/issues/10432
+ *
+ * Three distinctive JS/TS features reflected in this AST:
+ *
+ * 1. Prototypal inheritance / classes: classes are sugar over prototypes;
+ *    both forms coexist alongside object literals as data.
+ *    AST: Class (class_definition), Obj (a_obj), ObjAccess, property.
+ *
+ * 2. Destructuring and spread: array/object patterns in assignments
+ *    and parameters, plus rest/spread (...) for variadic handling.
+ *    AST: a_pattern (in Assign lhs), IdSpecial (Spread), Arr.
+ *
+ * 3. Async/await and promises: asynchronous control flow via async
+ *    functions and await expressions desugared as IdSpecial calls.
+ *    AST: IdSpecial (Await, Yield, YieldStar), function_definition (f_kind: Async).
+ *
+ * Example combining all three:
+ *   class Api extends Base {
+ *     async fetchAll({ ids, ...opts }) {
+ *       const results = await Promise.all(
+ *         ids.map(id => this.get(id, opts))
+ *       );
+ *       return [...results].flat();
+ *     }
+ *   }
  *)
 
 (*****************************************************************************)

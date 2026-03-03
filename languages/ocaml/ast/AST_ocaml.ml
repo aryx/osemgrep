@@ -30,6 +30,26 @@
  *  - functors, module types, first-class modules
  *  - GADTs
  *  - see the XxxTodo
+ *
+ * Three distinctive OCaml features reflected in this AST:
+ *
+ * 1. Algebraic data types: variants (| Foo of int) and records
+ *    ({ x: int }) give precise, compiler-checked data modeling.
+ *    AST: type_declaration (TDef with or_type_element), Constructor, Record.
+ *
+ * 2. Pattern matching with exhaustiveness: match/function arms
+ *    destructure values; the compiler warns on missing cases.
+ *    AST: MatchExpr, Function, case_and_body, pattern (PatConstructor).
+ *
+ * 3. Parametric polymorphism and functors: type variables ('a)
+ *    enable generic code; functors parameterize modules over modules.
+ *    AST: TyVar, TyApp, FunctorDef (in module_expr).
+ *
+ * Example combining all three:
+ *   type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree
+ *   let rec depth = function
+ *     | Leaf -> 0
+ *     | Node (l, _, r) -> 1 + max (depth l) (depth r)
  *)
 
 (*****************************************************************************)

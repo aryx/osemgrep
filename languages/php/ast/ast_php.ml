@@ -104,6 +104,33 @@
  *  - put back types! at least the basic one like f_return_type
  *    with no generics
  *  - less: factorize more? string vs Guil?
+ *
+ * Three distinctive PHP features reflected in this AST:
+ *
+ * 1. Mixed HTML embedding: PHP originally interleaves with HTML;
+ *    the AST handles this via InlineHtml (desugared to echo calls).
+ *    AST: expr (String, Guil), stmt (Expr of Call to __builtin__echo).
+ *
+ * 2. Variable variables and dynamic calls: $$x, $obj->$method(),
+ *    and Class::$prop allow fully dynamic name resolution.
+ *    AST: Var (string with $), Obj_get, Class_get (expr * tok * expr).
+ *
+ * 3. Traits: reusable method bundles mixed into classes, resolving
+ *    PHP's single-inheritance limitation.
+ *    AST: class_def (c_kind: Trait), stmt (ClassUse of hint_type list).
+ *
+ * Example combining all three:
+ *   trait Logger {
+ *     public function log($msg) { echo "<p>$msg</p>"; }
+ *   }
+ *   class App {
+ *     use Logger;
+ *     public function run($action) {
+ *       $method = "handle_$action";
+ *       $this->$method();
+ *       $this->log("done: $action");
+ *     }
+ *   }
  *)
 
 (*****************************************************************************)

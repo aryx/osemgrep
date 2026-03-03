@@ -31,6 +31,27 @@
  * on Terraform.
  * See https://github.com/hashicorp/hcl/blob/main/hclsyntax/spec.md for more
  * information on HCL itself.
+ *
+ * Three distinctive Terraform/HCL features reflected in this AST:
+ *
+ * 1. Declarative blocks (resource/data/module): infrastructure is
+ *    described as typed blocks with labels, not imperative commands.
+ *    AST: block (block_type: Resource | Data | Module | ...), block_label.
+ *
+ * 2. References and interpolation: expressions reference other blocks
+ *    via dotted paths (aws_instance.web.id) and string templates.
+ *    AST: expr (reuses AST_generic.expr for interpolated strings/refs).
+ *
+ * 3. Meta-arguments (count, for_each, lifecycle): special arguments
+ *    control resource instantiation and behavior declaratively.
+ *    AST: argument (ident * tok * expr), block_body_element (Argument).
+ *
+ * Example combining all three:
+ *   resource "aws_instance" "web" {
+ *     count         = var.instance_count
+ *     ami           = data.aws_ami.ubuntu.id
+ *     instance_type = "t3.${var.size}"
+ *   }
  *)
 
 (*****************************************************************************)

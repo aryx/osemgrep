@@ -36,6 +36,33 @@
  * - 2012 heavily modified to support annotations, generics, enum, foreach, etc
  * - 2020 support lambdas
  * - 2022 support 'var' directly (via TVar)
+ *
+ * Three distinctive Java features reflected in this AST:
+ *
+ * 1. Everything lives in a class: all methods, fields, and inner types
+ *    are enclosed in class/interface/enum declarations.
+ *    AST: class_decl (class_body of decl list), class_kind.
+ *
+ * 2. Checked exceptions: try/catch/finally with typed catch clauses;
+ *    throws declarations are part of method signatures.
+ *    AST: Try (catches), Throw, catches = (var_with_init list * stmt) list.
+ *
+ * 3. Annotations and generics with erasure: @-annotations decorate
+ *    any declaration; generics use type_arguments with wildcards.
+ *    AST: annotation, modifier (Annotation), type_argument (TWildCard), TParam.
+ *
+ * Example combining all three:
+ *   @FunctionalInterface
+ *   interface Mapper<T, R> {
+ *     R apply(T input) throws MappingException;
+ *   }
+ *   class StringMapper implements Mapper<String, Integer> {
+ *     @Override
+ *     public Integer apply(String s) throws MappingException {
+ *       try { return Integer.parseInt(s); }
+ *       catch (NumberFormatException e) { throw new MappingException(e); }
+ *     }
+ *   }
  *)
 
 (*****************************************************************************)

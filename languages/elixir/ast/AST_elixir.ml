@@ -41,6 +41,30 @@ type ('a, 'b) either = ('a, 'b) Either_.t
  * - https://hexdocs.pm/elixir/syntax-reference.html
  * - https://hexdocs.pm/elixir/Kernel.html and
  *   https://hexdocs.pm/elixir/Kernel.SpecialForms.html
+ *
+ * Three distinctive Elixir features reflected in this AST:
+ *
+ * 1. Two-phase parsing (raw -> kernel): the initial parse yields
+ *    generic calls/operators; a second pass recognizes def, defmodule, etc.
+ *    AST: Call (phase 1), stmt (S of stmt, with KDef/KDefmodule in phase 2).
+ *
+ * 2. Pattern matching everywhere: = is match (not assignment); function
+ *    heads, case, and with all destructure via patterns.
+ *    AST: BinaryOp with OMatch, clauses (stab_clause), When guards.
+ *
+ * 3. Pipe operator and macro-based DSL: |> chains transformations;
+ *    macros (defmacro) extend the language without special syntax.
+ *    AST: BinaryOp with OPipeline, Call with do_block, Capture.
+ *
+ * Example combining all three:
+ *   defmodule Stats do
+ *     def mean(list) when is_list(list) do
+ *       {sum, count} = list |> Enum.reduce({0, 0}, fn x, {s, c} ->
+ *         {s + x, c + 1}
+ *       end)
+ *       sum / count
+ *     end
+ *   end
  *)
 
 (*****************************************************************************)

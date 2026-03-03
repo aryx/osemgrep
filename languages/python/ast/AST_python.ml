@@ -58,6 +58,28 @@
  * less:
  *  - could use records for all the XxxDef, but what matters now is
  *    AST_generic.ml, which uses records at least.
+ *
+ * Three distinctive Python features reflected in this AST:
+ *
+ * 1. Comprehensions and generators: list/set/dict comprehensions
+ *    and generator expressions provide declarative collection building.
+ *    AST: ListComp, SetComp, DictComp, GeneratorExp, comprehension.
+ *
+ * 2. Decorators: @-prefixed expressions that wrap function/class
+ *    definitions, enabling metaprogramming without macros.
+ *    AST: decorator list in function_definition, class_definition.
+ *
+ * 3. Multiple assignment forms: tuple unpacking, starred assignment,
+ *    walrus operator (:=), and augmented assignment are all distinct.
+ *    AST: Tuple (as lvalue), ExprStar, NamedExpr, AugAssign.
+ *
+ * Example combining all three:
+ *   @cache
+ *   def primes(n):
+ *       return [x for x in range(2, n)
+ *               if all(x % d != 0 for d in range(2, x))]
+ *   if (count := len(primes(100))) > 20:
+ *       first, *rest = primes(100)
  *)
 
 (*****************************************************************************)
