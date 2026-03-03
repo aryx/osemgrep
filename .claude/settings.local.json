@@ -12,7 +12,8 @@
       "WebFetch(domain:github.com)",
       "Bash(./bin/osemgrep scan:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(./test:*)"
     ]
   }
 }
