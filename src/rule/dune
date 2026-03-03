@@ -21,6 +21,7 @@
    glob
    lib_parsing
    ast_generic
+   lib_languages
    ; Rule.ml references Spacegrep.Pattern_AST.t
    spacegrep
    aliengrep

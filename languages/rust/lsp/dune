@@ -2,6 +2,6 @@
  (public_name parser_rust.lsp)
  (name parser_rust_lsp)
  (wrapped false)
- (libraries commons lib_languages semgrep_core
+ (libraries commons lib_languages ast_generic TCB
    parser_rust.ast_generic)
  (preprocess (pps ppx_deriving.show ppx_profiling)))

@@ -2,6 +2,6 @@
  (public_name parser_php.lsp)
  (name parser_php_lsp)
  (wrapped false)
- (libraries commons lib_languages semgrep_core
+ (libraries commons lib_languages ast_generic TCB
    parser_php.menhir parser_php.ast_generic)
  (preprocess (pps ppx_deriving.show ppx_profiling)))
