@@ -124,6 +124,9 @@
   OCaml 4.14 as well as OCaml 5.2.1
 
 ** internals
+- slimmed down common2.ml (5081 -> 560 lines) and common2.mli (1507 -> 159 lines)
+  by removing ~600 unused exports (91% dead code): quickcheck, geometry,
+  graph/tree/matrix types, date formatting, file locking, scope management, etc.
 - cleanup the repo, just keep what is necessary to compile and test osemgrep
   (removed Python cli/, mypy, .precommit, most of .github/, .circleci/,
   images/, changelog.d/, CODE_OF_CONDUCT.md, flake and nix, dev/, etc.)
