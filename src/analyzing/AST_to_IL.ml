@@ -925,6 +925,13 @@ and expr_aux env ?(void = false) g_expr =
   | G.DotAccessEllipsis _ ->
       sgrep_construct (G.E g_expr)
   | G.StmtExpr st -> stmt_expr env ~g_expr st
+  | G.RecordWith (e1, _tok, (_l, flds, _r)) ->
+      let e = expr env e1 in
+      let fld_es =
+        flds
+        |> List_.map (function G.F st -> stmt_expr env ~g_expr st)
+      in
+      mk_e (Composite (CTuple, (G.fake "", e :: fld_es, G.fake ""))) eorig
   | G.OtherExpr ((str, tok), xs) ->
       let es =
         xs
@@ -1783,6 +1790,7 @@ and stmt_aux env st =
   | G.OtherStmt (OS_Async, [ G.S stmt1 ]) ->
       let todo_stmt = fixme_stmt ToDo (G.TodoK ("async", G.fake "async")) in
       todo_stmt @ stmt env stmt1
+  | G.Defer (_, st1) -> stmt env st1
   | G.OtherStmt _
   | G.OtherStmtWithStmt _ ->
       todo (G.S st)

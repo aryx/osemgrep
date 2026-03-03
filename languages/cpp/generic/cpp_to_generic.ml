@@ -643,7 +643,7 @@ and map_expr env x : G.expr =
       |> G.e
   | CoAwait (v1, v2) ->
       let expr = map_expr env v2 in
-      G.OtherExpr (("co_await", v1), [ G.E expr ]) |> G.e
+      G.Await (v1, expr) |> G.e
   | ParenExpr v1 ->
       let _l, v1, _r = map_paren env (map_expr env) v1 in
       v1
@@ -900,17 +900,11 @@ and map_stmt env x : G.stmt =
       let anys = [ G.I v1; G.Args v2 ] in
       G.OtherStmtWithStmt (G.OSWS_Iterator, anys, v3) |> G.s
   | CoStmt ((op, op_tk), eopt) ->
-      let op_str =
-        match op with
-        | Co_yield -> "co_yield"
-        | Co_return -> "co_return"
-      in
-      let anys =
-        match eopt with
-        | None -> []
-        | Some e -> [ G.E (map_expr env e) ]
-      in
-      G.OtherStmt (OS_Todo, G.I (op_str, op_tk) :: anys) |> G.s
+      let eopt = Option.map (map_expr env) eopt in
+      (match op with
+       | Co_yield ->
+           G.ExprStmt (G.Yield (op_tk, eopt, false) |> G.e, G.sc) |> G.s
+       | Co_return -> G.Return (op_tk, eopt, G.sc) |> G.s)
   | AsmStmt
       ( asm_tk,
         (_l, { a_template; a_outputs; a_inputs; a_clobbers; a_gotos }, _r),

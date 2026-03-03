@@ -126,9 +126,17 @@ let rec map_expr env v : G.expr =
       G.stmt_to_expr st
   | AdjustObj (v1, v2) ->
       let e1 = map_expr env v1 in
-      let l, f, r = (map_bracket map_obj_inside) env v2 in
-      let e2 = f (l, r) in
-      G.OtherExpr (("RecordWith", l), [ G.E e1; G.E e2 ]) |> G.e
+      let l, inside, r = v2 in
+      let l = map_tok env l in
+      let r = map_tok env r in
+      (match inside with
+       | Object members ->
+           let flds = (map_list map_obj_member) env members in
+           G.RecordWith (e1, l, (l, flds, r)) |> G.e
+       | ObjectComp _ ->
+           let f = map_obj_inside env inside in
+           let e2 = f (l, r) in
+           G.OtherExpr (("RecordWith", l), [ G.E e1; G.E e2 ]) |> G.e)
   | Lambda v ->
       let def = map_function_definition env v in
       G.Lambda def |> G.e

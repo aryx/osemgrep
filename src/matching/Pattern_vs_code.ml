@@ -1162,6 +1162,9 @@ and m_expr ?(is_root = false) ?(arguments_have_changed = true) a b =
   | G.ArrayAccess (a1, a2), B.ArrayAccess (b1, b2) ->
       m_expr a1 b1 >>= fun () -> m_bracket m_expr a2 b2
   | G.Record a1, B.Record b1 -> (m_bracket m_fields) a1 b1
+  | G.RecordWith (a1, a2, a3), B.RecordWith (b1, b2, b3) ->
+      m_expr a1 b1 >>= fun () ->
+      m_tok a2 b2 >>= fun () -> (m_bracket (m_list m_field)) a3 b3
   | G.Constructor (a1, a2), B.Constructor (b1, b2) ->
       m_name a1 b1 >>= fun () -> m_bracket (m_list m_expr) a2 b2
   (* Pattern /.../ matches both regexp templates and regexp literals,
@@ -1226,6 +1229,7 @@ and m_expr ?(is_root = false) ?(arguments_have_changed = true) a b =
   | G.Container _, _
   | G.Comprehension _, _
   | G.Record _, _
+  | G.RecordWith _, _
   | G.Constructor _, _
   | G.RegexpTemplate _, _
   | G.Lambda _, _
@@ -2854,6 +2858,8 @@ and m_stmt a b =
   | G.WithUsingResource (a1, a2, a3), B.WithUsingResource (b1, b2, b3) ->
       m_tok a1 b1 >>= fun () ->
       m_list m_stmt a2 b2 >>= fun () -> m_stmt a3 b3
+  | G.Defer (a1, a2), B.Defer (b1, b2) ->
+      m_tok a1 b1 >>= fun () -> m_stmt a2 b2
   | G.ExprStmt _, _
   | G.DefStmt _, _
   | G.DirectiveStmt _, _
@@ -2874,7 +2880,8 @@ and m_stmt a b =
   | G.OtherStmt _, _
   | G.OtherStmtWithStmt _, _
   | G.RawStmt _, _
-  | G.WithUsingResource _, _ ->
+  | G.WithUsingResource _, _
+  | G.Defer _, _ ->
       fail ()
 
 and m_condition a b =

@@ -530,8 +530,8 @@ let top_func () =
         let _v1 = tok v1 and e, args = call_expr v2 in
         [ G.OtherStmt (G.OS_Go, [ G.E (G.Call (e, args) |> G.e) ]) |> G.s ]
     | Defer (v1, v2) ->
-        let _v1 = tok v1 and e, args = call_expr v2 in
-        [ G.OtherStmt (G.OS_Defer, [ G.E (G.Call (e, args) |> G.e) ]) |> G.s ]
+        let v1 = tok v1 and e, args = call_expr v2 in
+        [ G.Defer (v1, G.ExprStmt (G.Call (e, args) |> G.e, G.sc) |> G.s) |> G.s ]
   and for_header = function
     | ForEllipsis t -> G.ForEllipsis t
     | ForClassic (v1, v2, v3) ->

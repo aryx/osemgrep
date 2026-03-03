@@ -421,9 +421,9 @@ let top_func () =
     | Continue (t, label_opt) ->
         let label = option ident label_opt in
         [ G.Continue (t, H.opt_to_label_ident label, G.sc) |> G.s ]
-    | Defer (_t, body) ->
+    | Defer (t, body) ->
         let body = stmt body in
-        [ G.OtherStmt (G.OS_Defer, [ G.S body ]) |> G.s ]
+        [ G.Defer (t, body) |> G.s ]
     | Errdefer (t, _capture, body) ->
         let body = stmt body in
         [ G.OtherStmt (G.OS_Todo, [ G.Tk t; G.S body ]) |> G.s ]

@@ -353,10 +353,9 @@ and expr e =
                    G.fld (ent, def)))
           v2
       in
-      let obj = G.Record v2 |> G.e in
       match v1 with
-      | None -> obj
-      | Some e -> G.OtherExpr (("With", G.fake ""), [ G.E e; G.E obj ]) |> G.e)
+      | None -> G.Record v2 |> G.e
+      | Some e -> G.RecordWith (e, G.fake "with", v2) |> G.e)
   | New (v1, v2) ->
       let v1 = tok v1 and v2 = name v2 in
       G.New (v1, G.TyN v2 |> G.t, G.empty_id_info (), fb []) |> G.e

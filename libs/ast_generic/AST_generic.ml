@@ -697,6 +697,8 @@ and expr_kind =
   | Comprehension of container_operator * comprehension bracket
   (* And-type (field.vinit should be a Some) *)
   | Record of field list bracket
+  (* Record update: base_expr { field_updates } (OCaml, Haskell, Jsonnet) *)
+  | RecordWith of expr * tok (* with *) * field list bracket
   (* Or-type (could be used instead of Container, Cons, Nil, etc.).
    * (ab)used also for polymorphic variants where qualifier is QTop with
    * the '`' token.
@@ -1269,6 +1271,8 @@ and stmt_kind =
       tok (* 'with' in Python, 'using' in C# *)
       * stmt list (* resource acquisition *)
       * stmt (* newscope: block *)
+  (* Go 'defer', Zig 'defer' *)
+  | Defer of tok * stmt
   (* old: was 'expr * expr option' for Python/Java, but better to generalize.
    * alt: could move in expr and have Assert be an Special
    *)
@@ -1425,7 +1429,6 @@ and other_stmt_operator =
   | OS_Asm
   (* Go *)
   | OS_Go
-  | OS_Defer
   | OS_Fallthrough (* only in Switch *)
   (* PHP *)
   | OS_GlobalComplex (* e.g., global $$x, argh *)

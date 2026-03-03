@@ -321,8 +321,7 @@ and expr e =
                G.basic_field id (Some e2) None))
           flds
       in
-      let obj = G.Record flds |> G.e in
-      G.OtherExpr (("With", fake ""), [ G.E e; G.E obj ])
+      G.RecordWith (e, fake "with", flds)
   | Section (_l, sec, _r) -> (
       match sec with
       | SectionL (e, op) ->

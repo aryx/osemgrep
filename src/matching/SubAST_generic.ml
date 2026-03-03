@@ -100,7 +100,8 @@ let subexprs_of_stmt_kind = function
   | Try _
   | DisjStmt _
   | DefStmt _
-  | WithUsingResource _ ->
+  | WithUsingResource _
+  | Defer _ ->
       []
 
 let subexprs_of_stmt st = subexprs_of_stmt_kind st.s
@@ -147,6 +148,9 @@ let subexprs_of_expr with_symbolic_propagation e =
   | Seq xs -> xs
   | Record (_, flds, _) ->
       flds |> Common2.map_flatten (function F st -> subexprs_of_stmt st)
+  | RecordWith (e, _, (_, flds, _)) ->
+      e
+      :: (flds |> Common2.map_flatten (function F st -> subexprs_of_stmt st))
   | Container (_, xs) -> Tok.unbracket xs
   | Comprehension (_, (_, (e, xs), _)) ->
       e
@@ -247,6 +251,9 @@ let subexprs_of_expr_implicit (with_symbolic_propagation : bool) (e : expr) :
    *)
   | Record (_, flds, _) ->
       flds |> Common2.map_flatten (function F st -> subexprs_of_stmt st)
+  | RecordWith (e, _, (_, flds, _)) ->
+      e
+      :: (flds |> Common2.map_flatten (function F st -> subexprs_of_stmt st))
   (* cases where we should not extract a subexpr *)
   | L _
   | N _
@@ -303,7 +310,8 @@ let substmts_of_stmt st =
   | DoWhile (_, st, _)
   | For (_, _, st)
   | Label (_, st)
-  | OtherStmtWithStmt (_, _, st) ->
+  | OtherStmtWithStmt (_, _, st)
+  | Defer (_, st) ->
       [ st ]
   (* 2 *)
   | If (_, _, st1, st2) -> st1 :: Option.to_list st2

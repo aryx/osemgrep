@@ -335,6 +335,11 @@ and vof_expr e =
   | Record v1 ->
       let v1 = vof_bracket (OCaml.vof_list vof_field) v1 in
       OCaml.VSum ("Record", [ v1 ])
+  | RecordWith (v1, t, v2) ->
+      let v1 = vof_expr v1 in
+      let t = vof_tok t in
+      let v2 = vof_bracket (OCaml.vof_list vof_field) v2 in
+      OCaml.VSum ("RecordWith", [ v1; t; v2 ])
   | Constructor (v1, v2) ->
       let v1 = vof_name v1 and v2 = vof_bracket (OCaml.vof_list vof_expr) v2 in
       OCaml.VSum ("Constructor", [ v1; v2 ])
@@ -894,6 +899,10 @@ and vof_stmt st =
       let v1 = OCaml.vof_list vof_stmt v1 in
       let v2 = vof_stmt v2 in
       OCaml.VSum ("WithUsingResource", [ t; v1; v2 ])
+  | Defer (t, v1) ->
+      let t = vof_tok t in
+      let v1 = vof_stmt v1 in
+      OCaml.VSum ("Defer", [ t; v1 ])
   | Assert (t, args, sc) ->
       let t = vof_tok t in
       let args = vof_arguments args in
@@ -1051,7 +1060,6 @@ and vof_other_stmt_operator = function
   | OS_Pass -> OCaml.VSum ("OS_Pass", [])
   | OS_Asm -> OCaml.VSum ("OS_Asm", [])
   | OS_Go -> OCaml.VSum ("OS_Go", [])
-  | OS_Defer -> OCaml.VSum ("OS_Defer", [])
   | OS_Extension -> OCaml.VSum ("OS_Extension", [])
   | OS_Fallthrough -> OCaml.VSum ("OS_Fallthrough", [])
 

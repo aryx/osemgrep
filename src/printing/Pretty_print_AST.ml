@@ -169,6 +169,7 @@ let rec stmt env st =
   | DisjStmt (_, _)
   | OtherStmtWithStmt (_, _, _)
   | OtherStmt (_, _)
+  | Defer _
   | RawStmt _ ->
       todo (S st)
 
