@@ -311,6 +311,10 @@ parsers, especially ocamlyacc/menhir based parsers.
   )
 )
 
+(package (name lib_languages)
+  (synopsis "Per-language LSP helpers shared type")
+  (description "Shared LSP_lang.t type for per-language LSP helpers")
+)
 (package (name lib_parsing_tree_sitter)
   (synopsis "XXX")
   (description "XXX")

@@ -1,0 +1,6 @@
+(library
+ (public_name lib_languages)
+ (name lib_languages)
+ (wrapped false)
+ (libraries commons semgrep_core)
+ (preprocess (pps ppx_deriving.show ppx_profiling)))

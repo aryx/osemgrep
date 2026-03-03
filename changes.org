@@ -89,6 +89,10 @@
 - per-language hover parsing: each LSP_<lang>.ml module extracts the type
   string from the server's hover format (code fences, prefixes, signatures)
   and parses it into AST_generic.type_ via the language's menhir parser.
+- moved LSP_lang.t (shared type) to libs/lib_languages/ and each
+  LSP_<lang>.ml to languages/<lang>/lsp/ (as parser_<lang>.lsp sub-libraries),
+  so per-language LSP helpers are reusable by other projects (efuns, codemap)
+  without pulling in osemgrep-specific code.
 
 ** languages
 - add Haskell language support (alpha): tree-sitter parser via semgrep-haskell

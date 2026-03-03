@@ -9,36 +9,22 @@
    lib_parsing
 
    semgrep_core
+   lib_languages
 
    lsp
    jsonrpc
    str
-   parser_ocaml.ast
-   parser_ocaml.menhir
-   parser_ocaml.ast_generic
-   parser_c.ast
-   parser_c.menhir
-   parser_c.ast_generic
-   parser_go.ast
-   parser_go.menhir
-   parser_go.ast_generic
-   parser_rust.ast_generic
-   parser_python.ast
-   parser_python.menhir
-   parser_python.ast_generic
-   parser_typescript.tree_sitter
-   parser_javascript.menhir
-   parser_javascript.ast_generic
-   parser_java.ast
-   parser_java.menhir
-   parser_java.ast_generic
-   parser_csharp.ast_generic
-   parser_scala.recursive_descent
-   parser_scala.ast_generic
-   parser_php.menhir
-   parser_php.ast_generic
-   parser_haskell.tree_sitter
-   parser_haskell.ast_generic
+   parser_ocaml.lsp
+   parser_c.lsp
+   parser_go.lsp
+   parser_rust.lsp
+   parser_python.lsp
+   parser_typescript.lsp
+   parser_java.lsp
+   parser_csharp.lsp
+   parser_scala.lsp
+   parser_php.lsp
+   parser_haskell.lsp
  )
  (preprocess (pps ppx_deriving.show ppx_profiling))
 )
