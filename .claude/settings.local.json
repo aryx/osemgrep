@@ -13,7 +13,8 @@
       "Bash(./bin/osemgrep scan:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(wc:*)",
-      "Bash(./test:*)"
+      "Bash(./test:*)",
+      "Bash(ls:*)"
     ]
   }
 }
