@@ -30,23 +30,17 @@ Note: do **not** call `dune build` directly without first sourcing `./tree-sitte
 ## Tests
 
 ```bash
-make test                               # builds and runs all tests
+make test                               # builds and runs all tests (just runs ./test)
 make retest                             # re-runs only previously failing tests
 
 # Run a single test by name filter
 ./test -s <filter>                      # e.g. ./test -s "foo" runs tests matching "foo"
 
-# Run inline/expect tests for specific subsystems
-dune runtest -f --no-buffer libs/commons
-dune runtest -f --no-buffer src/engine
-dune runtest -f --no-buffer src/fixing
-dune runtest -f --no-buffer src/osemgrep   # expect tests; run `dune promote` on failures
-
 # Run e2e tests
 make core-test-e2e
 ```
 
-The test executable `./test` is built from `src/tests/Test.ml`, which aggregates unit test suites from across the codebase (e.g., `Unit_engine.tests`, `Unit_matcher.tests`, `Unit_naming_generic.tests`, etc.).
+The test executable `./test` is built from `src/tests/Test.ml`, which aggregates all unit, inline, and expect tests from across the codebase via `Testo.get_registered_tests()` (e.g., `Unit_engine.tests`, `Unit_matcher.tests`, `Unit_naming_generic.tests`, etc.).
 
 ## Dogfooding (Semgrep on itself)
 
