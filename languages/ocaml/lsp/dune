@@ -1,7 +1,0 @@
-(library
- (public_name parser_ocaml.lsp)
- (name parser_ocaml_lsp)
- (wrapped false)
- (libraries commons lib_languages ast_generic TCB
-   parser_ocaml.ast parser_ocaml.menhir parser_ocaml.ast_generic)
- (preprocess (pps ppx_deriving.show ppx_profiling)))

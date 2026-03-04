@@ -52,7 +52,8 @@ endif
 
 # Set environment variables used by dune files to locate the
 # C headers and libraries of the tree-sitter runtime library.
-# This file is created by scripts/setup-tree-sitter.sh (run via 'make setup').
+# This file is created by semgrep-pfff-langs/scripts/setup-tree-sitter.sh
+# (run via 'make setup').
 #
 # Because of these required environment variables, we can't call dune directly
 # to build osemgrep, unless you manually execute first
@@ -192,7 +193,7 @@ core-test-e2e:
 # package for systems with a compatible system-installed tree-sitter (>= 0.20).
 # Install it manually with 'opam install ./packages/conf-tree-sitter.opam' 
 # if desired.
-REQUIRED_DEPS = ./osemgrep.opam ./libs/ocaml-tree-sitter-core/tree-sitter.opam
+REQUIRED_DEPS = ./osemgrep.opam ./semgrep-pfff-langs/libs/ocaml-tree-sitter-core/tree-sitter.opam
 
 # This will fail if osemgrep.opam isn't up-to-date (in git),
 # and dune isn't installed yet. You can always install dune with
@@ -214,9 +215,11 @@ osemgrep.opam: dune-project
 # important dependencies change.
 .PHONY: setup
 setup:
+# Initialize submodules (semgrep-libs, semgrep-pfff-langs, and their nested submodules)
+	git submodule update --init --recursive
 # Configure tree-sitter: uses system library if available (via pkg-config),
 # otherwise downloads and builds tree-sitter from source.
-	./scripts/setup-tree-sitter.sh
+	./semgrep-pfff-langs/scripts/setup-tree-sitter.sh
 	# --confirm-level=unsafe-yes is needed to auto-confirm the depext prompt
 	# ("let opam run your package manager?") in non-interactive environments.
 	# -y alone does not cover this prompt. See https://github.com/ocaml/opam/issues/4814

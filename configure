@@ -144,12 +144,19 @@ echo ""
 
 echo "Checking git submodules..."
 
-# libs/ocaml-tree-sitter-core is essential; an empty directory means
-# 'git submodule update --init --recursive' was not run after cloning.
-if [ -f "libs/ocaml-tree-sitter-core/configure" ]; then
-    ok "libs/ocaml-tree-sitter-core (initialized)"
+# semgrep-libs and semgrep-pfff-langs are essential submodules.
+# An empty directory means 'git submodule update --init --recursive' was not run.
+if [ -d "semgrep-libs/TCB" ]; then
+    ok "semgrep-libs (initialized)"
 else
-    err "libs/ocaml-tree-sitter-core is empty; run: git submodule update --init --recursive"
+    err "semgrep-libs is empty; run: git submodule update --init --recursive"
+    errors=$((errors + 1))
+fi
+
+if [ -f "semgrep-pfff-langs/libs/ocaml-tree-sitter-core/configure" ]; then
+    ok "semgrep-pfff-langs (initialized, including ocaml-tree-sitter-core)"
+else
+    err "semgrep-pfff-langs is empty or ocaml-tree-sitter-core not initialized; run: git submodule update --init --recursive"
     errors=$((errors + 1))
 fi
 

@@ -1,2 +1,0 @@
-Thanks to
- - Richard Jones for his Dumper.ml module (public domain?)

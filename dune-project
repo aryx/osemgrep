@@ -170,6 +170,8 @@ For more information see https://semgrep.dev
 )
 
 ;; Other opam packages (sorted alphabetically)
+;; Note: packages from semgrep-libs/ and semgrep-pfff-langs/ submodules must
+;; be declared here since they share the root dune workspace.
 
 (package
   (name aliengrep)

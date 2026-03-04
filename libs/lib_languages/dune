@@ -1,6 +1,0 @@
-(library
- (public_name lib_languages)
- (name lib_languages)
- (wrapped false)
- (libraries commons lib_parsing ast_generic TCB)
- (preprocess (pps ppx_deriving.show ppx_deriving.eq ppx_deriving.ord ppx_hash ppx_deriving_yojson ppx_profiling)))
