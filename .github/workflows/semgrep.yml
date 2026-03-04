@@ -19,6 +19,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # Needed because semgrep.jsonnet imports files from semgrep-libs/
+          # (e.g., TCB/forbid_everything.jsonnet)
+          submodules: recursive
       # Workaround for rootless containers as git operations may fail due to
       # dubious ownership of /__w/osemgrep/osemgrep
       # ugly: needed because osemgrep does not do the git hack done by
