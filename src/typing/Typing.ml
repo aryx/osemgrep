@@ -21,6 +21,19 @@ let hook_type_of_expr : (Lang.t -> G.expr -> G.name Type.t option) option Hook.t
     =
   Hook.create None
 
+(* Set the Naming_AST hook that composes our pro hook with
+ * Type.to_ast_generic_type_ so that naming can infer types
+ * without depending on semgrep.typing. *)
+let () =
+  Naming_AST.hook_type_of_expr :=
+    Some
+      (fun lang e ->
+        match Hook.get hook_type_of_expr with
+        | Some f ->
+            let* type_ = f lang e in
+            Type.to_ast_generic_type_ lang (fun name _alts -> name) type_
+        | None -> None)
+
 (* returns possibly the inferred type of the expression,
  * as well as an ident option that can then be used to query LSP to get the
  * type of the ident. *)

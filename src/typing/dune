@@ -8,6 +8,7 @@
    commons
    lib_parsing
 
+   pfff_lang_GENERIC_naming
    semgrep_core
 
    ; No dependencies to semgrep_parsing here!

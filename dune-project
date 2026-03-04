@@ -185,11 +185,6 @@ For more information see https://semgrep.dev
   (synopsis "XXX")
   (description "XXX")
 )
-(package (name pfff-lang_GENERIC-naming)
-  (synopsis "XXX")
-  (description "XXX")
-)
-
 (package
   (name spacegrep)
   (synopsis "Universal program parser and matcher")
