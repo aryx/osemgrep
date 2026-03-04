@@ -10,7 +10,10 @@ jobs:
         run: git config --global fetch.parallel 50
       - uses: actions/checkout@v3
         with:
-          submodules: true
+          # Used to be 'true' but we need 'recursive' now that we have
+          # submodules inside submodules (e.g., ocaml-tree-sitter-core
+          # inside semgrep-pfff-langs).
+          submodules: recursive
       - name: Configure git safedir properly
         run: git config --global --add safe.directory $(pwd)
       - name: Set up tree-sitter
@@ -55,7 +58,10 @@ jobs:
       - if: ${{ steps.restore-git.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v3
         with:
-          submodules: true
+          # Used to be 'true' but we need 'recursive' now that we have
+          # submodules inside submodules (e.g., ocaml-tree-sitter-core
+          # inside semgrep-pfff-langs).
+          submodules: recursive
       - if: ${{ steps.restore-git.outputs.cache-hit != 'true' }}
         name: Set up tree-sitter
         run: (cd libs/ocaml-tree-sitter-core && ./configure && ./scripts/install-tree-sitter-lib)
