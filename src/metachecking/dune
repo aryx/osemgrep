@@ -10,5 +10,5 @@
    semgrep.optimizing ; for regexp_prefilter stats
    semgrep.engine.tests
  )
- (preprocess (pps ppx_profiling))
+ (preprocess (pps profiling.ppx))
 )

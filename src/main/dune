@@ -12,7 +12,7 @@
   lwt_platform.unix
   tracing.unix)
  (preprocess
-  (pps ppx_profiling))
+  (pps profiling.ppx))
  ; 'byte' is for ocamldebug
  ; TODO: restore byte, but does not work on macOS I get a
  ; linking error about a missing unix_waitpid, weird

@@ -32,7 +32,7 @@
    semgrep_targeting ; for Input_to_core.atd
 
  )
- (preprocess (pps ppx_profiling ppx_deriving.show))
+ (preprocess (pps profiling.ppx ppx_deriving.show))
 )
 
 (rule

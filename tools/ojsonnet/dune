@@ -9,7 +9,7 @@
  (modes native byte)
  (preprocess
    (pps
-     ppx_profiling
+     profiling.ppx
      ppx_deriving.show
      ppx_deriving.eq
    ))

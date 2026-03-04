@@ -19,7 +19,7 @@
  )
  (preprocess
    (pps
-     ppx_profiling
+     profiling.ppx
      tracing.ppx
      ppx_deriving.show
      ppx_deriving_yojson

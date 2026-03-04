@@ -17,7 +17,7 @@
  )
  (preprocess (pps
       ppx_deriving.show
-      ppx_profiling
-      ppx_tracing
+      profiling.ppx
+      tracing.ppx
    ))
 )
