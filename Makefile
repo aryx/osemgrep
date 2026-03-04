@@ -151,7 +151,7 @@ core-test:
 # The following command ensures that we can call 'test.exe --help'
 # from the directory of the checkout
 	./test --help 2>&1 >/dev/null
-	./scripts/run-core-test
+	./test
 
 # Only (re-)run the failed tests
 .PHONY: retest
