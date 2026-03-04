@@ -45,8 +45,6 @@ For more information see https://semgrep.dev
   (authors "Yoann Padioleau <yoann.padioleau@gmail.com>")
   (license "LGPL-2.1-only")
 
-; note: these are build dependencies. Development-only deps are in 'dev/*.opam'.
-
 ; note: vendored libs are listed here so we pull in their opam dependencies
 ; (e.g., ocaml-tree-sitter-core -> tsort). They are pinned in
 ; semgrep.opam.template to the local version, so we don't have to worry about
@@ -76,7 +74,7 @@ For more information see https://semgrep.dev
     fpath
     bos
     fileutils
-    ; unit testing (note that testo is vendored in libs/)
+    ; unit testing
     testo
     alcotest
     alcotest-js
@@ -112,7 +110,6 @@ For more information see https://semgrep.dev
     ; regexps
     re
     pcre
-    ; we're currently "vendoring" pcre2 in libs/pcre2
     pcre2
     ; misc
     ocamlgraph
