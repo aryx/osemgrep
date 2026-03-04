@@ -24,8 +24,10 @@ WORKDIR /src
 
 # Install dependencies
 COPY osemgrep.opam configure Makefile ./
-COPY scripts/setup-tree-sitter.sh ./scripts/
-COPY ./libs/ocaml-tree-sitter-core/ ./libs/ocaml-tree-sitter-core/
+# Copy enough submodule content for configure's submodule presence checks to pass
+COPY semgrep-libs/TCB/ ./semgrep-libs/TCB/
+COPY semgrep-pfff-langs/scripts/setup-tree-sitter.sh ./semgrep-pfff-langs/scripts/
+COPY semgrep-pfff-langs/libs/ocaml-tree-sitter-core/ ./semgrep-pfff-langs/libs/ocaml-tree-sitter-core/
 #note: configure will just internally run 'make setup'
 RUN ./configure
 

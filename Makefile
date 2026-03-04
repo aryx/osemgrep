@@ -215,8 +215,9 @@ osemgrep.opam: dune-project
 # important dependencies change.
 .PHONY: setup
 setup:
-# Initialize submodules (semgrep-libs, semgrep-pfff-langs, and their nested submodules)
-	git submodule update --init --recursive
+# Initialize submodules (semgrep-libs, semgrep-pfff-langs, and their nested submodules).
+# Skipped when not in a git repo (e.g., Docker COPY).
+	if git rev-parse --git-dir >/dev/null 2>&1; then git submodule update --init --recursive; fi
 # Configure tree-sitter: uses system library if available (via pkg-config),
 # otherwise downloads and builds tree-sitter from source.
 	./semgrep-pfff-langs/scripts/setup-tree-sitter.sh
