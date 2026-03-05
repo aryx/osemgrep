@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          # Needed because semgrep.jsonnet imports files from semgrep-libs/
+          # Needed because semgrep.jsonnet imports files from semgrep-pfff-libs/
           # (e.g., TCB/forbid_everything.jsonnet)
           submodules: recursive
       # Workaround for rootless containers as git operations may fail due to

@@ -222,7 +222,7 @@ local semgrep_rules = [
 // ----------------------------------------------------------------------------
 // TCB rules
 // ----------------------------------------------------------------------------
-local tcb = import "semgrep-libs/TCB/forbid_everything.jsonnet";
+local tcb = import "semgrep-pfff-libs/TCB/forbid_everything.jsonnet";
 
 // ----------------------------------------------------------------------------
 // Skip and last-minute override

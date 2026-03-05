@@ -144,12 +144,12 @@ echo ""
 
 echo "Checking git submodules..."
 
-# semgrep-libs and semgrep-pfff-langs are essential submodules.
+# semgrep-pfff-libs and semgrep-pfff-langs are essential submodules.
 # An empty directory means 'git submodule update --init --recursive' was not run.
-if [ -d "semgrep-libs/TCB" ]; then
-    ok "semgrep-libs (initialized)"
+if [ -d "semgrep-pfff-libs/TCB" ]; then
+    ok "semgrep-pfff-libs (initialized)"
 else
-    err "semgrep-libs is empty; run: git submodule update --init --recursive"
+    err "semgrep-pfff-libs is empty; run: git submodule update --init --recursive"
     errors=$((errors + 1))
 fi
 
@@ -374,4 +374,4 @@ echo ''
 echo 'Everything looks fine. You can now run: '
 echo ''
 echo '   $ make'
-echo '   $ make install-semgrep-libs'
+echo '   $ make install-semgrep-pfff-libs'

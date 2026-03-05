@@ -167,7 +167,7 @@ For more information see https://semgrep.dev
 )
 
 ;; Other osemgrep-specific packages (sorted alphabetically).
-;; Packages for semgrep-libs/ and semgrep-pfff-langs/ are defined
+;; Packages for semgrep-pfff-libs/ and semgrep-pfff-langs/ are defined
 ;; in their own dune-project files.
 
 (package

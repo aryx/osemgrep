@@ -215,7 +215,7 @@ osemgrep.opam: dune-project
 # important dependencies change.
 .PHONY: setup
 setup:
-# Initialize submodules (semgrep-libs, semgrep-pfff-langs, and their nested submodules).
+# Initialize submodules (semgrep-pfff-libs, semgrep-pfff-langs, and their nested submodules).
 # Skipped when not in a git repo (e.g., Docker COPY).
 	if git rev-parse --git-dir >/dev/null 2>&1; then git submodule update --init --recursive; fi
 # Configure tree-sitter: uses system library if available (via pkg-config),
@@ -257,8 +257,8 @@ utop:
 
 # This is for tools/hello_script.ml so it can leverage the semgrep libs
 # (e.g., commons) by installing them in ~/.opam/.../
-.PHONY: install-semgrep-libs
-install-semgrep-libs: # osemgrep.opam
+.PHONY: install-semgrep-pfff-libs
+install-semgrep-pfff-libs: # osemgrep.opam
 	dune build
 	dune install
 

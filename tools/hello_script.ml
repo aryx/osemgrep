@@ -69,7 +69,7 @@
 
 #require "timedesc"
 
-(* This assumes you did a 'make install-semgrep-libs' so that
+(* This assumes you did a 'make install-semgrep-pfff-libs' so that
  * the semgrep libraries are available from topfind.
  *)
 #require "commons"

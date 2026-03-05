@@ -171,7 +171,7 @@
 #just before Semgrep Inc. removed support for OCaml 4.x and focused on OCaml 5.
 
 ** build infra
-- fork semgrep as 'semgrep-libs' repo (later renamed to 'osemgrep') to compile
+- fork semgrep as 'semgrep-pfff-libs' repo (later renamed to 'osemgrep') to compile
   the libraries in semgrep that are used in my other projects such as
   codemap, codegraph, efuns, etc (which are still in OCaml 4.x)
 
