@@ -26,12 +26,12 @@
 /semgrep-pfff-langs/libs/ast_generic/Meta_AST.ml
 
 # not my interest right now
-semgrep-pfff-langs/languages/BLOCKCHAIN
+semgrep-pfff-langs/languages-blockchain
 semgrep-pfff-langs/languages/dart
-semgrep-pfff-langs/languages/OTHER/hack
-semgrep-pfff-langs/languages/OTHER/vue
-semgrep-pfff-langs/languages/OTHER/promql
-semgrep-pfff-langs/languages/OTHER/ql
+semgrep-pfff-langs/languages-misc/hack
+semgrep-pfff-langs/languages-misc/vue
+semgrep-pfff-langs/languages-misc/promql
+semgrep-pfff-langs/languages-misc/ql
 
 # ATD generated code (now also in semgrep-interfaces/.codemapignore)
 *_[jt].ml
