@@ -11,7 +11,7 @@
 
     ; in libs/
     commons
-    lib_parsing
+    parsing_core
     process_limits
     ; we now also depends on spacegrep with full-rule-in-ocaml
     spacegrep

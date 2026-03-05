@@ -12,7 +12,7 @@
  (libraries
    commons
    ograph ; TODO: should use ocamlgraph instead!
-   lib_parsing
+   parsing_core
    ast_generic
  )
  (preprocess

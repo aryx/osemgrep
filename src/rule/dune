@@ -19,9 +19,9 @@
    ; in libs/
    commons
    glob
-   lib_parsing
+   parsing_core
    ast_generic
-   lib_languages
+   languages
    ; Rule.ml references Spacegrep.Pattern_AST.t
    spacegrep
    aliengrep

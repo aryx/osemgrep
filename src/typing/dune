@@ -6,7 +6,7 @@
    ppx_deriving.runtime
 
    commons
-   lib_parsing
+   parsing_core
 
    pfff_lang_GENERIC_naming
    semgrep_core

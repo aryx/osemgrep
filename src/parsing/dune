@@ -11,7 +11,7 @@
    commons
    git_wrapper
    paths
-   lib_parsing
+   parsing_core
    process_limits
    spacegrep
    uri ; for Parse_lockfile.ml

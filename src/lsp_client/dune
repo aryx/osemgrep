@@ -6,10 +6,10 @@
    ppx_deriving.runtime
 
    commons
-   lib_parsing
+   parsing_core
 
    semgrep_core
-   lib_languages
+   languages
 
    lsp
    jsonrpc
