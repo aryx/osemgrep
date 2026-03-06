@@ -87,7 +87,7 @@ let impossible any_generic = raise (Fixme (Impossible, any_generic))
 
 let log_fixme kind gany =
   let toks = AST_generic_helpers.ii_of_any gany in
-  let tok = List_.hd_opt toks in
+  let tok = match toks with x :: _ -> Some x | [] -> None in
   match kind with
   | ToDo ->
       log_warning ?tok
