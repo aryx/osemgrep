@@ -16,7 +16,7 @@
    spacegrep
    uri ; for Parse_lockfile.ml
 
-   pfff_lang_GENERIC_naming
+   naming_generic
 
    ; remaining lang dependencies (the main one are in ../parsing_languages/)
    ojsonnet

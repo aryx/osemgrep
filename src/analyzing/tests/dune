@@ -4,7 +4,7 @@
  (wrapped false)
  (libraries
    commons
-   pfff_lang_GENERIC_naming
+   naming_generic
    semgrep.il
    semgrep.printing
    pfff_lang_GENERIC_analyze
