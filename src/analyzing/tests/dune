@@ -5,7 +5,7 @@
  (libraries
    commons
    naming_generic
-   semgrep.il
+   il_generic
    semgrep.printing
    pfff_lang_GENERIC_analyze
  )

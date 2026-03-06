@@ -10,7 +10,7 @@
    commons
    ast_generic
    semgrep.core ; Lang
-   semgrep.il
+   il_generic
  )
  (preprocess
     (pps
