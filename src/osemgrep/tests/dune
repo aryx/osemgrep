@@ -4,6 +4,7 @@
   (wrapped false)
   (libraries
     commons
+    commons.testutils
 
     osemgrep_cli
     osemgrep_cli_login

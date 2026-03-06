@@ -9,6 +9,7 @@
  (wrapped false)
  (libraries
    commons
+   commons.testutils
 
    fpath
    glob

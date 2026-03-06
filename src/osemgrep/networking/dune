@@ -11,6 +11,7 @@
     ocolor
 
     commons
+    commons.testutils
 
     profiling
     networking

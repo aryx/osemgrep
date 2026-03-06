@@ -9,6 +9,7 @@
     logs
     bos
     commons
+    commons.testutils
 
     semgrep_core
     semgrep_core_cli

@@ -9,6 +9,7 @@
     logs
     bos
     commons
+    commons.testutils
     parmap
     parallelism
 

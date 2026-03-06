@@ -12,6 +12,7 @@
    uri
    uuidm
    commons
+   commons.testutils
 
    osemgrep_core ; for Error.ml
   )
