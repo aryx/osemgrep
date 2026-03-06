@@ -3,7 +3,7 @@
  (name semgrep_metachecking)
  (wrapped false)
  (libraries
-   pfff-lang_GENERIC-analyze
+   dataflow_generic
 
    semgrep.core
    semgrep.core_scan

@@ -159,6 +159,10 @@
   DATA/ (json, jsonnet, toml, yaml), and OTHER/ (dockerfile, hack, html,
   promql, protobuf, ql, regexp, terraform, vue). Uppercase names distinguish
   category folders from language folders.
+- big reorganization of libs/ and languages/ now in submodules
+  semgrep-pfff-libs and semgrep-pfff-languages used by my other projects 
+  (codemap, codegraph, efuns, syncweb), and moved osemgrep/{ast_generic,il,analyzing}
+  there too
 
 ** HR
 - Hired Claude

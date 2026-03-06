@@ -6,7 +6,7 @@
    yaml
    commons
    parsing_core
-   pfff-lang_GENERIC-analyze
+   dataflow_generic
 
    semgrep_core
 

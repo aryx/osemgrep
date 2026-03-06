@@ -6,8 +6,9 @@
    commons
    naming_generic
    il_generic
-   semgrep.printing
-   pfff_lang_GENERIC_analyze
+   pretty_print_generic
+   dataflow_generic
+   semgrep_analyzing
  )
  (preprocess
     (pps

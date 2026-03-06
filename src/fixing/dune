@@ -5,7 +5,7 @@
  (libraries
    commons
    semgrep.parsing
-   semgrep.printing
+   pretty_print_generic
    semgrep.reporting
  )
  (inline_tests)

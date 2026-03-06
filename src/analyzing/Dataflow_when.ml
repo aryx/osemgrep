@@ -373,12 +373,11 @@ let facts_satisfy_e (mvars : Metavariable.bindings) (facts : facts) (e : expr) =
       Log.debug (fun m -> m "not a condition for when");
       false
 
-let hook_annotate_facts = Hook.create None
 let hook_facts_satisfy_e = Hook.create None
 
 let with_pro_hooks f =
   let f =
-    Hook.with_ hook_annotate_facts (Some annotate_facts)
+    Hook.with_ Constant_propagation.hook_annotate_facts (Some annotate_facts)
     @@ Hook.with_ hook_facts_satisfy_e (Some facts_satisfy_e)
     @@ f
   in

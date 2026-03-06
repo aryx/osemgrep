@@ -9,13 +9,14 @@
 
    commons
    tracing
-   pfff-lang_GENERIC-analyze
+   dataflow_generic
 
    parser_regexp
    spacegrep
    aliengrep
 
    semgrep_core
+   semgrep_analyzing
    semgrep_fixing
    semgrep_matching
    semgrep_tainting
