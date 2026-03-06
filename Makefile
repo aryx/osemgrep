@@ -193,7 +193,7 @@ core-test-e2e:
 # package for systems with a compatible system-installed tree-sitter (>= 0.20).
 # Install it manually with 'opam install ./packages/conf-tree-sitter.opam' 
 # if desired.
-REQUIRED_DEPS = ./osemgrep.opam ./semgrep-pfff-langs/libs/ocaml-tree-sitter-core/tree-sitter.opam
+REQUIRED_DEPS = ./osemgrep.opam ./semgrep-pfff-langs/parsing_infra/ocaml-tree-sitter-core/tree-sitter.opam
 
 # This will fail if osemgrep.opam isn't up-to-date (in git),
 # and dune isn't installed yet. You can always install dune with
