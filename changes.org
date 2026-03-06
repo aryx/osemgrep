@@ -175,7 +175,7 @@
 #just before Semgrep Inc. removed support for OCaml 4.x and focused on OCaml 5.
 
 ** build infra
-- fork semgrep as 'semgrep-pfff-libs' repo (later renamed to 'osemgrep') to compile
+- fork semgrep as 'semgrep-libs' repo (later renamed to 'osemgrep') to compile
   the libraries in semgrep that are used in my other projects such as
   codemap, codegraph, efuns, etc (which are still in OCaml 4.x)
 
@@ -185,6 +185,10 @@
 ** internals
 - cleanup Core_scan
 - cleanup Diff_scan
+update: cherry picked in my fork later
+
+** HR
+- me leaving Semgrep Inc.
 
 * 1.109 (Q1 2025) (OCaml 5 switch, Hook.ml, osemgrep ci v1, SCA2 POC)
 # transitive reachability v1, AI Appsec engineer launch, opengrep
@@ -199,7 +203,8 @@
 - new --log-backend and --fake-backend for osemgrep ci
 
 ** ecosystem
-- opengrep fork of semgrep (with lots of FUD and lies)
+- opengrep fork of semgrep (with lots of FUD and lies, especially on the
+  OSS license used in Semgrep)
 - AI Appsec engineer launch, SR agrees with 96% of AI triaging/filtering
 
 ** internals
