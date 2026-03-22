@@ -1,0 +1,217 @@
+
+* Last
+
+** Last1
+
+*** RELAX remove dependency to semgrep.core in semgrep-pfff-langs for Vue and Hack
+it's annoying for other tasks
+
+*** RELAX add support for Zig in -lsp
+
+*** RELAX forbid Sys.file_exists in find_marker, need readdir capability!
+it was not detected when Claude added LSP code that was looking
+for some markers
+
+forbid also in xix
+
+*** RELAX look at codebase, src/core/, src/core_scan/, src/osemgrep/CLI/ etc. and 
+make sure it's still clean, and cleanup more
+src/rule/, src/sca/ (cherry pick some of mine?)
+
+*** Remove cruft (pysemgrep related)
+
+**** RELAX remove Core_scan.print_cli_progress, simplify comments in Core_scan.mli
+
+**** RELAX reduce Core_scan interface now that there is no Pro needing
+those functions anymore
+
+**** RELAX remove use_semgrepignore_v2 cruft in Scan_CLI.ml
+
+**** RELAX remove the ugly additional output_formats
+add a long list of ugly flags
+just run osemgrep multiple times or output json and sarif and process that!
+
+**** still? get rid of PCRE, just use ocaml-re! or at least remove one of the pcre?
+far slower? some semgrep-rules tests would fail?
+
+*** ----------------------------------------------------------------------
+
+*** CLAUDE leverage LSP type information for OCaml (and more)
+
+**** Add stuff about LSP in src/typing/, and then in src/naming/
+so clear we use LSP for those 2 semantic things
+
+**** Hook get_type for LSP with metavariable-type too!
+
+**** add basic regression test for LSP
+but pb requires lots of tool installed already
+Claude actually proposed hover and parse_type unit tests,
+and other fixes
+
+maybe run the tests only if the binary is accessible in PATH
+
+**** LATER leverage LSP for naming and aliasing resolution!
+
+**** improve speed of osemgrep -lsp? or switch to scip?
+make it fast! interaction with ocaml-lsp can be improved?
+
+*** CLAUDE LATER leverage SCIP type information for OCaml (and more)
+actually Claude himself proposed to add support for SCIP too
+
+**** scip.proto to ATD spec, via Claude
+Martin did that probably manually for their scipio project (closed-source)
+
+**** CLAUDE resume scip-ocaml, 
+give all those implem, including the one in semgrep? (or was semgreppro only?)
+and generate a good scip?
+also fix scip-ocaml with Claude code?
+
+**** CLAUDE make my own scip-ocaml using my Graph_code_ocaml.ml that uses the .cmt?
+there is the type info in there!
+need to update to 4.14.2?
+and then can generate scip db for semgrep -scip to use!
+
+*** semgrep interactive resume
+and make it use -lsp?
+do better TUI? learn more notty?
+
+*** Restore
+
+**** CLAUDE  LATER restore my inlined rules! Sophia's hack demo I did with her!
+Q3 2023
+
+**** CLAUDE LATER: restore extract-mode!
+see rule_schema_v2.atd
+https://github.com/semgrep/semgrep/pull/9891/changes
+
+**** CLAUDE restore some SCA related commits? part 4
+Skip for now SCA:
+OK https://github.com/aryx/osemgrep/commit/6bbdf7ebc9f41c8ccada926a1af12a29dcfbeac5
+
+https://github.com/aryx/osemgrep/commit/390c0eeb2c0cc81b5d65e6afbc494219e651c84c
+https://github.com/aryx/osemgrep/commit/ce86af2ba87a4d6cedfb7861af5b7870a3da7c6c
+https://github.com/aryx/osemgrep/commit/41bdda0b8505dbb0fae677dd9696fde04d6b7eae
+https://github.com/aryx/osemgrep/commit/d6cc3a0a9ab42d3aeb593f01b24d477e1e051801
+https://github.com/aryx/osemgrep/commit/adf93e5944023e0f352827999c17a0996af93ea5
+https://github.com/aryx/osemgrep/commit/2b4a862529f34c652102bdfa00277c434662fbbd
+https://github.com/aryx/osemgrep/commit/c2c7970fd0f878dd17adcd266d65b694c21d2334
+
+**** RELAX CLAUDE less: restore AST_generic_v1.atd?
+and -show_ast_json and -generate_ast_json
+
+restore and adapt to latest AST_generic automatically using Claude
+
+**** restore dune-build-all in Dockerfile to compile also js/ code
+
+**** see POC in my changes.txt history for more stuff I could restore
+
+*** Test what was restored
+
+**** try DiffScan works still, -baseline-commit
+
+**** osemgrep: TEST restored AST caching, --ast-caching
+Q2 2023 in osemgrep, but also even before?
+
+**** osemgrep: TEST restored semgrep interactive (and AST caching)
+was Q2 2023
+
+**** osemgrep: TEST restored js/
+actually run the build and see if a semgrep.js can work?
+
+*** Old parking lot (with new entries too)
+
+**** osemgrep 2.0 blog post
+2.0 vs 1.0
+ - SEMI jsonnet vs yaml (need better ojsonnet though)
+ - syntax v2 vs v1
+ - TODO steps mode vs join mode (need finish steps mode)
+ - aliengrep vs spacegrep
+ - TODO extract mode v2? (need restore)
+ - AST-based autofix vs regexp-fix (bug claude code might be better at this)
+ - SEMI LSP-server mode / Vscode v2! (need to refresh and see if it works)
+ - SEMI LSP-client mode
+ - TODO SCIP
+ - playground v2! (structured editing)
+ - osemgrep vs pysemgrep! fast startup, incremental reports, faster (more caching)
+   (need nesting)
+ - Haskell, Zig, CSS, ...
+ - Claude integration? to refine the findings and do autofix?
+   no need, just give good error report and he will fix it for free
+
+**** rules
+? SEMI jsonnet v1 (semgrep-rules integration, registry integration, playground integration)
+? SEMI syntax v2 (Brandon/Cooper)
+? extract mode v2 with actual rules for popular embedded languages (EJS, jupyter, etc.)
+? multi-steps rules
+? pattern-with: and multi files rules in deep semgrep?
+?? semgrep for software architecture checking (archunit/ndepend replacement)
+
+**** ecosystem
+?? metachecker in the playground
+? semgrep query console!! (part of SCA product now?)
+?? semgrep in Hadoop/Snowflake? 
+?? codeweb
+
+
+* Later
+
+*** LATER Dawson Engler bugs as deviant behavior, resume codecheck?
+even better if leverage AI? or maybe leverage AI to generate the
+deterministic code to do those statistical analysis
+
+?? Dawson Engler's style Null pointer detector
+?? Dawson Engler's infer rules
+
+*** LATER: leverage dynamic info for triaging
+leverage opentelemetry data and wrappers
+
+- idea of beat datadog, leverage telemetry data (Luke, Me, Romain, Austin)
+  to better triage our findings leveraging dynamic "analysis"/telemetry info
+
+*** LATER: finish steps mode!
+see rule_schema_v2.atd
+
+can copy code that was once public?
+
+https://github.com/semgrep/semgrep/pull/7836
+from emma, but maybe maybe I restart from scratch
+
+steps mode and archunit! and my coupling:!
+coupling: path/root/project/foo.ml:v3: take care
+
+and also with file: .../$DIR/$FILE.c 
+ that can then be used in the rule itself!
+alt: use Claude Code to enforce those rules in natural language :)
+
+and the foo.ml must have the same coupling comment and version number!
+
+*** FUN LATER: semantic diff
+work on generic AST and detect:
+ - renaming of entities (defs and uses)
+ - moving around entities (do diff semantic level, not line level)
+ - possiblity to ignore diff on comments
+ - etc.
+Use gumtree diff algo? but add semantic from the generic AST!
+
+update: solved https://github.com/Ataraxy-Labs/weave
+and semantic version control: https://github.com/ataraxy-labs/sem
+
+*** LATER: resume datalog + semgrep ?
+https://github.com/langston-barrett/treeedb
+
+*** LATER: resume osemgrep and archunit? resume file:, resume dune rules
+https://github.com/TNG/ArchUnit
+like how to enforce src/{www,retrive,...} do not depend on Tk libs?
+via rules on dune file? and use of file: $DIR/dune
+and metavar on file path that can be reused in content matching!
+
+*** LATER: resume hoogle style osemgrep queries?
+https://github.com/mzp/ocaml-hoogle
+
+*** LATER pattern-when: $X == null
+working on controlflow and dataflow?
+Kat intern did a bit, but could be improved
+
+*** look at my past notes on semgrep and todos?
+steps-mode, extract-mode, 
+lsp/scip, archunit, hoogle, archunit
