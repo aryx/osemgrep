@@ -58,6 +58,10 @@ make it fast! interaction with ocaml-lsp can be improved?
 *** CLAUDE LATER leverage SCIP type information for OCaml (and more)
 actually Claude himself proposed to add support for SCIP too
 
+https://sourcegraph.com/blog/announcing-scip
+https://sourcegraph.com/blog/the-future-of-scip
+both discussed on HN which might have useful comments
+
 **** scip.proto to ATD spec, via Claude
 Martin did that probably manually for their scipio project (closed-source)
 
