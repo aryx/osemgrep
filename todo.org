@@ -1,3 +1,26 @@
+* Big plan
+
+** TODO changes.txt
+#CLAUDE:
+# SEMI add Zig, including -lsp server for Zig
+# inline rules, -layer_codemap, live integration in codemap, with colors
+# restore extract mode, add steps mode, file: $T/$F.c, def/use multi-steps rules $F() and def $F ...
+#  so can get codequery prolog-like expressivity in semgrep rules
+#  and get all of that working on codemap-live-web! on principia and xix and
+#  playground codebase!
+# fix ojsonnet, what am I missing :) claude better than me and young CMU interns
+# ----
+# add -lsp naming resolution
+# add -scip, 
+# add CSS, less: Perl, Erlang, Nix
+# a better when:
+# opentelemetry leverage
+# try SCA on OPAM using SCIP-based dependency graph!
+#  and fingerprinting use of caps on SCA deps! and detect change when update
+
+
+** Later
+
 
 * Last
 
