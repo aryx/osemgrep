@@ -10,7 +10,7 @@
  *   {"total":111,"bad":0,"percent_correct":100.0}
  *)
 val parsing_stats :
-  < Cap.time_limit ; Cap.memory_limit ; Cap.readdir ; .. > ->
+  < Cap.time_limit ; Cap.signal ; Cap.memory_limit ; Cap.readdir ; .. > ->
   ?json:bool ->
   ?verbose:bool ->
   Lang.t ->

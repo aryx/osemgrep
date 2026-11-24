@@ -38,7 +38,7 @@ module Out = Semgrep_output_v1_j
  * TODO: add stdout, but does not even use stdout right now, it abuses
  * Logs.app but we should switch to CapConsole.print
  *)
-type caps = < Cap.network ; Cap.time_limit ; Cap.exec >
+type caps = < Cap.network ; Cap.time_limit ; Cap.signal ; Cap.exec >
 
 let version_stamp_filename = "pro-installed-by.txt"
 
@@ -226,11 +226,11 @@ let run_conf (caps : < caps ; .. >) (conf : Install_semgrep_pro_CLI.conf) :
           let cmd = (Cmd.Name !!semgrep_pro_path_tmp, [ "-pro_version" ]) in
           let opt =
             Time_limit.set_timeout
-              (caps :> < Cap.time_limit >)
+              (caps :> < Cap.time_limit ; Cap.signal >)
               ~name:"check pro version" 10.0
               (fun () ->
                 (* TODO?  Bos.OS.Cmd.run_out ~err:Bos.OS.Cmd.err_run_out *)
-                let result = CapExec.string_of_run caps#exec ~trim:true cmd in
+                let result = CapExec.string_of_run caps ~trim:true cmd in
                 match result with
                 | Ok (output, _) -> Some output
                 | Error _ -> None)

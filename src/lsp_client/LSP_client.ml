@@ -626,7 +626,7 @@ let connect_server (caps : < Cap.exec ; .. >) ~root (lsp_lang : LSP_lang.t) =
   (* the PWD of the server process is used to look for the .cmt so
    * run this program from the project you want to analyze *)
   let cmd = lsp_lang.server_cmd (caps :> < Cap.exec >) ~root in
-  let ic, oc = CapExec.open_process caps#exec cmd in
+  let ic, oc = CapExec.open_process caps cmd in
   let conn = { ic; oc } in
 
   if !debug then UCommon.pr2 (spf "LSP_client: rootUri=%s" root);
@@ -749,6 +749,6 @@ let init (caps : < Cap.exec ; Cap.readdir ; .. >) ?(lang = Lang.Ocaml) ?(expr = 
   Stack_.push (fun () ->
       if !debug then UCommon.pr2 "LSP_client: CLOSING";
       send_request Lsp.Client_request.Shutdown conn |> ignore;
-      ignore (CapExec.close_process caps#exec (conn.ic, conn.oc))
+      ignore (CapExec.close_process caps (conn.ic, conn.oc))
   ) Core_hooks.exit;
   ()

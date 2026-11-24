@@ -7,7 +7,7 @@ let find_branchoff_point_async caps ~gh_token ~api_url ~repo_name
   let str = Auth.string_of_token gh_token in
   let headers = [ ("Authorization", spf "Bearer %s" str) ] in
   let%lwt response =
-    Http_helpers.get ~headers caps#network
+    Http_helpers.get ~headers caps
       (Uri.of_string
          (spf "%s/repos/%s/compare/%s...%s" (Uri_.show api_url) repo_name
             (Fmt_.to_show Digestif.SHA1.pp base_branch_hash)

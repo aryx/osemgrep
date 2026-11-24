@@ -142,7 +142,7 @@ let start_scan_async caps (request : Out.scan_request) :
     body |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string
   in
   Logs.debug (fun m -> m "Starting scan: %s" pretty_body);
-  let%lwt response = Http_helpers.post ~body ~headers caps#network url in
+  let%lwt response = Http_helpers.post ~body ~headers caps url in
   let res =
     match response with
     | Ok { body = Ok body; _ } ->
@@ -196,7 +196,7 @@ let upload_findings_async caps ~scan_id ~results ~complete :
   Logs.debug (fun m -> m "Sending findings and ignores blob");
   let body = results in
   let%lwt () =
-    match%lwt Http_helpers.post ~body ~headers caps#network url with
+    match%lwt Http_helpers.post ~body ~headers caps url with
     | Ok { body = Ok body; _ } ->
         let errors = extract_errors body in
         errors
@@ -216,7 +216,7 @@ let upload_findings_async caps ~scan_id ~results ~complete :
   in
   Logs.debug (fun m -> m "Sending complete blob");
   let body = complete in
-  match%lwt Http_helpers.post ~body ~headers caps#network url with
+  match%lwt Http_helpers.post ~body ~headers caps url with
   | Ok { body = Ok body; _ } -> Lwt.return (extract_block_override body)
   | Ok { body = Error msg; code; _ } ->
       let msg =
@@ -251,7 +251,7 @@ let report_failure_async caps ~scan_id (exit_code : Exit_code.t) : unit Lwt.t =
                             stderr = "" }
   in
   let body = Out.string_of_ci_scan_failure failure in
-  match%lwt Http_helpers.post ~body ~headers caps#network url with
+  match%lwt Http_helpers.post ~body ~headers caps url with
   | Ok { body = Ok _; _ } -> Lwt.return_unit
   | Ok { body = Error msg; code; _ } ->
       Logs.warn (fun m -> m "API server returned %u, this error: %s" code msg);
@@ -286,7 +286,7 @@ let deployment_config_async caps : Out.deployment_config option Lwt.t =
     ]
   in
   let url = Uri.with_path !Semgrep_envvars.v.semgrep_url deployment_route in
-  let%lwt response = Http_helpers.get ~headers caps#network url in
+  let%lwt response = Http_helpers.get ~headers caps url in
   let deployment_opt =
     match response with
     | Ok { body = Ok body; _ } ->
@@ -360,7 +360,7 @@ let fetch_scan_config_string_async ~dry_run ~sca ~full_scan ~repository caps :
     ]
   in
   let%lwt conf_string =
-    let%lwt response = Http_helpers.get ~headers caps#network url in
+    let%lwt response = Http_helpers.get ~headers caps url in
     let results =
       match response with
       | Ok { body = Ok body; _ } -> Ok body
@@ -391,7 +391,7 @@ let fetch_pro_binary caps platform_kind =
         [ ("version", Version.version) ])
   in
   let headers = [ Auth.auth_header_of_token caps#token ] in
-  Http_helpers.get ~headers caps#network uri
+  Http_helpers.get ~headers caps uri
 
 (* for semgrep show identity *)
 let get_identity_async caps =
@@ -402,7 +402,7 @@ let get_identity_async caps =
     ]
   in
   let url = Uri.with_path !Semgrep_envvars.v.semgrep_url identity_route in
-  let%lwt res = Http_helpers.get ~headers caps#network url in
+  let%lwt res = Http_helpers.get ~headers caps url in
   match res with
   | Ok { body = Ok body; _ } -> Lwt.return body
   | Ok { body = Error msg; code; _ } ->
@@ -426,7 +426,7 @@ let upload_rule_to_registry_async caps json =
     ]
   in
   let body = JSON.string_of_json (JSON.from_yojson json) in
-  match%lwt Http_helpers.post ~body ~headers caps#network url with
+  match%lwt Http_helpers.post ~body ~headers caps url with
   | Ok { body = Ok body; _ } -> Lwt.return_ok body
   | Ok { body = Error msg; code; _ } ->
       let msg =
@@ -460,7 +460,7 @@ let upload_symbol_analysis_async caps ~token ~scan_id symbol_analysis :
       ]
     in
     let body = Out.string_of_symbol_analysis symbol_analysis in
-    match%lwt Http_helpers.post ~body ~headers caps#network url with
+    match%lwt Http_helpers.post ~body ~headers caps url with
     | Ok { body = Ok body; _ } -> Lwt.return_ok body
     | Ok { body = Error msg; code; _ } ->
         let msg =

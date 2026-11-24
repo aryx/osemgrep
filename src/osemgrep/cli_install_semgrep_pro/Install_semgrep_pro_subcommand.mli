@@ -2,7 +2,7 @@
  * We need Cap.exec because we run semgrep -pro_version as part of
  * the install process.
  *)
-type caps = < Cap.network ; Cap.time_limit ; Cap.exec >
+type caps = < Cap.network ; Cap.time_limit ; Cap.signal ; Cap.exec >
 
 (*
    Parse a semgrep-install-semgrep-pro command, execute it and exit.

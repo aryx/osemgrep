@@ -46,7 +46,7 @@ type caps =
   ; (* for Parmap in Core_scan *)
     Cap.fork
   ; (* for Check_rules timeout *)
-    Cap.time_limit
+    Cap.time_limit ; Cap.signal
   ; (* for iter_targets memory limit *)
     Cap.memory_limit
   ; (* for spawning LSP server processes (LSP_client) *)
@@ -477,8 +477,9 @@ let check_targets_with_rules
       ; Cap.chdir
       ; Cap.tmp
       ; Cap.fork
-      ; Cap.time_limit
+      ; Cap.time_limit ; Cap.signal
       ; Cap.memory_limit
+      ; Cap.readdir
       ; .. >) (conf : Scan_CLI.conf) (profiler : Profiler.t)
     (rules_and_origins : Rule_fetching.rules_and_origin list)
     ((targets, errors, skipped) :

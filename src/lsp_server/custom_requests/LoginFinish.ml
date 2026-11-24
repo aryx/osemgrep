@@ -29,7 +29,7 @@ let of_jsonrpc_params params : (Uri.t * Uuidm.t) option =
 (* Entry point *)
 (*****************************************************************************)
 
-let on_request session id params : Session.t * Reply.t =
+let on_request (session : Session.t) id params : Session.t * Reply.t =
   (* Emulating a poor man's writer's monad, mixed with some LWT goodness. *)
   ( session,
     match params with
@@ -66,7 +66,9 @@ let on_request session id params : Session.t * Reply.t =
               |> Option.to_result ~none:"got invalid parameters"
               |> Lwt.return
             in
-            let caps = Cap.network_caps_UNSAFE () in
+            (* claude: Cap.network_caps_UNSAFE is gone from ocaml-caps;
+             * use the network capability of the session instead *)
+            let caps = (session.caps :> < Cap.network >) in
             let^ token, _ =
               Semgrep_login.fetch_token_async
                 ~min_wait_ms:wait_before_retry_in_ms ~max_retries

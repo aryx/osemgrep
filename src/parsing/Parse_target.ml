@@ -14,6 +14,7 @@
  *)
 open Fpath_.Operators
 open Pfff_or_tree_sitter
+open Pfff_or_tree_sitter_generic
 module Res = Parsing_result2
 module Flag = Flag_semgrep
 module E = Core_error

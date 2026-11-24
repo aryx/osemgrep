@@ -24,12 +24,12 @@ val make_login_url : unit -> login_session
 (* need the network to first check whether the token is valid *)
 val save_token_async :
   ?ident:string ->
-  < network : Cap.Network.t ; token : Auth.token > ->
+  < network : string -> Cap.Network.t ; token : Auth.token > ->
   (Semgrep_output_v1_t.deployment_config, string) result Lwt.t
 
 val save_token :
   ?ident:string ->
-  < network : Cap.Network.t ; token : Auth.token > ->
+  < network : string -> Cap.Network.t ; token : Auth.token > ->
   (Semgrep_output_v1_t.deployment_config, string) result
 (** [save_token ?ident token] will save the token to the user's settings file.
   * If it fails, it will return an error message.
@@ -42,7 +42,7 @@ val fetch_token :
   ?next_wait_ms:int ->
   ?max_retries:int ->
   ?wait_hook:(int -> unit) ->
-  < network : Cap.Network.t ; .. > ->
+  < network : string -> Cap.Network.t ; .. > ->
   shared_secret ->
   (Auth.token * string, string) result
 (** [fetch_token ?min_wait_ms ?next_wait_ms ?max_retries wait_hook shared_secret] will
@@ -58,7 +58,7 @@ val fetch_token_async :
   ?next_wait_ms:int ->
   ?max_retries:int ->
   ?wait_hook:(int -> unit Lwt.t) ->
-  < network : Cap.Network.t ; .. > ->
+  < network : string -> Cap.Network.t ; .. > ->
   shared_secret ->
   (Auth.token * string, string) result Lwt.t
 (** [fetch_token_async ?min_wait_ms ?next_wait_ms ?max_retries wait_hook
@@ -71,10 +71,10 @@ val fetch_token_async :
   *)
 
 val verify_token_async :
-  < network : Cap.Network.t ; token : Auth.token > -> bool Lwt.t
+  < network : string -> Cap.Network.t ; token : Auth.token > -> bool Lwt.t
 (** [verify_token_async] verifies that a token is valid with the Semgrep App. *)
 
-val verify_token : < network : Cap.Network.t ; token : Auth.token > -> bool
+val verify_token : < network : string -> Cap.Network.t ; token : Auth.token > -> bool
 (** [verify_token] verifies that a token is valid with the Semgrep App. *)
 
 val is_logged_in_weak : unit -> bool

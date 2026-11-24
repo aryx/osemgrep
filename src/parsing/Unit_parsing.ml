@@ -92,7 +92,8 @@ let parsing_tests_for_lang error_tolerance files lang =
 (* Tests *)
 (*****************************************************************************)
 
-let pack_parsing_tests_for_lang ?(error_tolerance = Strict) lang =
+let pack_parsing_tests_for_lang (caps : < Cap.readdir ; .. >)
+    ?(error_tolerance = Strict) lang =
   let slang = Lang.show lang in
   let dir = Lang.to_lowercase_alnum lang in
   let exts = Lang.exts_of_lang lang in
@@ -117,7 +118,7 @@ let pack_parsing_tests_for_lang ?(error_tolerance = Strict) lang =
   in
   (* Get all files then check extensions *)
   let pattern = spf "%s/**/*" !!dir in
-  let files = Common2.glob pattern in
+  let files = Common2.glob caps pattern in
   if files =*= [] then
     failwith (spf "Empty set of parsing tests for %s at %s" slang pattern);
   List.iter check_ext files;
@@ -130,20 +131,21 @@ let pack_parsing_tests_for_lang ?(error_tolerance = Strict) lang =
 (* Note that here we also use tree-sitter to parse; certain files were not
  * parsing with pfff but parses here
  *)
-let lang_parsing_tests langs_with_error_tolerance : Testo.t list =
+let lang_parsing_tests (caps : < Cap.readdir ; .. >) langs_with_error_tolerance
+    : Testo.t list =
   langs_with_error_tolerance
   |> List_.map (fun (lang, error_tolerance) ->
-         pack_parsing_tests_for_lang ~error_tolerance lang)
+         pack_parsing_tests_for_lang caps ~error_tolerance lang)
   |> Testo.categorize_suites "lang parsing"
 
 (* It's important that our parsers generate classic parsing errors
  * exns (e.g., Parsing_error, Lexical_error), otherwise semgrep
  * will report some "Fatal error" and abort.
  *)
-let parsing_error_tests () =
+let parsing_error_tests (caps : < Cap.readdir ; .. >) =
   let dir = tests_path / "parsing_errors" in
   Testo.categorize "Parsing error detection"
-    (let tests = Common2.glob (spf "%s/*" !!dir) in
+    (let tests = Common2.glob caps (spf "%s/*" !!dir) in
      tests |> Fpath_.of_strings
      |> List_.map (fun file ->
             t (Fpath.basename file) (fun () ->
@@ -159,12 +161,12 @@ let parsing_error_tests () =
                 | Parsing_error.Syntax_error _ ->
                     ())))
 
-let parsing_rules_tests () =
+let parsing_rules_tests (caps : < Cap.readdir ; .. >) =
   let dir = tests_path / "rule_formats" in
   Testo.categorize "Parsing rules"
     (let tests =
-       Common2.glob (spf "%s/*.yaml" !!dir)
-       @ Common2.glob (spf "%s/*.json" !!dir)
+       Common2.glob caps (spf "%s/*.yaml" !!dir)
+       @ Common2.glob caps (spf "%s/*.json" !!dir)
        (* skipped for now to avoid adding jsonnet as a dependency in our
         * CI: Common2.glob (spf "%s/*.jsonnet" dir)
         *)
@@ -180,14 +182,16 @@ let parsing_rules_tests () =
                       (spf "error %s while parsing %s" (Rule_error.show err)
                          !!file))))
 
-let parsing_rules_with_atd_tests () =
+let parsing_rules_with_atd_tests (caps : < Cap.readdir ; .. >) =
   let dir = tests_path / "rules_v2" in
   let tests1 =
-    Common2.glob (spf "%s/*.yaml" !!dir) @ Common2.glob (spf "%s/*.json" !!dir)
+    Common2.glob caps (spf "%s/*.yaml" !!dir)
+    @ Common2.glob caps (spf "%s/*.json" !!dir)
   in
   let dir = tests_path / "syntax_v2" in
   let tests2 =
-    Common2.glob (spf "%s/*.yaml" !!dir) @ Common2.glob (spf "%s/*.json" !!dir)
+    Common2.glob caps (spf "%s/*.yaml" !!dir)
+    @ Common2.glob caps (spf "%s/*.json" !!dir)
   in
   Testo.categorize "Parsing rules with rule_schema_v2.atd"
     (tests1 @ tests2 |> Fpath_.of_strings
@@ -199,13 +203,13 @@ let parsing_rules_with_atd_tests () =
 (* Tests *)
 (*****************************************************************************)
 
-let make_tests langs_with_tolerance =
+let make_tests (caps : < Cap.readdir ; .. >) langs_with_tolerance =
   List_.flatten
     [
-      lang_parsing_tests langs_with_tolerance;
-      parsing_error_tests ();
-      parsing_rules_tests ();
-      parsing_rules_with_atd_tests ();
+      lang_parsing_tests caps langs_with_tolerance;
+      parsing_error_tests caps;
+      parsing_rules_tests caps;
+      parsing_rules_with_atd_tests caps;
     ]
 
 let langs_with_error_tolerance =
@@ -265,4 +269,4 @@ let langs_with_error_tolerance =
     (* (Lang.Cpp, Missing_tokens); *)
   ]
 
-let tests () = make_tests langs_with_error_tolerance
+let tests caps = make_tests caps langs_with_error_tolerance

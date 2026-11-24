@@ -5,7 +5,7 @@
    (:include flags.sexp))
   (:standard -open TCB -open Commons_TCB))
  (libraries
-  TCB
+  caps caps.tcb
   semgrep.core_cli
   semgrep.osemgrep_cli
   ; implementations of dune virtual modules

@@ -43,7 +43,7 @@ let send_async caps =
   Logs.debug (fun m ->
       m "Sending metrics (with user agent '%s') data: %s" user_agent metrics);
   let%lwt response =
-    Http_helpers.post ~body:metrics ~headers caps#network url
+    Http_helpers.post ~body:metrics ~headers caps url
   in
   (match response with
   | Ok { body = Ok body; _ } -> (

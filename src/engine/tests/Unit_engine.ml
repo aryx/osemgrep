@@ -104,7 +104,7 @@ let full_lang_info =
    - foo.sgrep: target file for the test case "foo". If missing, it must
      exist in the polyglot folder.
 *)
-let pack_tests_for_lang
+let pack_tests_for_lang (caps : < Cap.readdir ; .. >)
     ~(lang_test_fn :
        polyglot_pattern_path:Fpath.t ->
        Fpath.t list ->
@@ -113,7 +113,7 @@ let pack_tests_for_lang
   Testo.categorize
     (spf "%s" (Lang.show lang))
     (let dir = test_pattern_path / dir in
-     let files = Common2.glob (spf "%s/*%s" !!dir ext) |> Fpath_.of_strings in
+     let files = Common2.glob caps (spf "%s/*%s" !!dir ext) |> Fpath_.of_strings in
 
      lang_test_fn ~polyglot_pattern_path files lang)
 
@@ -416,30 +416,30 @@ let regression_tests_for_lang ~polyglot_pattern_path files lang =
                actual expected))
 
 (* used in Unit_pro_languages.ml *)
-let make_lang_regression_tests ~test_pattern_path ~polyglot_pattern_path
+let make_lang_regression_tests (caps : < Cap.readdir ; .. >) ~test_pattern_path ~polyglot_pattern_path
     lang_data =
   (* TODO: infer dir and ext from lang using Lang helper functions *)
   let lang_tests =
     lang_data
     |> List_.map (fun (lang, dir, ext) ->
-           pack_tests_for_lang ~lang_test_fn:regression_tests_for_lang
+           pack_tests_for_lang caps ~lang_test_fn:regression_tests_for_lang
              ~test_pattern_path ~polyglot_pattern_path lang dir ext)
   in
   Testo.categorize_suites "sgrep patterns" lang_tests
 
-let lang_regression_tests ~polyglot_pattern_path =
+let lang_regression_tests (caps : < Cap.readdir ; .. >) ~polyglot_pattern_path =
   let test_pattern_path = tests_path_patterns in
   let regular_tests =
     full_lang_info
     |> List_.map (fun (lang, dir, ext) ->
-           pack_tests_for_lang ~lang_test_fn:regression_tests_for_lang
+           pack_tests_for_lang caps ~lang_test_fn:regression_tests_for_lang
              ~test_pattern_path ~polyglot_pattern_path lang dir ext)
   in
   let irregular_tests =
     [
       Testo.categorize "Typescript on Javascript (no JSX)"
         (let dir = test_pattern_path / "js" in
-         let files = Common2.glob (spf "%s/*.js" !!dir) in
+         let files = Common2.glob caps (spf "%s/*.js" !!dir) in
          let files =
            List_.exclude (fun s -> s =~ ".*xml" || s =~ ".*jsx") files
            |> Fpath_.of_strings
@@ -449,7 +449,7 @@ let lang_regression_tests ~polyglot_pattern_path =
          regression_tests_for_lang ~polyglot_pattern_path files lang);
       Testo.categorize "C++ on C tests"
         (let dir = test_pattern_path / "c" in
-         let files = Common2.glob (spf "%s/*.c" !!dir) |> Fpath_.of_strings in
+         let files = Common2.glob caps (spf "%s/*.c" !!dir) |> Fpath_.of_strings in
 
          let lang = Lang.Cpp in
          regression_tests_for_lang ~polyglot_pattern_path files lang);
@@ -520,12 +520,12 @@ let autofix_tests_for_lang ~polyglot_pattern_path files lang =
              | _ ->
                  Test_utils.compare_fixes ~polyglot_pattern_path ~file matches))
 
-let lang_autofix_tests ~polyglot_pattern_path =
+let lang_autofix_tests (caps : < Cap.readdir ; .. >) ~polyglot_pattern_path =
   let test_pattern_path = tests_path_autofix in
   let lang_tests =
     full_lang_info
     |> List_.map (fun (lang, dir, ext) ->
-           pack_tests_for_lang ~lang_test_fn:autofix_tests_for_lang
+           pack_tests_for_lang caps ~lang_test_fn:autofix_tests_for_lang
              ~test_pattern_path ~polyglot_pattern_path lang dir ext)
   in
   Testo.categorize_suites "autofix" lang_tests
@@ -534,11 +534,11 @@ let lang_autofix_tests ~polyglot_pattern_path =
 (* Eval_generic tests *)
 (*****************************************************************************)
 
-let eval_regression_tests () =
+let eval_regression_tests (caps : < Cap.readdir ; .. >) =
   [
     t "Eval_generic" (fun () ->
         let dir = tests_path / "eval" in
-        let files = Common2.glob (spf "%s/*.json" !!dir) in
+        let files = Common2.glob caps (spf "%s/*.json" !!dir) in
         files
         |> List.iter (fun file ->
                let env, code = Eval_generic.parse_json file in
@@ -597,7 +597,7 @@ let filter_irrelevant_rules_tests (caps : < Cap.readdir ; .. >) =
   Testo.categorize "filter irrelevant rules"
     (let dir = tests_path / "irrelevant_rules" in
      let target_files =
-       Common2.glob (spf "%s/*" !!dir)
+       Common2.glob caps (spf "%s/*" !!dir)
        |> Fpath_.of_strings
        |> Ftype.files_of_dirs_or_files caps (function
             | FT.Config FT.Yaml -> false
@@ -701,58 +701,58 @@ let tainting_tests_for_lang files lang =
 (* DEPRECATED: this is redundant because we now have 'make rules-test'
  * which calls 'osemgrep-pro test --pro tests/tainting_rules'
  *)
-let lang_tainting_tests () =
+let lang_tainting_tests (caps : < Cap.readdir ; .. >) =
   let taint_tests_path = tests_path / "tainting_rules" in
   Testo.categorize_suites "lang tainting rules"
     [
       Testo.categorize "tainting Go"
         (let dir = taint_tests_path / "go" in
-         let files = Common2.glob (spf "%s/*.go" !!dir) |> Fpath_.of_strings in
+         let files = Common2.glob caps (spf "%s/*.go" !!dir) |> Fpath_.of_strings in
 
          let lang = Lang.Go in
          tainting_tests_for_lang files lang);
       Testo.categorize "tainting PHP"
         (let dir = taint_tests_path / "php" in
-         let files = Common2.glob (spf "%s/*.php" !!dir) |> Fpath_.of_strings in
+         let files = Common2.glob caps (spf "%s/*.php" !!dir) |> Fpath_.of_strings in
 
          let lang = Lang.Php in
          tainting_tests_for_lang files lang);
       Testo.categorize "tainting Python"
         (let dir = taint_tests_path / "python" in
-         let files = Common2.glob (spf "%s/*.py" !!dir) |> Fpath_.of_strings in
+         let files = Common2.glob caps (spf "%s/*.py" !!dir) |> Fpath_.of_strings in
 
          let lang = Lang.Python in
          tainting_tests_for_lang files lang);
       Testo.categorize "tainting Java"
         (let dir = taint_tests_path / "java" in
          let files =
-           Common2.glob (spf "%s/*.java" !!dir) |> Fpath_.of_strings
+           Common2.glob caps (spf "%s/*.java" !!dir) |> Fpath_.of_strings
          in
 
          let lang = Lang.Java in
          tainting_tests_for_lang files lang);
       Testo.categorize "tainting Javascript"
         (let dir = taint_tests_path / "js" in
-         let files = Common2.glob (spf "%s/*.js" !!dir) |> Fpath_.of_strings in
+         let files = Common2.glob caps (spf "%s/*.js" !!dir) |> Fpath_.of_strings in
 
          let lang = Lang.Js in
          tainting_tests_for_lang files lang);
       Testo.categorize "tainting Ruby"
         (let dir = taint_tests_path / "ruby" in
-         let files = Common2.glob (spf "%s/*.rb" !!dir) |> Fpath_.of_strings in
+         let files = Common2.glob caps (spf "%s/*.rb" !!dir) |> Fpath_.of_strings in
 
          let lang = Lang.Ruby in
          tainting_tests_for_lang files lang);
       Testo.categorize "tainting Typescript"
         (let dir = taint_tests_path / "ts" in
-         let files = Common2.glob (spf "%s/*.ts" !!dir) |> Fpath_.of_strings in
+         let files = Common2.glob caps (spf "%s/*.ts" !!dir) |> Fpath_.of_strings in
 
          let lang = Lang.Ts in
          tainting_tests_for_lang files lang);
       Testo.categorize "tainting Scala"
         (let dir = taint_tests_path / "scala" in
          let files =
-           Common2.glob (spf "%s/*.scala" !!dir) |> Fpath_.of_strings
+           Common2.glob caps (spf "%s/*.scala" !!dir) |> Fpath_.of_strings
          in
 
          let lang = Lang.Scala in
@@ -915,11 +915,11 @@ let tests (caps : < Cap.readdir ; .. >) =
   List_.flatten
     [
       (* full testing for many languages *)
-      lang_regression_tests ~polyglot_pattern_path;
-      lang_autofix_tests ~polyglot_pattern_path;
-      eval_regression_tests ();
+      lang_regression_tests caps ~polyglot_pattern_path;
+      lang_autofix_tests caps ~polyglot_pattern_path;
+      eval_regression_tests caps;
       filter_irrelevant_rules_tests caps;
-      lang_tainting_tests ();
+      lang_tainting_tests caps;
       maturity_tests ();
       full_rule_taint_maturity_tests caps;
       full_rule_regression_tests caps;

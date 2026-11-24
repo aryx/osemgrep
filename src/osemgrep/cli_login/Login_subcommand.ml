@@ -103,7 +103,7 @@ You can pass @{<cyan>`SEMGREP_APP_TOKEN`@} as an environment variable instead.|}
       Some session_id)
     else
       let cmd = (Cmd.Name "open", [ Uri.to_string url ]) in
-      match CapExec.status_of_run caps#exec cmd with
+      match CapExec.status_of_run caps cmd with
       | Ok _ ->
           Logs.app (fun m -> m "Opening your sign-in link automatically...");
           let msg =

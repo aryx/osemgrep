@@ -16,7 +16,7 @@ type caps =
   ; Cap.chdir
   ; Cap.readdir
   ; Cap.fork
-  ; Cap.time_limit
+  ; Cap.time_limit ; Cap.signal
   ; Cap.memory_limit
   ; Cap.exec >
 
@@ -33,8 +33,9 @@ val check_targets_with_rules :
   ; Cap.chdir
   ; Cap.tmp
   ; Cap.fork
-  ; Cap.time_limit
+  ; Cap.time_limit ; Cap.signal
   ; Cap.memory_limit
+  ; Cap.readdir
   ; .. > ->
   Scan_CLI.conf ->
   Profiler.t ->

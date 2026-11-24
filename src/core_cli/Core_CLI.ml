@@ -367,7 +367,7 @@ let all_actions (caps : Cap.all_caps) () =
       " <files or dirs> generate parsing statistics (use -json for JSON output)",
       Arg_.mk_action_n_arg (fun xs ->
           Test_parsing.parsing_stats
-            (caps :> < Cap.time_limit ; Cap.memory_limit ; Cap.readdir >)
+            (caps :> < Cap.time_limit ; Cap.signal ; Cap.memory_limit ; Cap.readdir >)
             (Lang.of_opt_exn !lang)
             ~json:
               (match !output_format with

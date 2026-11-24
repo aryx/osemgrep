@@ -22,14 +22,14 @@ type caps = < Cap.stdout ; Cap.network ; Cap.tmp ; Cap.readdir >
 (* Helpers *)
 (*****************************************************************************)
 
-let get_test_code_for_config upload_target =
+let get_test_code_for_config (caps : < Cap.readdir ; .. >) upload_target =
   let config_filenames =
-    match Rule_tests.get_config_filenames upload_target with
+    match Rule_tests.get_config_filenames caps upload_target with
     | [] -> [ upload_target ]
     | other -> other
   in
   let config_test_filenames =
-    Rule_tests.get_config_test_filenames ~original_config:upload_target
+    Rule_tests.get_config_test_filenames caps ~original_config:upload_target
       ~configs:config_filenames ~original_target:upload_target
   in
   (config_filenames, config_test_filenames)
@@ -166,7 +166,7 @@ let run_conf (caps : < caps ; .. >) (conf : Publish_CLI.conf) : Exit_code.t =
   match settings.Semgrep_settings.api_token with
   | Some token -> (
       let config_filenames, config_test_filenames =
-        get_test_code_for_config (Fpath.v conf.upload_target)
+        get_test_code_for_config caps (Fpath.v conf.upload_target)
       in
 
       match (config_filenames, conf.visibility) with

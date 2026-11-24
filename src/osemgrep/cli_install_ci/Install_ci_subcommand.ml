@@ -95,7 +95,7 @@ let install_gh_cli (caps : < Cap.exec >) : unit =
      their own platform-specific instructions at https://github.com/cli/cli#installation
   *)
   let cmd = (Cmd.Name "brew", [ "install"; "github" ]) in
-  match CapExec.status_of_run caps#exec cmd with
+  match CapExec.status_of_run caps cmd with
   | Ok _ -> Logs.app (fun m -> m "Github cli installed successfully")
   | _ ->
       Logs.err (fun m ->
@@ -115,7 +115,7 @@ let gh_cli_exists (caps : < Cap.exec >) : bool =
    * alt: run gh --version and check for exit code
    *)
   let cmd = (Cmd.Name "command", [ "-v"; "gh" ]) in
-  match CapExec.status_of_run caps#exec cmd with
+  match CapExec.status_of_run caps cmd with
   | Ok _ -> true
   | _ -> false
 
@@ -128,13 +128,13 @@ let install_gh_cli_if_needed (caps : < Cap.exec >) : unit =
 
 let gh_authed (caps : < Cap.exec >) : bool =
   let cmd = (Cmd.Name "gh", [ "auth"; "status" ]) in
-  match CapExec.status_of_run caps#exec cmd with
+  match CapExec.status_of_run caps cmd with
   | Ok _ -> true
   | _ -> false
 
 let prompt_gh_auth (caps : < Cap.exec >) : unit =
   let cmd = (Cmd.Name "gh", [ "auth"; "login"; "--web" ]) in
-  match CapExec.status_of_run caps#exec cmd with
+  match CapExec.status_of_run caps cmd with
   | _ -> ()
 
 let prompt_gh_auth_if_needed (caps : < Cap.exec >) : unit =
@@ -151,7 +151,7 @@ let set_ssh_as_default (caps : < Cap.exec >) : unit =
     ( Cmd.Name "gh",
       [ "config"; "set"; "git_protocol"; "ssh"; "--host"; "github.com" ] )
   in
-  match CapExec.status_of_run caps#exec cmd with
+  match CapExec.status_of_run caps cmd with
   | Ok _ -> ()
   | _ -> Error.abort "failed to set git_protocol as ssh"
 
@@ -168,7 +168,7 @@ let clone_repo (caps : < Cap.exec >) ~repo : unit =
   let cmd =
     (Cmd.Name "gh", [ "repo"; "clone"; !!repo; "--"; "--depth"; "1" ])
   in
-  match CapExec.status_of_run caps#exec cmd with
+  match CapExec.status_of_run caps cmd with
   | Ok _ -> ()
   | _ -> Error.abort (Printf.sprintf "failed to clone remote repo: %s" !!repo)
 
@@ -197,7 +197,7 @@ This PR enables Semgrep scans with your repository.
         get_new_branch ();
       ] )
   in
-  match CapExec.string_of_run caps#exec ~trim:false cmd with
+  match CapExec.string_of_run caps ~trim:false cmd with
   | Ok (out, _status) -> Logs.app (fun m -> m "Created PR: %s" out)
   | _ ->
       Logs.warn (fun m -> m "Failed to create PR!");
@@ -217,7 +217,7 @@ let merge_pr (caps : < Cap.exec >) : unit =
         get_new_branch ();
       ] )
   in
-  match CapExec.string_of_run caps#exec ~trim:false cmd with
+  match CapExec.string_of_run caps ~trim:false cmd with
   | Ok (out, _status) -> Logs.app (fun m -> m "Merged PR: %s" out)
   | _ ->
       Logs.warn (fun m -> m "Failed to merge PR!");
@@ -228,7 +228,7 @@ let semgrep_app_token_secret_exists (caps : < Cap.exec >) ~git_dir:dir : bool =
   match
     Bos.OS.Dir.with_current dir
       (fun () ->
-        match CapExec.lines_of_run caps#exec ~trim:true cmd with
+        match CapExec.lines_of_run caps ~trim:true cmd with
         | Ok (lines, _status) ->
             List.exists (String.starts_with ~prefix:"SEMGREP_APP_TOKEN") lines
         | _ ->
@@ -258,7 +258,7 @@ let add_semgrep_gh_secret (caps : < Cap.exec >) ~git_dir:dir
   in
   Bos.OS.Dir.with_current dir
     (fun () ->
-      match CapExec.status_of_run caps#exec cmd with
+      match CapExec.status_of_run caps cmd with
       | Ok _ -> Logs.debug (fun m -> m "Set SEMGREP_APP_TOKEN=%s" str_token)
       | _ ->
           Logs.warn (fun m -> m "Failed to set SEMGREP_APP_TOKEN for %s" !!dir);
@@ -275,7 +275,7 @@ let get_default_branch (caps : < Cap.exec >) : string =
   let cmd =
     (Cmd.Name "git", [ "symbolic-ref"; "refs/remotes/origin/HEAD"; "--short" ])
   in
-  match CapExec.string_of_run caps#exec ~trim:true cmd with
+  match CapExec.string_of_run caps ~trim:true cmd with
   | Ok (s, _status) -> s
   | _ ->
       Logs.warn (fun m -> m "Failed to get default branch");
@@ -295,14 +295,14 @@ let get_default_branch_in caps ~dst : string =
 
 let add_all_to_git (caps : < Cap.exec >) : unit =
   let cmd = (Cmd.Name "git", [ "add"; "." ]) in
-  match CapExec.status_of_run caps#exec cmd with
+  match CapExec.status_of_run caps cmd with
   | Ok _ -> ()
   | _ -> Error.abort "Failed to add files to git"
 
 let git_push (caps : < Cap.exec >) : unit =
   let branch = get_new_branch () in
   let cmd = (Cmd.Name "git", [ "push"; "--set-upstream"; "origin"; branch ]) in
-  match CapExec.status_of_run caps#exec cmd with
+  match CapExec.status_of_run caps cmd with
   | Ok _ -> ()
   | _ ->
       Logs.warn (fun m -> m "Failed to push to branch %s" branch);
@@ -320,7 +320,7 @@ let git_commit (caps : < Cap.exec >) : unit =
         "--author=\"Semgrep CI Installer <support@semgrep.com>\"";
       ] )
   in
-  match CapExec.status_of_run caps#exec cmd with
+  match CapExec.status_of_run caps cmd with
   | Ok _ -> ()
   | _ ->
       Logs.warn (fun m -> m "Failed to commit changes to current branch!");
@@ -347,7 +347,7 @@ let semgrep_workflow_exists (caps : < Cap.exec >) ~repo : bool =
   Logs.debug (fun m -> m "Checking for semgrep workflow from %s" !!dir);
   let res =
     Bos.OS.Dir.with_current dir
-      (fun () -> CapExec.status_of_run caps#exec cmd)
+      (fun () -> CapExec.status_of_run caps cmd)
       ()
   in
   match res with

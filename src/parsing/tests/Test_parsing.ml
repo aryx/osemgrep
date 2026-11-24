@@ -355,7 +355,7 @@ let dump_lang_ast (lang : Lang.t) (file : Fpath.t) : unit =
    semgrep scans.
 *)
 let parsing_common
-    (caps : < Cap.time_limit ; Cap.memory_limit ; Cap.readdir ; .. >)
+    (caps : < Cap.time_limit ; Cap.signal ; Cap.memory_limit ; Cap.readdir ; .. >)
     ?(verbose = true) (lang : Lang.t) (root : Fpath.t) =
   let timeout_seconds = 10.0 in
   (* Without the use of Memory_limit below, we were getting some
@@ -412,7 +412,7 @@ let parsing_common
                    ~mem_limit_mb
                    (fun () ->
                      Time_limit.set_timeout
-                       (caps :> < Cap.time_limit >)
+                       (caps :> < Cap.time_limit ; Cap.signal >)
                        ~name:"Test_parsing.parsing_common" timeout_seconds
                        (fun () -> Parse_target.parse_and_resolve_name lang file))
                with
@@ -460,7 +460,7 @@ let parsing_common
    in seconds/MB or equivalent units, not seconds per file."
 *)
 let parse_project
-    (caps : < Cap.time_limit ; Cap.memory_limit ; Cap.readdir ; .. >) ~verbose
+    (caps : < Cap.time_limit ; Cap.signal ; Cap.memory_limit ; Cap.readdir ; .. >) ~verbose
     lang name root =
   let stat_list, _skipped = parsing_common caps ~verbose lang root in
   let stat_list =

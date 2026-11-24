@@ -38,7 +38,7 @@ exception Multistep_rules_not_available
 type timeout_config = {
   timeout : float;
   threshold : int;
-  caps : < Cap.time_limit >;
+  caps : < Cap.time_limit ; Cap.signal >;
 }
 
 (*****************************************************************************)

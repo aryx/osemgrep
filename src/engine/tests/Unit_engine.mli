@@ -40,6 +40,7 @@ val match_pattern :
   Used in Unit_pro_languages.ml
 *)
 val make_lang_regression_tests :
+  < Cap.readdir ; .. > ->
   test_pattern_path:Fpath.t ->
   polyglot_pattern_path:Fpath.t ->
   (Lang.t * string * string) list ->

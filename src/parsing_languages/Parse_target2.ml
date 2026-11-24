@@ -15,6 +15,7 @@
 open Common
 open Fpath_.Operators
 open Pfff_or_tree_sitter
+open Pfff_or_tree_sitter_generic
 
 (*****************************************************************************)
 (* Prelude *)

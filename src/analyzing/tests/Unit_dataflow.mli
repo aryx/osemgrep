@@ -3,4 +3,4 @@
  * run via Alcotest.run.
  *)
 val tests :
-  < Cap.time_limit > -> (Fpath.t -> AST_generic.program) -> Testo.t list
+  < Cap.time_limit ; Cap.signal ; Cap.readdir > -> (Fpath.t -> AST_generic.program) -> Testo.t list

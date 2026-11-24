@@ -109,7 +109,7 @@ type caps =
   ; Cap.chdir
   ; Cap.readdir
   ; Cap.fork
-  ; Cap.time_limit
+  ; Cap.time_limit ; Cap.signal
   ; Cap.memory_limit >
 
 (*****************************************************************************)
@@ -1043,8 +1043,9 @@ let run_conf (caps : < caps ; .. >) (ci_conf : Ci_CLI.conf) : Exit_code.t =
              ; Cap.chdir
              ; Cap.tmp
              ; Cap.fork
-             ; Cap.time_limit
-             ; Cap.memory_limit >)
+             ; Cap.time_limit ; Cap.signal
+             ; Cap.memory_limit
+             ; Cap.readdir >)
         conf profiler rules_and_origin targets_and_ignored
     in
     match res with

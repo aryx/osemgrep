@@ -192,7 +192,7 @@ class meta (caps : < Cap.exec >) ~scan_environment
       | Some repo_url -> Some repo_url
       | None -> (
           let cmd = (Cmd.Name "git", [ "remote"; "get-url"; "origin" ]) in
-          match CapExec.string_of_run caps#exec ~trim:true cmd with
+          match CapExec.string_of_run caps ~trim:true cmd with
           | Ok (str, _status) ->
               Project_metadata.get_url_from_sstp_url (Some str)
           | Error (`Msg _err) ->
@@ -208,7 +208,7 @@ class meta (caps : < Cap.exec >) ~scan_environment
       | Some branch -> Some branch
       | None -> (
           let cmd = (Cmd.Name "git", [ "rev-parse"; "--abbrev-ref"; "HEAD" ]) in
-          match CapExec.string_of_run caps#exec ~trim:true cmd with
+          match CapExec.string_of_run caps ~trim:true cmd with
           | Ok (branch, (_, `Exited 0)) -> Some branch
           | Ok _
           | Error (`Msg _) ->
@@ -221,7 +221,7 @@ class meta (caps : < Cap.exec >) ~scan_environment
       | Some sha1 -> Some sha1
       | None -> (
           let cmd = (Cmd.Name "git", [ "rev-parse"; "HEAD" ]) in
-          match CapExec.string_of_run caps#exec ~trim:true cmd with
+          match CapExec.string_of_run caps ~trim:true cmd with
           | Ok (str, (_, `Exited 0)) -> Digestif.SHA1.of_hex_opt str
           | Ok _
           | Error (`Msg _) ->

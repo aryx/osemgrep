@@ -4,7 +4,7 @@ val autofix : bool -> Out.edit list -> int * (int * string list) list
 val format : Out.output_format -> Out.format_context -> Out.cli_output -> string
 
 val sarif_format :
-  < tmp : Cap.FS.tmp > ->
+  < tmp : Cap.FS_.tmp > ->
   Out.fpath (* path to a temporary files containing the rules *) ->
   Out.format_context ->
   is_pro:bool ->

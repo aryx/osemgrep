@@ -4,7 +4,7 @@ exception File_timeout of Rule_ID.t list
 type timeout_config = {
   timeout : float;
   threshold : int;
-  caps : < Cap.time_limit >;
+  caps : < Cap.time_limit ; Cap.signal >;
 }
 
 (* Matches many rules against one target. This function is called from

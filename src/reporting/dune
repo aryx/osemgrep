@@ -5,6 +5,7 @@
  (libraries
    yaml
    commons
+   process_limits
    parsing_core
    dataflow_generic
 

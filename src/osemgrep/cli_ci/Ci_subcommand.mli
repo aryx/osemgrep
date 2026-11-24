@@ -6,7 +6,7 @@ type caps =
   ; Cap.chdir
   ; Cap.readdir
   ; Cap.fork
-  ; Cap.time_limit
+  ; Cap.time_limit ; Cap.signal
   ; Cap.memory_limit >
 
 (*

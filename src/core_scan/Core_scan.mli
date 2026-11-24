@@ -3,7 +3,8 @@
 type func = Core_scan_config.t -> Core_result.result_or_exn
 
 (* See the comment for scan() below explaining the need for those capabilities *)
-type caps = < Cap.fork ; Cap.time_limit ; Cap.memory_limit >
+type caps =
+  < Cap.fork ; Cap.time_limit ; Cap.signal ; Cap.memory_limit ; Cap.readdir >
 
 (* Entry point. This is used in Core_CLI.ml for semgrep-core, in tests,
  * and finally in osemgrep.
@@ -45,6 +46,7 @@ val scan : < caps ; .. > -> Core_scan_config.t -> Core_result.result_or_exn
    in the rule) with target paths as reflected by the Target.t type.
 *)
 val targets_of_config :
+  < Cap.readdir ; .. > ->
   Core_scan_config.t ->
   Rule.t list ->
   Target.t list * Core_error.t list * Semgrep_output_v1_t.skipped_target list
@@ -54,6 +56,7 @@ val rules_of_config : Core_scan_config.t -> Rule_error.rules_and_invalid
 
 (* Get the rules, using targeting info in config to filter irrelevant rules *)
 val applicable_rules_of_config :
+  < Cap.readdir ; .. > ->
   Core_scan_config.t -> Rule_error.rules_and_invalid
 
 (* This is also used by semgrep-proprietary. It filters the rules that
@@ -120,7 +123,7 @@ val parse_and_resolve_name :
 
 (* small wrapper around Match_rules.check *)
 val match_rules :
-  < Cap.time_limit ; .. > ->
+  < Cap.time_limit ; Cap.signal ; .. > ->
   matches_hook:(Core_match.t list -> Core_match.t list) ->
   Core_scan_config.t ->
   Match_env.prefilter_config ->

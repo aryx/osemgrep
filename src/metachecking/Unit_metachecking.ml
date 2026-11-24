@@ -30,10 +30,10 @@ let tests_path = Fpath.v "tests"
  * from the metachecker checks, but simpler to consider all of that
  * as just errors.
  *)
-let metachecker_checks_tests () =
+let metachecker_checks_tests (caps : < Cap.readdir ; .. >) =
   Testo.categorize "metachecker"
     (let dir = tests_path / "errors" in
-     let files = Common2.glob (spf "%s/*.yaml" !!dir) in
+     let files = Common2.glob caps (spf "%s/*.yaml" !!dir) in
      files
      |> List_.map (fun file ->
             let file = Fpath.v file in
@@ -63,4 +63,4 @@ let metachecker_regression_tests caps =
 
 let tests caps =
   List_.flatten
-    [ metachecker_checks_tests (); metachecker_regression_tests caps ]
+    [ metachecker_checks_tests caps; metachecker_regression_tests caps ]

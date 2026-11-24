@@ -115,7 +115,8 @@ module Out = Semgrep_output_v1_j
 type func = Core_scan_config.t -> Core_result.result_or_exn
 
 (* TODO: stdout (sometimes) *)
-type caps = < Cap.fork ; Cap.time_limit ; Cap.memory_limit >
+type caps =
+  < Cap.fork ; Cap.time_limit ; Cap.signal ; Cap.memory_limit ; Cap.readdir >
 
 (* Type of the iter_targets_and_get_matches_and_exn_to_errors callback.
 
@@ -312,7 +313,8 @@ let translate_targeting_conf_from_pysemgrep (conf : Out.targeting_conf) :
 (* Compute the set of targets, either by reading what was passed
  * in -targets or passed by osemgrep in Targets.
  *)
-let targets_of_config (config : Core_scan_config.t) (rules : Rule.t list) :
+let targets_of_config (caps : < Cap.readdir ; .. >) (config : Core_scan_config.t)
+    (rules : Rule.t list) :
     Target.t list * Core_error.t list * Out.skipped_target list =
   let no_error (targets, skipped_targets) = (targets, [], skipped_targets) in
   match config.target_source with
@@ -330,11 +332,11 @@ let targets_of_config (config : Core_scan_config.t) (rules : Rule.t list) :
            * file targeting processing would be done before and just call scan()
            * with prepared Targets. However there is experimental work to move
            * pysemgrep file targeting to OCaml and pass scanning_roots to
-           * semgrep-core hence the need for readdir, but because this
-           * is experimental, let's forge it for now to avoid modifying
-           * all the callers.
+           * semgrep-core hence the need for readdir.
+           * claude: we used to forge it with Cap.readdir_UNSAFE() to avoid
+           * modifying all the callers, but it is gone from ocaml-caps, so
+           * Cap.readdir is now part of Core_scan.caps.
            *)
-          let caps = Cap.readdir_UNSAFE () in
           let target_paths, errors, skipped =
             Find_targets.get_target_fpaths caps targeting_conf scanning_roots
           in
@@ -419,10 +421,10 @@ let rules_of_config (config : Core_scan_config.t) : Rule_error.rules_and_invalid
    are discarded!
    Is this filtering necessary anyway?
 *)
-let applicable_rules_of_config (config : Core_scan_config.t) :
-    Rule_error.rules_and_invalid =
+let applicable_rules_of_config (caps : < Cap.readdir ; .. >)
+    (config : Core_scan_config.t) : Rule_error.rules_and_invalid =
   let rules, invalid_rules = rules_of_config config in
-  let targets, _errors, _skipped = targets_of_config config rules in
+  let targets, _errors, _skipped = targets_of_config caps config rules in
   let rules = filter_rules_by_targets_analyzers rules targets in
   (rules, invalid_rules)
 
@@ -758,7 +760,7 @@ let rules_for_target ~combine_js_with_ts ~respect_rule_paths (target : Target.t)
 (* a "core" scan *)
 (*****************************************************************************)
 
-let match_rules (caps : < Cap.time_limit ; .. >) ~matches_hook
+let match_rules (caps : < Cap.time_limit ; Cap.signal ; .. >) ~matches_hook
     (config : Core_scan_config.t)
     (prefilter_cache_opt : Match_env.prefilter_config) (rules : Rule.t list)
     (xtarget : Xtarget.t) : Core_result.matches_single_file =
@@ -771,9 +773,9 @@ let match_rules (caps : < Cap.time_limit ; .. >) ~matches_hook
       filter_irrelevant_rules = prefilter_cache_opt;
     }
   in
-  let caps = (caps :> < Cap.time_limit >) in
+  let caps = (caps :> < Cap.time_limit ; Cap.signal >) in
   let timeout : Match_rules.timeout_config option =
-    let caps = (caps :> < Cap.time_limit >) in
+    let caps = (caps :> < Cap.time_limit ; Cap.signal >) in
     Some
       { timeout = config.timeout; threshold = config.timeout_threshold; caps }
   in
@@ -784,7 +786,7 @@ let match_rules (caps : < Cap.time_limit ; .. >) ~matches_hook
 (* build the callback for iter_targets_and_get_matches_and_exn_to_errors
  * coupling: with Pro_scan.mk_target_handler()
  *)
-let mk_target_handler (caps : < Cap.time_limit >) (config : Core_scan_config.t)
+let mk_target_handler (caps : < Cap.time_limit ; Cap.signal >) (config : Core_scan_config.t)
     (valid_rules : Rule.t list)
     (prefilter_cache_opt : Match_env.prefilter_config) : target_handler =
  (* Note that this function runs in another process *)
@@ -826,7 +828,7 @@ let scan_exn (caps : < caps ; .. >) (config : Core_scan_config.t)
   in
   (* the targets *)
   let targets, target_discovery_errors, skipped =
-    targets_of_config config valid_rules
+    targets_of_config caps config valid_rules
   in
 
   (* !!Let's go!! *)
@@ -843,7 +845,7 @@ let scan_exn (caps : < caps ; .. >) (config : Core_scan_config.t)
          (caps :> < Cap.fork ; Cap.memory_limit >)
          config
          (mk_target_handler
-            (caps :> < Cap.time_limit >)
+            (caps :> < Cap.time_limit ; Cap.signal >)
             config valid_rules prefilter_cache_opt)
   in
 
@@ -949,7 +951,7 @@ let scan (caps : < caps ; .. >) (config : Core_scan_config.t) :
     Core_result.result_or_exn =
   try
     let timed_rules =
-      Common.with_time (fun () -> applicable_rules_of_config config)
+      Common.with_time (fun () -> applicable_rules_of_config caps config)
     in
     let res : Core_result.t = scan_exn caps config timed_rules in
     Ok

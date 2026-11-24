@@ -120,7 +120,7 @@ let fetch_token_async ?(min_wait_ms = 2000) ?(next_wait_ms = 1000)
         in
         Lwt.return (Error msg)
     | n -> (
-        let%lwt resp = Http_helpers.post ~body ~headers caps#network url in
+        let%lwt resp = Http_helpers.post ~body ~headers caps url in
         match resp with
         | Ok { body = Ok body; _ } -> (
             try

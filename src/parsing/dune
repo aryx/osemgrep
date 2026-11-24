@@ -12,6 +12,7 @@
    git_wrapper
    paths
    parsing_core
+   parsing_tree_sitter ; Pfff_or_tree_sitter
    process_limits
    spacegrep
    uri ; for Parse_lockfile.ml

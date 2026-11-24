@@ -27,7 +27,7 @@ let get_and_check_lwt caps url =
   Logs.debug (fun m -> m "GET %s" url);
   let uri = Uri.of_string url in
   (* Check OK Status *)
-  match%lwt Http_helpers.get caps#network uri with
+  match%lwt Http_helpers.get caps uri with
   | Ok { body = Ok body; _ } -> Lwt.return body
   | Ok { body = Error e; _ }
   | Error e ->
@@ -37,7 +37,7 @@ let post_and_check_lwt caps url body =
   Logs.debug (fun m -> m "POST %s" url);
   let uri = Uri.of_string url in
   (* Check OK Status *)
-  match%lwt Http_helpers.post ~body caps#network uri with
+  match%lwt Http_helpers.post ~body caps uri with
   | Ok { body = Ok body; _ } -> Lwt.return body
   | Ok { body = Error e; _ }
   | Error e ->

@@ -119,9 +119,9 @@ let tests (caps : Cap.all_caps) =
       Unit_semgrepignore.tests;
       Unit_gitignore.tests;
       Unit_include_filter.tests;
-      Unit_parsing.tests ();
+      Unit_parsing.tests (caps :> < Cap.readdir >);
       Unit_entropy.tests;
-      Parser_regexp.Unit_parsing.tests;
+      Parser_regexp.Unit_parsing.tests (caps :> < Cap.readdir >);
       Unit_ReDoS.tests;
       Unit_guess_lang.tests;
       Unit_memory_limit.tests (caps :> < Cap.memory_limit >);
@@ -133,17 +133,20 @@ let tests (caps : Cap.all_caps) =
       Unit_autofix.tests;
       Unit_autofix_printer.tests;
       Unit_dataflow.tests
-        (caps :> < Cap.time_limit >)
+        (caps :> < Cap.time_limit ; Cap.signal ; Cap.readdir >)
         Parse_target.parse_program;
-      Unit_typing_generic.tests Parse_target.parse_program (fun lang file ->
+      Unit_typing_generic.tests
+        (caps :> < Cap.readdir >)
+        Parse_target.parse_program
+        (fun lang file ->
           Parse_pattern.parse_pattern lang file);
-      Unit_naming_generic.tests Parse_target.parse_program;
+      Unit_naming_generic.tests (caps :> < Cap.readdir >) Parse_target.parse_program;
       (* just expression vs expression testing for one language (Python) *)
       Unit_matcher.tests ~any_gen_of_string;
       (* TODO Unit_matcher.spatch_unittest ~xxx *)
       (* TODO Unit_matcher_php.unittest; sgrep/spatch/refactoring/unparsing *)
       Unit_engine.tests (caps :> < Cap.readdir >);
-      Unit_jsonnet.tests (caps :> < Cap.time_limit >);
+      Unit_jsonnet.tests (caps :> < Cap.time_limit ; Cap.signal ; Cap.readdir >);
       Unit_metachecking.tests (caps :> < Core_scan.caps ; Cap.readdir >);
       (* osemgrep unit tests *)
       Unit_LS.tests (caps :> Session.caps);
